@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Login — Atlas Quest{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="text-center mb-4">
+      <p class="overline-label">Welcome back</p>
+      <h1 class="auth-title">Atlas Quest</h1>
+      <p class="auth-subtitle">Resume your journey</p>
+    </div>
+
+    <form method="post" action="{{ url_for('auth.login') }}">
+      <label class="auth-label" for="username">Username or Email</label>
+      <input class="auth-input" type="text" id="username" name="username" required autofocus />
+
+      <label class="auth-label" for="password">Password</label>
+      <input class="auth-input" type="password" id="password" name="password" required />
+
+      <button type="submit" class="btn-auth mt-3">Log In</button>
+    </form>
+
+    <p class="auth-switch">
+      No account yet?
+      <a href="{{ url_for('auth.register') }}">Register</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

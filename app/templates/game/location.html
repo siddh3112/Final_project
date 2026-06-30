@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block body_class %}loc-body theme-{{ loc.theme }}{% endblock %}
+
+{% block body %}
+
+{% set interaction = loc.interaction | default('paged') %}
+{% set show_npc = current_user.condition == 'game' %}
+
+<div class="location-page" style="--accent: {{ loc.accent }};">
+
+  <!-- ── Distinct themed backdrop (CSS/SVG only) ── -->
+  <div class="scene scene-{{ loc.theme }}" aria-hidden="true">
+    {% if loc.theme == 'archive' %}
+      {% for i in range(14) %}
+      <span class="ember" style="left: {{ (i * 7 + 4) % 100 }}%; animation-delay: {{ (i * 0.6)|round(1) }}s; animation-duration: {{ 7 + (i % 5) }}s;"></span>
+      {% endfor %}
+    {% elif loc.theme == 'lab' %}
+      <div class="lab-grid"></div>
+      <div class="lab-scan"></div>
+      {% for i in range(7) %}
+      <span class="stream" style="left: {{ (i * 14 + 6) % 100 }}%; animation-delay: {{ (i * 0.8)|round(1) }}s; animation-duration: {{ 4 + (i % 3) }}s;"></span>
+      {% endfor %}
+    {% elif loc.theme == 'cosmos' %}
+      <svg class="constellation" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice">
+        <polyline points="40,60 90,40 140,80 180,50 230,90" class="con-line" />
+        <polyline points="280,40 320,90 360,70 380,120" class="con-line" />
+        <polyline points="60,180 110,150 150,190 210,160" class="con-line" />
+        {% for p in [[40,60],[90,40],[140,80],[180,50],[230,90],[280,40],[320,90],[360,70],[380,120],[60,180],[110,150],[150,190],[210,160]] %}
+        <circle cx="{{ p[0] }}" cy="{{ p[1] }}" r="2.4" class="con-star" style="animation-delay: {{ (loop.index0 * 0.4)|round(1) }}s;" />
+        {% endfor %}
+      </svg>
+    {% endif %}
+  </div>
+
+  {% if interaction == 'bookshelf' %}
+  <!-- ── Library atmosphere: candle vignette, drifting dust, mute toggle ── -->
+  <div class="lib-vignette" aria-hidden="true"></div>
+  <div class="lib-dust" id="lib-dust" aria-hidden="true"></div>
+  <button class="lib-mute" id="lib-mute" type="button" aria-label="Sound on" title="Sound on / off">🔊</button>
+  {% endif %}
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <div class="container loc-container pb-5">
+
+    <!-- ── Scene hero ── -->
+    <header class="text-center loc-hero loc-reveal {{ 'loc-hero-compact' if interaction == 'bookshelf' }}">
+      {% if interaction != 'bookshelf' %}
+      <div class="loc-hero-icon">{{ loc.icon }}</div>
+      {% endif %}
+      <h1 class="loc-name">{{ loc.name }}</h1>
+      <p class="loc-tagline">{{ loc.tagline }}</p>
+      <span class="topic-badge accent-badge">{{ loc.topic }}</span>
+    </header>
+
+    <!-- ── Professor Atlas: interactive onboarding (or static intro) ── -->
+    {% if loc.atlas_steps %}
+    <div class="hub-onboard-overlay atlas-loc-overlay" id="atlas-onboard">
+      <div class="hub-onboard-card">
+        <div class="hub-onboard-portrait"><span class="atlas-glyph" aria-hidden="true"></span></div>
+        <div class="atlas-name">Professor Atlas</div>
+        <p class="hub-onboard-text" id="onboard-text"></p>
+        <div class="onboard-controls onboard-controls-center">
+          <div class="onboard-dots" id="onboard-dots">
+            {% for s in loc.atlas_steps %}<span class="onboard-dot"></span>{% endfor %}
+          </div>
+          <div class="onboard-btns">
+            <button type="button" class="onboard-btn" id="onboard-prev">Back</button>
+            <button type="button" class="onboard-btn primary" id="onboard-next">Next</button>
+            <button type="button" class="onboard-btn skip" id="onboard-skip">Skip</button>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" id="onboard-steps">{{ loc.atlas_steps | tojson }}</script>
+    </div>
+    {% else %}
+    <section class="atlas-intro">
+      <div class="atlas-portrait"><span class="atlas-glyph" aria-hidden="true"></span></div>
+      <div class="atlas-speech">
+        <div class="atlas-name">Professor Atlas</div>
+        <p class="atlas-line">{{ loc.guide_intro }}</p>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ── Quest objectives (hidden for the Library bookshelf) ── -->
+    {% if interaction != 'bookshelf' %}
+    <section class="objectives-panel loc-reveal">
+      <h2 class="panel-title"><i class="bi bi-stars me-2"></i>Your Quest</h2>
+      <ul class="objectives-list">
+        {% for obj in loc.learning_objectives %}
+        <li>{{ obj }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if interaction == 'bookshelf' %}
+    <!-- ══════════ LIBRARY: interactive bookshelf ══════════ -->
+    <section class="shelf-stage">
+      <div class="shelf-head">
+        <h2 class="panel-title mb-0"><i class="bi bi-book-half me-2"></i>The Great Shelves</h2>
+      </div>
+
+      <!-- Knowledge Core: charges as concept fragments are collected -->
+      <section class="core-panel loc-reveal">
+        <div class="knowledge-core" id="knowledge-core">
+          <div class="core-orb">
+            <span class="core-count"><b id="books-read">0</b><span class="core-of">/<span id="books-total">{{ books|length }}</span></span></span>
+          </div>
+        </div>
+        <div class="core-info">
+          <div class="core-title"><i class="bi bi-gem me-1"></i>The Knowledge Core</div>
+          <p class="shelf-hint" id="shelf-hint">Among the countless volumes, {{ books|length }} <strong>glowing tomes</strong> hold the knowledge you seek. Read each and pass its quick check to charge the Core — fill it to unlock <strong>The Trial</strong>.</p>
+          <div class="core-bar"><div class="core-bar-fill" id="core-fill"></div></div>
+        </div>
+      </section>
+
+      <!-- 3-column layout: Concept Deck (left) · bookcase (center) · Trial (right) -->
+      <div class="library-layout">
+
+        <!-- LEFT: Concept Deck — collectible flashcards, locked until mastered -->
+        <aside class="library-aside library-aside-left">
+          <section class="cards-collection loc-reveal">
+            <h3 class="cards-title"><i class="bi bi-collection-fill me-2"></i>Concept Deck</h3>
+            <div class="concept-deck">
+              {% for book in books %}
+              <div class="flashcard locked rarity-{{ book.flashcard.rarity|lower }}" data-index="{{ loop.index0 }}">
+                <div class="flashcard-inner">
+                  <div class="flashcard-face flashcard-front">
+                    <div class="fc-rarity">{{ book.flashcard.rarity }}</div>
+                    <div class="fc-icon"><i class="bi bi-cpu"></i></div>
+                    <div class="fc-name">{{ book.concept }}</div>
+                    <div class="fc-type">{{ book.flashcard.type }}</div>
+                    <div class="fc-flip-hint">Click to flip</div>
+                  </div>
+                  <div class="flashcard-face flashcard-back">
+                    <div class="fc-back-label">Meaning</div>
+                    <p class="fc-line">{{ book.flashcard.meaning }}</p>
+                    <div class="fc-back-label">Example</div>
+                    <p class="fc-line">{{ book.flashcard.example }}</p>
+                    <div class="fc-back-label">Remember</div>
+                    <p class="fc-line">{{ book.flashcard.remember }}</p>
+                  </div>
+                </div>
+                <div class="flashcard-lock"><i class="bi bi-lock-fill"></i><span>???</span></div>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+        </aside>
+
+        <!-- CENTER: the bookcase -->
+        <div class="library-center">
+          <div class="bookcase loc-reveal">
+            {% for row in shelves %}
+            <div class="shelf-row">
+              <div class="shelf-books">
+                {% for bk in row %}
+                {% if bk.type == 'real' %}
+                <button class="book book-real book-lesson book-lesson-{{ bk.index }}" data-index="{{ bk.index }}" type="button"
+                        title="{{ bk.title }}" style="height: {{ bk.h }}px; width: {{ bk.w }}px;">
+                  <span class="book-title">{{ bk.title }}</span>
+                  <span class="book-check"><i class="bi bi-bookmark-check-fill"></i></span>
+                </button>
+                {% else %}
+                <button class="book book-decoy book-c{{ bk.color }}" data-decoy="1" type="button"
+                        title="{{ bk.title }}" style="height: {{ bk.h }}px; width: {{ bk.w }}px;">
+                  <span class="book-title">{{ bk.title }}</span>
+                </button>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <div class="shelf-plank"></div>
+            </div>
+            {% endfor %}
+
+            <!-- Decorative books resting horizontally, like a real shelf -->
+            <div class="lying-stack" aria-hidden="true">
+              <span class="lying-book lb-a"></span>
+              <span class="lying-book lb-b"></span>
+              <span class="lying-book lb-c"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: The Trial gate (locked until all volumes studied) -->
+        <aside class="library-aside library-aside-right">
+          <section class="trial-stage loc-reveal" id="trial-stage">
+            <div class="trial-gate" id="trial-gate">
+              <i class="bi bi-lock-fill"></i>
+              <span>Study all {{ loc.learn_cards|length }} volumes to unlock <strong>The Trial</strong></span>
+            </div>
+            <div class="trial-content trial-ready" id="trial-content" hidden>
+              <div class="trial-ready-icon"><i class="bi bi-unlock-fill"></i></div>
+              <h3 class="trial-ready-title">The Path is Open</h3>
+              <p class="trial-ready-text">You have mastered the knowledge here. The Trial awaits.</p>
+              <a href="{{ url_for('game.trial', key=loc.key) }}" class="btn-quest btn-quest-final">
+                Enter the Trial <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </section>
+        </aside>
+
+      </div>
+
+      <!-- Book data for the reader -->
+      <script type="application/json" id="library-books">{{ books | tojson }}</script>
+    </section>
+
+    <!-- ══════════ Multi-page interactive book reader ══════════ -->
+    <div class="book-reader" id="book-reader" hidden>
+      <div class="book-reader-backdrop" data-close></div>
+      <div class="book-tome" id="book-tome" role="dialog" aria-modal="true">
+        <button class="book-reader-close" data-close aria-label="Close">&times;</button>
+        <div class="book-page" id="book-page"></div>
+        <div class="book-reader-nav">
+          <button class="book-nav-btn" id="book-prev" type="button"><i class="bi bi-chevron-left"></i> Previous</button>
+          <span class="book-indicator" id="book-indicator"></span>
+          <button class="book-nav-btn primary" id="book-next" type="button">Next <i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- ══════════ Paged lesson journey (default) ══════════ -->
+    <section class="lesson-stage loc-reveal" id="lesson-stage">
+      <div class="lesson-progress">
+        <span class="lesson-counter">Lesson <b id="lesson-cur">1</b> / <span id="lesson-total">{{ loc.learn_cards|length }}</span></span>
+        <div class="lesson-bar"><div class="lesson-bar-fill" id="lesson-fill"></div></div>
+      </div>
+
+      <div class="lesson-cards" id="lesson-cards">
+        {% for card in loc.learn_cards %}
+        <article class="lesson-card {{ 'active' if loop.first }}" data-index="{{ loop.index0 }}">
+          <div class="lesson-card-num">{{ loop.index }}</div>
+          <h3 class="lesson-card-heading">{{ card.heading }}</h3>
+          <p class="lesson-card-text">{{ card.text }}</p>
+        </article>
+        {% endfor %}
+      </div>
+
+      <div class="lesson-nav">
+        <button id="lesson-prev" class="lesson-btn" type="button" disabled><i class="bi bi-chevron-left"></i> Previous</button>
+        <button id="lesson-next" class="lesson-btn primary" type="button">Next <i class="bi bi-chevron-right"></i></button>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if interaction != 'bookshelf' %}
+    <!-- ── The Trial (locked until lessons read) — paged layout ── -->
+    <section class="trial-stage loc-reveal" id="trial-stage">
+      <div class="trial-gate" id="trial-gate">
+        <i class="bi bi-lock-fill"></i>
+        <span>Read all {{ loc.learn_cards|length }} lessons to unlock <strong>The Trial</strong></span>
+      </div>
+
+      <div class="trial-content trial-ready" id="trial-content" hidden>
+        <div class="trial-ready-icon"><i class="bi bi-unlock-fill"></i></div>
+        <h3 class="trial-ready-title">The Path is Open</h3>
+        <p class="trial-ready-text">You have mastered the knowledge here. The Trial awaits on the next page.</p>
+        <a href="{{ url_for('game.trial', key=loc.key) }}" class="btn-quest btn-quest-final">
+          Enter the Trial <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </section>
+    {% endif %}
+
+  </div>
+
+  {% if show_npc %}
+  <!-- ── Professor Atlas — floating tutor (bottom-right) ── -->
+  <div class="atlas-widget" id="atlas-widget" data-location="{{ loc.key }}">
+    <div class="atlas-chat" id="atlas-chat" hidden>
+      <div class="atlas-chat-head">
+        <span class="atlas-chat-title"><span class="atlas-glyph" aria-hidden="true"></span> Professor Atlas</span>
+        <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="atlas-chat-log" id="atlas-log">
+        <div class="atlas-msg atlas-msg-bot">
+          Ask me about anything in {{ loc.name }}, explorer — though I shall never hand you a Trial answer outright.
+        </div>
+      </div>
+      <form class="atlas-chat-form" id="atlas-form">
+        <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="Ask Professor Atlas…" autocomplete="off" />
+        <button type="submit" class="atlas-chat-send" id="atlas-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+      </form>
+    </div>
+    <button class="atlas-launcher" id="atlas-launcher" aria-label="Ask Professor Atlas" title="Ask Professor Atlas">
+      <span class="atlas-launcher-icon"><span class="atlas-glyph" aria-hidden="true"></span></span>
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if loc.interaction | default('paged') == 'bookshelf' %}
+<script src="{{ url_for('static', filename='js/library-ambience.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bookshelf.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='js/lesson.js') }}"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script src="{{ url_for('static', filename='js/onboarding.js') }}"></script>
+<script src="{{ url_for('static', filename='js/reveal.js') }}"></script>
+{% if current_user.condition == 'game' %}
+<script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+{% endif %}
+{% endblock %}

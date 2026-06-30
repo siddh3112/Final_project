@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}The Trial — {{ loc.name }}{% endblock %}
+{% block body_class %}loc-body theme-{{ loc.theme }}{% if loc.interaction == 'terminal' %} trial-terminal{% endif %}{% endblock %}
+
+{% block body %}
+{% set show_npc = current_user.condition == 'game' %}
+{% set is_terminal = loc.interaction == 'terminal' %}
+
+<div class="location-page" style="--accent: {{ '#00ff41' if is_terminal else loc.accent }};">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.location', key=loc.key) }}" class="back-link">
+      <i class="bi bi-arrow-left me-1"></i> Back to {{ loc.name }}
+    </a>
+  </nav>
+
+  <div class="container loc-container pb-5">
+
+    <header class="text-center loc-hero loc-hero-compact">
+      <div class="loc-hero-icon">⚔️</div>
+      <h1 class="loc-name">The Trial</h1>
+      <p class="loc-tagline">{{ loc.name }} — {{ loc.topic }}</p>
+    </header>
+
+    <section class="trial-stage">
+      <div class="trial-content">
+        <p class="quiz-intro text-center">
+          Choose wisely, explorer. Score at least <strong>3 of 4</strong> to pass.{% if show_npc %} Stuck? Ask Professor Atlas for a hint.{% endif %}
+        </p>
+
+        <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
+              class="quiz-form" id="quiz-form" data-location="{{ loc.key }}">
+          <input type="hidden" name="consulted" id="consulted" value="" />
+
+          <div class="quiz-progress">
+            <span class="quiz-counter">Question <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
+            <div class="quiz-bar"><div class="quiz-bar-fill" id="q-fill"></div></div>
+          </div>
+
+          <div class="quiz-questions" id="quiz-questions">
+            {% for q in quiz %}
+            <div class="quiz-question {{ 'active' if loop.first }}" data-qindex="{{ loop.index0 }}"
+                 data-correct="{{ q.correct }}" data-qkey="{{ q.key }}" data-question="{{ q.question }}"
+                 data-hint="{{ q.hint | default('') }}">
+              <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
+              <div class="q-options">
+                {% for letter, text in q.options.items() %}
+                <label class="q-option">
+                  <input type="radio" name="{{ q.key }}" value="{{ letter }}" />
+                  <span class="q-option-letter">{{ letter }}</span>
+                  <span class="q-option-text">{{ text }}</span>
+                </label>
+                {% endfor %}
+              </div>
+
+              {% if show_npc %}
+              <div class="hint-row">
+                <button type="button" class="hint-btn"><span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> Ask Professor Atlas for a hint</button>
+              </div>
+              <div class="hint-box" hidden>
+                <span class="hint-avatar"><span class="atlas-glyph" aria-hidden="true"></span></span>
+                <p class="hint-text"></p>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Results — {{ loc.name }}{% endblock %}
+{% block body_class %}{% if loc.interaction == 'terminal' %}results-terminal{% endif %}{% endblock %}
+
+{% block body %}
+
+{% if passed %}
+<div class="celebration" id="celebration">
+  <div class="celebration-particles" id="celebration-particles"></div>
+  <div class="celebration-card">
+    <div class="celebration-emblem">🏆</div>
+    <h1 class="celebration-title">Location Complete!</h1>
+    <p class="celebration-sub">{{ loc.name }} mastered — {{ score }} / {{ total }}</p>
+    <a href="{{ url_for('game.hub') }}" class="btn-quest btn-quest-final">
+      Return to the Map <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+    <button type="button" class="celebration-review" id="celebration-review">Review my answers</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="location-page">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <main class="container pb-5">
+
+    <!-- Score banner -->
+    <header class="text-center loc-header">
+      <div class="loc-icon">{{ loc.icon }}</div>
+      <h1 class="loc-name">The Trial — Results</h1>
+
+      <div class="score-display {{ 'pass' if passed else 'fail' }}">
+        {{ score }} / {{ total }}
+      </div>
+
+      {% if passed %}
+        <p class="score-verdict pass">
+          <i class="bi bi-check-circle-fill me-2"></i>Passed — well done, explorer.
+        </p>
+      {% else %}
+        <p class="score-verdict fail">
+          <i class="bi bi-x-circle-fill me-2"></i>Not quite. You need at least 3 / 4 to continue.
+        </p>
+      {% endif %}
+    </header>
+
+    <hr class="gold-divider mx-auto my-4" />
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <!-- Per-question breakdown -->
+        {% for r in results %}
+        <div class="result-question {{ 'correct' if r.is_correct else 'wrong' }}">
+          <p class="q-text">
+            <span class="q-number">{{ loop.index }}</span>{{ r.question }}
+          </p>
+
+          <div class="q-options">
+            {% for letter, text in r.options.items() %}
+            {% set is_correct_answer = (letter == r.correct) %}
+            {% set is_user_choice = (letter == r.selected) %}
+            <div class="result-option
+                        {% if is_correct_answer %}is-correct{% endif %}
+                        {% if is_user_choice and not is_correct_answer %}is-wrong{% endif %}">
+              <span class="q-option-letter">{{ letter }}</span>
+              <span class="q-option-text">{{ text }}</span>
+              <span class="result-marks ms-auto">
+                {% if is_correct_answer %}
+                  <i class="bi bi-check-lg result-tick"></i>
+                {% elif is_user_choice %}
+                  <i class="bi bi-x-lg result-cross"></i>
+                {% endif %}
+                {% if is_user_choice %}
+                  <span class="your-answer-tag">Your answer</span>
+                {% endif %}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="explanation">
+            <i class="bi bi-lightbulb me-2"></i>{{ r.explanation }}
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Action buttons -->
+        <div class="text-center mt-4">
+          {% if passed %}
+            <a href="{{ url_for('game.hub') }}" class="btn-continue">
+              Continue to Hub <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          {% else %}
+            <a href="{{ url_for('game.location', key=loc.key) }}" class="btn-try-again">
+              <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if passed %}
+<script src="{{ url_for('static', filename='js/celebration.js') }}"></script>
+{% endif %}
+{% endblock %}

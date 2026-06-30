@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loc.name }} — Coming Soon{% endblock %}
+
+{% block body %}
+
+<div class="location-page">
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-arrow-left"></i> Back to Hub
+    </a>
+  </nav>
+
+  <main class="container">
+    <div class="coming-soon text-center">
+      <div class="loc-icon">{{ loc.icon }}</div>
+      <h1 class="loc-name">{{ loc.name }}</h1>
+      <p class="loc-tagline">{{ loc.tagline }}</p>
+      <span class="topic-badge">{{ loc.topic }}</span>
+      <p class="coming-soon-msg mt-4">
+        <i class="bi bi-hourglass-split me-2"></i>This location is still being prepared. Coming soon.
+      </p>
+    </div>
+  </main>
+</div>
+
+{% endblock %}

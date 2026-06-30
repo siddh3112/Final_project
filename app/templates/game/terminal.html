@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block body_class %}terminal-body{% endblock %}
+
+{% block body %}
+{% set show_npc = current_user.condition == 'game' %}
+{% set ns = namespace(q3_correct='') %}
+{% for q in quiz %}{% if q.key == 'lab_q3' %}{% set ns.q3_correct = q.correct %}{% endif %}{% endfor %}
+
+<div class="crt-dim" id="crt-dim" aria-hidden="true"></div>
+
+<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link term-link"><i class="bi bi-chevron-left"></i> RETURN_TO_MAP</a>
+  </nav>
+
+  <button class="term-mute" id="term-mute" type="button" aria-label="Sound on" title="Sound on / off">🔊</button>
+
+  <!-- ── Physical sector toggle switches (above the monitor) ── -->
+  <div class="sector-switches" id="sector-switches" aria-hidden="true">
+    {% for n in range(4) %}
+    <div class="switch-unit">
+      <div class="toggle-switch" data-sector="{{ n }}"><span class="toggle-lever"></span></div>
+      <span class="switch-label">SECT-{{ n + 1 }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ══════════ THE CRT MONITOR ══════════ -->
+  <div class="crt-monitor">
+    <div class="crt-screen" id="crt-screen">
+
+      <!-- Power-on sequence overlay -->
+      <div class="power-on" id="power-on">
+        <div class="po-warmup" id="po-warmup"></div>
+        <pre class="po-text" id="po-text"></pre>
+        <div class="po-bar" id="po-bar" hidden><div class="po-bar-fill" id="po-bar-fill"></div></div>
+      </div>
+
+      <!-- CRT transition layers -->
+      <div class="crt-roll" id="crt-roll" aria-hidden="true"></div>
+      <div class="crt-colorflash" id="crt-colorflash" aria-hidden="true"></div>
+
+      <!-- Screen content (revealed after power-on) -->
+      <div class="screen-content" id="screen-content" hidden>
+
+        <!-- ── Mission briefing (instructions, shown first) ── -->
+        <section class="term-briefing" id="term-briefing" hidden>
+          <div class="term-bar">ATLAS-TERMINAL v2.3 | MISSION BRIEFING | CLEARANCE: LEVEL_1</div>
+          <hr class="term-hr" />
+          <h2 class="term-head static" id="brief-head"></h2>
+          <p class="brief-intro">&gt; Welcome, researcher. Before you operate this terminal, read your orders:</p>
+          <ul class="brief-list" id="brief-list">
+            <li><span class="brief-key">[1]</span> Review each <b>SECTOR</b> of declassified data. Read it, then press <b>&gt; CONTINUE</b>.</li>
+            <li><span class="brief-key">[2]</span> One sector is a live <b>CLASSIFICATION DIAGNOSTIC</b> — drag each data item onto the correct bin (STRUCTURED / SEMI / UNSTRUCTURED).</li>
+            <li><span class="brief-key">[3]</span> The four switches above the monitor (<b>SECT-1…4</b>) light up as you clear each sector.</li>
+            <li><span class="brief-key">[4]</span> When all sectors are cleared, the system reboots into <b>ASSESSMENT MODE</b>. Score <b>3 / 4</b> to pass.</li>
+            <li><span class="brief-key">[5]</span> Stuck? Open <b>PROFESSOR_ATLAS</b> (bottom-right) for a hint — he will never hand you an answer.</li>
+          </ul>
+          <div class="term-actions">
+            <button class="term-continue" type="button" id="brief-begin">&gt; BEGIN MISSION [ENTER]</button>
+          </div>
+        </section>
+
+        <!-- ── Learn cards ── -->
+        <section class="term-stage" id="term-stage">
+          <div class="term-cards" id="term-cards">
+
+            <article class="term-card active" data-index="0">
+              <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: AI_LAB | CLEARANCE: LEVEL_1<span class="term-load">LOADING... 0%</span></div>
+              <hr class="term-hr" />
+              <h2 class="term-head" data-text="> LOADING SECTOR: ERA_OF_TABULATION"></h2>
+              <p class="term-text" data-text="For centuries, people struggled to understand the meaning hidden in large amounts of data. Early attempts involved manual counting and tabulation — organising numbers into tables by hand. This was slow, limited, and exhausting. The challenge of extracting meaning from vast amounts of data has always existed. Something had to change."></p>
+              <div class="term-actions">
+                <button class="term-continue" type="button" disabled>&gt; CONTINUE [ENTER]</button>
+                <button class="term-skip" type="button">[skip animation]</button>
+              </div>
+            </article>
+
+            <article class="term-card" data-index="1">
+              <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: AI_LAB | CLEARANCE: LEVEL_1<span class="term-load">LOADING... 0%</span></div>
+              <hr class="term-hr" />
+              <h2 class="term-head" data-text="> LOADING SECTOR: ERA_OF_PROGRAMMING"></h2>
+              <p class="term-text" data-text="In the 1940s, scientists built electronic computers like ENIAC at the University of Pennsylvania that could run multiple instructions — what we now call programs. Programmable computers guided astronauts to the moon and were reprogrammed during Apollo 13 to bring astronauts safely home. But modern businesses now generate so much data that even the finest programmable supercomputer cannot analyse it all. A new approach was needed."></p>
+              <div class="term-actions">
+                <button class="term-continue" type="button" disabled>&gt; CONTINUE [ENTER]</button>
+                <button class="term-skip" type="button">[skip animation]</button>
+              </div>
+            </article>
+
+            <article class="term-card" data-index="2">
+              <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: AI_LAB | CLEARANCE: LEVEL_1<span class="term-load">LOADING... 0%</span></div>
+              <hr class="term-hr" />
+              <h2 class="term-head" data-text="> LOADING SECTOR: ERA_OF_AI"></h2>
+              <p class="term-text" data-text="In the summer of 1956, researchers at Dartmouth College led by John McCarthy and Marvin Minsky coined the term artificial intelligence. They proposed that every aspect of learning can be described precisely enough for a machine to simulate it. After two AI winters where funding collapsed, breakthroughs arrived. IBM Deep Blue beat the world chess champion in 1997. Watson defeated Jeopardy champions in 2011. The winters of AI are over."></p>
+              <div class="term-actions">
+                <button class="term-continue" type="button" disabled>&gt; CONTINUE [ENTER]</button>
+                <button class="term-skip" type="button">[skip animation]</button>
+              </div>
+            </article>
+
+            <!-- ── Card 4: interactive data-sorting machine ── -->
+            <article class="term-card term-card-machine" data-index="3" data-machine="1">
+              <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: DATA_CLASSIFICATION | DIAGNOSTIC<span class="term-load">CONVEYOR: ONLINE</span></div>
+              <hr class="term-hr" />
+              <h2 class="term-head static">&gt; SECTOR: DATA_CLASSIFICATION</h2>
+              <p class="machine-intro">&gt; Items are arriving on the conveyor. Drag each into the correct bin.<br />&gt; About 80% of all data is unstructured — sort all six to proceed.</p>
+
+              <div class="sorting-game" data-qkey="lab_q3" data-correctval="{{ ns.q3_correct }}">
+                <!-- Conveyor belt feed -->
+                <div class="conveyor">
+                  <div class="conveyor-belt"></div>
+                  <div class="sort-items" id="sort-items">
+                    <div class="sort-item" draggable="true" data-id="spreadsheet" data-bin="structured"><span class="si-ic">📊</span> Spreadsheet</div>
+                    <div class="sort-item" draggable="true" data-id="photo" data-bin="unstructured"><span class="si-ic">📸</span> Photo</div>
+                    <div class="sort-item" draggable="true" data-id="tweet" data-bin="semi"><span class="si-ic">🐦</span> Tweet</div>
+                    <div class="sort-item" draggable="true" data-id="dbrow" data-bin="structured"><span class="si-ic">🗃️</span> Database Row</div>
+                    <div class="sort-item" draggable="true" data-id="voice" data-bin="unstructured"><span class="si-ic">🎤</span> Voice Recording</div>
+                    <div class="sort-item" draggable="true" data-id="email" data-bin="semi"><span class="si-ic">📧</span> Email w/ Subject</div>
+                  </div>
+                </div>
+
+                <!-- Industrial bins -->
+                <div class="sort-bins">
+                  <div class="sort-bin" data-bin="structured"><div class="bin-label">STRUCTURED</div><div class="bin-drop"></div></div>
+                  <div class="sort-bin" data-bin="semi"><div class="bin-label">SEMI-STRUCTURED</div><div class="bin-drop"></div></div>
+                  <div class="sort-bin" data-bin="unstructured"><div class="bin-label">UNSTRUCTURED</div><div class="bin-drop"></div></div>
+                </div>
+
+                <pre class="sort-result" id="sort-result" hidden></pre>
+              </div>
+
+              <div class="term-actions">
+                <button class="term-continue" type="button" disabled>&gt; PROCEED TO NEXT SECTOR</button>
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+        <!-- ── Reboot transition (screen-local) ── -->
+        <div class="reboot-screen" id="reboot-screen" hidden><pre class="reboot-text" id="reboot-text"></pre></div>
+
+        <!-- ── Quiz: ticker-tape assessment ── -->
+        <section class="term-quiz" id="term-quiz" hidden>
+          <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post" id="terminal-quiz" data-location="{{ loc.key }}">
+            <input type="hidden" name="consulted" id="consulted" value="" />
+            <!-- Q3 answer comes from the sorting machine on the previous card -->
+            <input type="hidden" name="lab_q3" id="q3-answer" value="" />
+
+            <div class="quiz-head">
+              <span class="quiz-head-title">&gt; ASSESSMENT MODE</span>
+              <span class="quiz-head-count">QUERY <b id="tk-cur">1</b>/<span id="tk-total">0</span></span>
+            </div>
+
+            <div class="ticker-stage" id="ticker-stage">
+              {% for q in quiz %}{% if q.key != 'lab_q3' %}
+              <div class="ticker-q" data-qkey="{{ q.key }}" data-correct="{{ q.correct }}"
+                   data-question="{{ q.question }}" data-hint="{{ q.hint | default('') }}"
+                   data-explain="{{ q.explanation }}">
+                <input type="hidden" name="{{ q.key }}" class="q-answer" value="" />
+                <div class="ticker-tape"><span class="tape-text" data-text="{{ q.question }}"></span></div>
+                <div class="console-options">
+                  {% for letter, text in q.options.items() %}
+                  <button type="button" class="console-btn" data-val="{{ letter }}">
+                    <span class="btn-led"></span>
+                    <span class="btn-letter">{{ letter }}</span>
+                    <span class="btn-text">{{ text }}</span>
+                  </button>
+                  {% endfor %}
+                </div>
+                {% if show_npc %}
+                <div class="hint-row">
+                  <button type="button" class="hint-btn term-btn-sm">&gt; ATLAS.hint()</button>
+                </div>
+                <div class="hint-box term-note" hidden></div>
+                {% endif %}
+                <div class="ticker-status" hidden></div>
+              </div>
+              {% endif %}{% endfor %}
+            </div>
+          </form>
+        </section>
+
+      </div><!-- /screen-content -->
+    </div><!-- /crt-screen -->
+  </div><!-- /crt-monitor -->
+
+  <!-- ── Monitor base: power LED + brand label ── -->
+  <div class="crt-base">
+    <span class="power-led" id="power-led" title="POWER"></span>
+    <span class="crt-brand">ATLAS-SYSTEMS MODEL 2.3 — RESEARCH TERMINAL</span>
+  </div>
+
+  {% if show_npc %}
+  <!-- ── Professor Atlas — secondary CRT monitor (bottom-right) ── -->
+  <div class="atlas-mini" id="atlas-widget" data-location="{{ loc.key }}">
+
+    <!-- Larger chat panel (opens above the mini-monitor) -->
+    <div class="atlas-chat" id="atlas-chat" hidden>
+      <div class="atlas-chat-head">
+        <span class="atlas-chat-title">&gt; PROFESSOR_ATLAS</span>
+        <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="atlas-chat-log" id="atlas-log">
+        <div class="atlas-msg atlas-msg-bot">&gt; ATLAS ONLINE. Query the {{ loc.name }} archives — I will not output Trial answers.</div>
+      </div>
+      <form class="atlas-chat-form" id="atlas-form">
+        <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="query atlas…" autocomplete="off" />
+        <button type="submit" class="atlas-chat-send" id="atlas-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+      </form>
+    </div>
+
+    <div class="mini-bezel">
+      <div class="mini-screen">
+        <pre class="atlas-ascii" id="atlas-ascii"> .--.
+|o_o |
+|:_/ |</pre>
+        <div class="mini-caption">&gt; PROFESSOR_ATLAS</div>
+      </div>
+    </div>
+    <button class="mini-launcher" id="atlas-launcher" aria-label="Ask Professor Atlas" title="> ATLAS ONLINE">
+      <span class="mini-led"></span> &gt; OPEN_CHANNEL
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
+{% if current_user.condition == 'game' %}
+<script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+{% endif %}
+{% endblock %}

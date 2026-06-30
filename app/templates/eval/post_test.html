@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Final Assessment — Atlas Quest{% endblock %}
+
+{% block body %}
+<div class="location-page">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <main class="container pb-5">
+
+    <header class="text-center loc-header">
+      <div class="loc-icon">🎓</div>
+      <h1 class="loc-name">The Final Assessment</h1>
+      <p class="loc-tagline">Everything you have learned across your journey</p>
+    </header>
+
+    <hr class="gold-divider mx-auto my-4" />
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <p class="quiz-intro text-center">
+          Answer all <strong>10</strong> questions, then submit. This is the final
+          step of Atlas Quest.
+        </p>
+
+        <form action="{{ url_for('eval.submit_post_test') }}" method="post" class="quiz-form">
+          {% for q in questions %}
+          <div class="quiz-question">
+            <p class="q-text">
+              <span class="q-number">{{ loop.index }}</span>{{ q.question }}
+            </p>
+            <div class="q-options">
+              {% for letter, text in q.options.items() %}
+              <label class="q-option">
+                <input type="radio" name="{{ q.key }}" value="{{ letter }}" required />
+                <span class="q-option-letter">{{ letter }}</span>
+                <span class="q-option-text">{{ text }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn-submit-quiz">Submit Final Assessment</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
