@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Submitted — Atlas Quest{% endblock %}
+
+{% block body %}
+<div class="location-page">
+  <main class="container">
+    <div class="coming-soon text-center">
+      <div class="loc-icon">🏆</div>
+      <h1 class="loc-name">Assessment Submitted</h1>
+      <p class="loc-tagline">Your quest is complete</p>
+
+      <div class="score-display pass">{{ score }} / {{ total }}</div>
+
+      <p class="coming-soon-msg mt-3">
+        Thank you, explorer. Your responses have been recorded and Atlas Quest is
+        now complete.
+      </p>
+
+      <a href="{{ url_for('game.hub') }}" class="btn-continue mt-3">Return to Hub</a>
+    </div>
+  </main>
+</div>
+{% endblock %}

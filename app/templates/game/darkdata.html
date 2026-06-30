@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block body_class %}darkdata-body{% endblock %}
+
+{% block body %}
+{% set show_npc = current_user.condition == 'game' %}
+
+<!-- Full-screen dark-data particle canvas -->
+<canvas id="dd-canvas" class="dd-canvas"></canvas>
+<div class="dd-label" id="dd-label"></div>
+<div class="dd-wave" id="dd-wave" aria-hidden="true"></div>
+
+<div class="darkdata-page" style="--accent: {{ loc.accent }};">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link"><i class="bi bi-map me-1"></i> Return to Map</a>
+  </nav>
+
+  <!-- ── Learn-card stack ── -->
+  <section class="dd-stage" id="dd-stage">
+    <div class="dd-cards" id="dd-cards">
+      {% for card in loc.learn_cards %}
+      <article class="dd-card {{ 'active' if loop.first }}" data-index="{{ loop.index0 }}">
+        <div class="dd-card-kicker">{{ loc.name }} &middot; Record {{ loop.index }} of {{ loc.learn_cards|length }}</div>
+        <h2 class="dd-card-title">{{ card.heading }}</h2>
+        <p class="dd-card-body">{{ card.text }}</p>
+        <div class="dd-card-foot">
+          <span class="dd-count" id="dd-count-{{ loop.index0 }}">PARTICLES ORGANISED: 0/200</span>
+          <button type="button" class="dd-continue">
+            {% if loop.last %}Analyse the Data <i class="bi bi-cpu"></i>{% else %}Continue <i class="bi bi-arrow-right"></i>{% endif %}
+          </button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ── Quiz (revealed once the grid forms) ── -->
+  <section class="dd-quiz" id="dd-quiz" hidden>
+    <div class="dd-quiz-inner">
+      <h2 class="dd-quiz-title">The Trial — {{ loc.name }}</h2>
+      <p class="quiz-intro text-center">Score at least <strong>3 of 4</strong> to unlock the next location.{% if show_npc %} Stuck? Ask Professor Atlas.{% endif %}</p>
+
+      <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
+            class="quiz-form" id="quiz-form" data-location="{{ loc.key }}">
+        <input type="hidden" name="consulted" id="consulted" value="" />
+
+        <div class="quiz-progress">
+          <span class="quiz-counter">Question <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
+          <div class="quiz-bar"><div class="quiz-bar-fill" id="q-fill"></div></div>
+        </div>
+
+        <div class="quiz-questions" id="quiz-questions">
+          {% for q in quiz %}
+          <div class="quiz-question {{ 'active' if loop.first }}" data-qindex="{{ loop.index0 }}"
+               data-correct="{{ q.correct }}" data-qkey="{{ q.key }}" data-question="{{ q.question }}"
+               data-hint="{{ q.hint | default('') }}">
+            <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
+            <div class="q-options">
+              {% for letter, text in q.options.items() %}
+              <label class="q-option">
+                <input type="radio" name="{{ q.key }}" value="{{ letter }}" />
+                <span class="q-option-letter">{{ letter }}</span>
+                <span class="q-option-text">{{ text }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            {% if show_npc %}
+            <div class="hint-row">
+              <button type="button" class="hint-btn"><span class="hint-owl">🦉</span> Ask Professor Atlas for a hint</button>
+            </div>
+            <div class="hint-box" hidden>
+              <span class="hint-avatar">🦉</span>
+              <p class="hint-text"></p>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {% if show_npc %}
+  <!-- Professor Atlas — orbited by data particles in this location -->
+  <div class="atlas-widget dd-atlas" id="atlas-widget" data-location="{{ loc.key }}">
+    <div class="atlas-chat" id="atlas-chat" hidden>
+      <div class="atlas-chat-head">
+        <span class="atlas-chat-title">🦉 Professor Atlas</span>
+        <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="atlas-chat-log" id="atlas-log">
+        <div class="atlas-msg atlas-msg-bot">Ask me about {{ loc.name }}, explorer — I shall never hand you a Trial answer outright.</div>
+      </div>
+      <form class="atlas-chat-form" id="atlas-form">
+        <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="Ask Professor Atlas…" autocomplete="off" />
+        <button type="submit" class="atlas-chat-send" id="atlas-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+      </form>
+    </div>
+    <button class="atlas-launcher" id="atlas-launcher" aria-label="Ask Professor Atlas" title="Ask Professor Atlas">
+      <span class="atlas-orbit" id="atlas-orbit" aria-hidden="true"></span>
+      <span class="atlas-launcher-icon">🦉</span>
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/darkdata.js') }}"></script>
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% if show_npc %}
+<script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+{% endif %}
+{% endblock %}

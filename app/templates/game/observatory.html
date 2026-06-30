@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block body_class %}obs-body theme-cosmos{% endblock %}
+
+{% block body %}
+{% set show_npc = current_user.condition == 'game' %}
+
+<div class="observatory" id="observatory" data-location="{{ loc.key }}" style="--accent: {{ loc.accent }};">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <button class="obs-mute" id="obs-mute" type="button" aria-label="Sound on" title="Sound on / off">🔊</button>
+
+  <header class="obs-header">
+    <h1 class="obs-title">{{ loc.name }}</h1>
+    <p class="obs-tagline">{{ loc.tagline }}</p>
+    <div class="obs-counter">CONCEPT <span id="obs-count">0</span> / 5 DISCOVERED</div>
+    <div class="obs-progress"><div class="obs-progress-fill" id="obs-progress-fill"></div></div>
+  </header>
+
+  <!-- ── The living sky (parallax + nebulae + meteors + stardust) ── -->
+  <div class="sky-wrap">
+    <canvas id="sky-canvas" class="sky-canvas"></canvas>
+    <div class="sky-hint" id="sky-hint">Click the glowing star to begin — each concept lights the next</div>
+    <div class="obs-tooltip" id="obs-tooltip" hidden></div>
+
+    <!-- Cinematic intro, played directly on the star sky (no modal) -->
+    <div class="obs-cinematic" id="obs-cinematic">
+      <div class="obs-cine-lines">
+        <p class="obs-cine-line" id="obs-cine-1">Five stars hang hidden in this sky.</p>
+        <p class="obs-cine-line" id="obs-cine-2">Each holds one secret of how machines learn.</p>
+        <p class="obs-cine-line" id="obs-cine-3">Trace them in order. Connect the constellation.</p>
+        <p class="obs-cine-line" id="obs-cine-4">Only then will the Atlas be complete.</p>
+      </div>
+      <div class="obs-cine-prompt" id="obs-cine-prompt" hidden>▸ CLICK THE FIRST STAR TO BEGIN</div>
+      <button class="obs-cine-skip" id="obs-cine-skip" type="button">skip intro</button>
+    </div>
+  </div>
+
+  <!-- ── Concept panel (slides in from the right) ── -->
+  <div class="obs-panel" id="obs-panel" hidden>
+    <div class="obs-panel-backdrop" data-panel-close></div>
+    <div class="obs-panel-inner" id="obs-panel-inner">
+      <div class="obs-panel-stars" id="obs-panel-stars" aria-hidden="true"></div>
+      <div class="obs-stamp" id="obs-stamp">MAPPED ✓</div>
+      <canvas class="obs-mini" id="obs-mini" width="240" height="160"></canvas>
+      <div class="obs-panel-era" id="obs-era"></div>
+      <h2 class="obs-panel-heading" id="obs-heading"></h2>
+      <p class="obs-panel-content" id="obs-content"></p>
+
+      <!-- Inline check question (gate before the star locks in) -->
+      <div class="obs-check" id="obs-check">
+        <div class="obs-check-divider"></div>
+        <div class="obs-check-label">QUICK CHECK</div>
+        <p class="obs-check-q" id="obs-check-q"></p>
+        <div class="obs-check-opts" id="obs-check-opts"></div>
+        <div class="obs-check-fb" id="obs-check-fb" hidden></div>
+      </div>
+
+      <button class="obs-panel-close" id="obs-panel-close" data-panel-close hidden>RETURN TO SKY</button>
+    </div>
+  </div>
+
+  <!-- ── The Trial (locked until all 5 discovered) ── -->
+  <section class="obs-trial">
+    <div class="obs-trial-gate" id="obs-trial-gate">
+      <i class="bi bi-lock-fill"></i>
+      <span>Discover all 5 constellations to unlock <strong>The Trial</strong></span>
+    </div>
+    <div class="obs-trial-ready" id="obs-trial-ready" hidden>
+      <div class="obs-trial-ready-icon"><i class="bi bi-unlock-fill"></i></div>
+      <h3 class="obs-trial-ready-title">The Map is Complete</h3>
+      <a href="{{ url_for('game.trial', key=loc.key) }}" class="btn-quest btn-quest-final">
+        Enter the Trial <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Quiz unlock cinematic ── -->
+  <div class="obs-unlock" id="obs-unlock" hidden>
+    <div class="obs-unlock-sweep" id="obs-unlock-sweep" aria-hidden="true"></div>
+    <div class="obs-unlock-card">
+      <div class="obs-unlock-line" id="obs-uline1"></div>
+      <div class="obs-unlock-line obs-unlock-line2" id="obs-uline2"></div>
+      <div class="obs-unlock-line obs-unlock-line3" id="obs-uline3"></div>
+      <a href="{{ url_for('game.trial', key=loc.key) }}" class="obs-final-btn" id="obs-final-btn" hidden>BEGIN THE FINAL TRIAL →</a>
+    </div>
+  </div>
+
+  {% if show_npc %}
+  <!-- ── Professor Atlas — floating tutor (bottom-right) ── -->
+  <div class="atlas-widget" id="atlas-widget" data-location="{{ loc.key }}">
+    <div class="atlas-chat" id="atlas-chat" hidden>
+      <div class="atlas-chat-head">
+        <span class="atlas-chat-title"><span class="atlas-glyph" aria-hidden="true"></span> Professor Atlas</span>
+        <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="atlas-chat-log" id="atlas-log">
+        <div class="atlas-msg atlas-msg-bot">
+          Ask me about anything in {{ loc.name }}, explorer — though I shall never hand you a Trial answer outright.
+        </div>
+      </div>
+      <form class="atlas-chat-form" id="atlas-form">
+        <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="Ask Professor Atlas…" autocomplete="off" />
+        <button type="submit" class="atlas-chat-send" id="atlas-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+      </form>
+    </div>
+    <button class="atlas-launcher" id="atlas-launcher" aria-label="Ask Professor Atlas" title="Ask Professor Atlas">
+      <span class="atlas-launcher-icon"><span class="atlas-glyph" aria-hidden="true"></span></span>
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/observatory.js') }}"></script>
+{% if current_user.condition == 'game' %}
+<script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+{% endif %}
+{% endblock %}

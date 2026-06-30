@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Register — Atlas Quest{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="text-center mb-4">
+      <p class="overline-label">Begin your journey</p>
+      <h1 class="auth-title">Atlas Quest</h1>
+      <p class="auth-subtitle">Create your explorer's account</p>
+    </div>
+
+    <div class="condition-tag">
+      Condition: <strong>{{ condition }}</strong>
+    </div>
+
+    <form method="post" action="{{ url_for('auth.register', condition=condition) }}">
+      <input type="hidden" name="condition" value="{{ condition }}" />
+
+      <label class="auth-label" for="username">Username</label>
+      <input class="auth-input" type="text" id="username" name="username" required autofocus />
+
+      <label class="auth-label" for="email">Email</label>
+      <input class="auth-input" type="email" id="email" name="email" required />
+
+      <label class="auth-label" for="password">Password</label>
+      <input class="auth-input" type="password" id="password" name="password" required />
+
+      <button type="submit" class="btn-auth mt-3">Create Account &amp; Enter</button>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}">Log in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

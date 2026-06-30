@@ -1,0 +1,104 @@
+"""
+Lightweight gamification layer for Atlas Quest.
+
+XP, rank, level progress and badges are all COMPUTED on the fly from data that
+already exists (LocationProgress + the user's post_test_done flag). Nothing new
+is stored — so it can never drift out of sync, and it's fully reversible.
+
+Scoring (transparent + round numbers):
+  - 25 XP per correct answer in your best attempt at a location  (best_score * 25)
+  - +100 XP completion bonus per location passed
+  - +30 XP per correct answer on the final assessment (if submitted)
+"""
+
+from ..game_content import LOCATION_ORDER, LOCATIONS
+from ..models import KnowledgeTest, LocationProgress
+
+XP_PER_CORRECT = 25
+XP_LOCATION_BONUS = 100
+XP_PER_POSTTEST_CORRECT = 30
+
+XP_PER_LEVEL = 200  # XP needed to advance one level
+
+# Rank title by how many locations have been passed (0..3), plus the sage rank.
+RANKS = ["Novice Explorer", "Apprentice", "Scholar", "Master Cartographer"]
+SAGE_RANK = "Atlas Sage"
+
+
+def _location_progress(user):
+    rows = LocationProgress.query.filter_by(user_id=user.id).all()
+    return {r.location: r for r in rows}
+
+
+def compute_xp(user, progress=None):
+    progress = progress if progress is not None else _location_progress(user)
+    xp = 0
+    for key in LOCATION_ORDER:
+        lp = progress.get(key)
+        if lp:
+            xp += (lp.best_score or 0) * XP_PER_CORRECT
+            if lp.passed:
+                xp += XP_LOCATION_BONUS
+    if user.post_test_done:
+        latest = (
+            KnowledgeTest.query.filter_by(user_id=user.id)
+            .order_by(KnowledgeTest.id.desc())
+            .first()
+        )
+        if latest:
+            xp += (latest.score or 0) * XP_PER_POSTTEST_CORRECT
+    return xp
+
+
+def get_badges(user, progress=None):
+    """Return the full badge set with earned flags, read from the persisted
+    achievements table (the single source of truth)."""
+    from .achievements import ACHIEVEMENTS, earned_map
+
+    em = earned_map(user)
+    return [
+        {
+            "key": a["key"], "name": a["name"], "icon": a["icon"],
+            "desc": a["desc"], "how": a["how"],
+            "earned": a["key"] in em,
+            "earned_at": em.get(a["key"]),
+        }
+        for a in ACHIEVEMENTS
+    ]
+
+
+def gamification_summary(user):
+    """Everything the hub HUD needs in one call."""
+    progress = _location_progress(user)
+
+    passed_count = sum(1 for k in LOCATION_ORDER if progress.get(k) and progress[k].passed)
+    total = len(LOCATION_ORDER)
+    xp = compute_xp(user, progress)
+
+    badges = get_badges(user, progress)
+    badges_earned = sum(1 for b in badges if b["earned"])
+
+    # Rank: sage if finished everything, else by locations passed.
+    if user.post_test_done:
+        rank = SAGE_RANK
+    else:
+        rank = RANKS[min(passed_count, len(RANKS) - 1)]
+
+    level = xp // XP_PER_LEVEL + 1
+    xp_into_level = xp % XP_PER_LEVEL
+    level_pct = round(xp_into_level / XP_PER_LEVEL * 100)
+
+    return {
+        "xp": xp,
+        "level": level,
+        "level_pct": level_pct,
+        "xp_into_level": xp_into_level,
+        "xp_per_level": XP_PER_LEVEL,
+        "rank": rank,
+        "passed_count": passed_count,
+        "total": total,
+        "journey_pct": round(passed_count / total * 100) if total else 0,
+        "badges": badges,
+        "badges_earned": badges_earned,
+        "badges_total": len(badges),
+    }

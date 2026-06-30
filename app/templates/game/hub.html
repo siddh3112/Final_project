@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Atlas Quest — The Realm{% endblock %}
+{% block body_class %}hub-body{% endblock %}
+
+{% block body %}
+
+{#
+  Marker positions are expressed as % of the map stage (x = left, y = top).
+  Tune these once a real map.png is in place so each pin sits on its landmass.
+#}
+{% set markers = {
+  'library':     {'x': 19, 'y': 25},
+  'ai_lab':      {'x': 43, 'y': 47},
+  'observatory': {'x': 82, 'y': 24}
+} %}
+{% set final_xy = {'x': 84, 'y': 91} %}
+
+<div class="map-screen">
+
+  <header class="hub-header text-center">
+    <h1 class="hub-title">Atlas Quest</h1>
+    <button class="howto-btn" id="howto-btn" type="button"><span class="atlas-glyph" aria-hidden="true"></span> How to Play</button>
+  </header>
+
+  <!-- ── Adventurer HUD ── -->
+  <section class="hud">
+    <div class="hud-rank">
+      <span class="hud-level">LVL {{ stats.level }}</span>
+      <span class="hud-rank-name">{{ stats.rank }}</span>
+    </div>
+    <div class="hud-xp">
+      <div class="hud-xp-top">
+        <span><i class="bi bi-star-fill me-1"></i>{{ stats.xp }} XP</span>
+        <span class="hud-xp-next">{{ stats.xp_into_level }}/{{ stats.xp_per_level }} to next level</span>
+      </div>
+      <div class="hud-bar"><div class="hud-bar-fill" data-pct="{{ stats.level_pct }}"></div></div>
+    </div>
+    <div class="hud-journey">
+      <span class="hud-journey-label"><i class="bi bi-geo-alt-fill me-1"></i>Journey</span>
+      <span class="hud-journey-count">{{ stats.passed_count }}/{{ stats.total }}</span>
+    </div>
+  </section>
+
+  <!-- ══════════ THE MAP ══════════ -->
+  <div class="map-stage">
+
+    <!-- Travel routes (drawn in 0-100 space, stretched to fit the stage) -->
+    <svg class="map-routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      {% set lib = markers['library'] %}
+      {% set lab = markers['ai_lab'] %}
+      {% set obs = markers['observatory'] %}
+      <line x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}"
+            class="route {{ 'lit' if pmap['ai_lab'].unlocked }}" vector-effect="non-scaling-stroke" />
+      <line x1="{{ lab.x }}" y1="{{ lab.y }}" x2="{{ obs.x }}" y2="{{ obs.y }}"
+            class="route {{ 'lit' if pmap['observatory'].unlocked }}" vector-effect="non-scaling-stroke" />
+      <line x1="{{ obs.x }}" y1="{{ obs.y }}" x2="{{ final_xy.x }}" y2="{{ final_xy.y }}"
+            class="route {{ 'lit' if (show_post_test or post_test_done) }}" vector-effect="non-scaling-stroke" />
+    </svg>
+
+    <!-- Location pins -->
+    {% for key in order %}
+    {% set loc = locations[key] %}
+    {% set state = pmap[key] %}
+    {% set m = markers[key] %}
+    {% set node_state = 'passed' if state.passed else ('available' if state.unlocked else 'locked') %}
+    {% if state.unlocked %}
+    <a href="{{ url_for('game.location', key=key) }}" class="map-pin {{ node_state }}"
+       data-x="{{ m.x }}" data-y="{{ m.y }}">
+    {% else %}
+    <div class="map-pin {{ node_state }}" data-x="{{ m.x }}" data-y="{{ m.y }}">
+    {% endif %}
+      <span class="pin-token">
+        <span class="pin-icon">{{ loc.icon }}</span>
+        {% if state.passed %}<span class="pin-status status-done"><i class="bi bi-check-lg"></i></span>
+        {% elif not state.unlocked %}<span class="pin-status status-lock"><i class="bi bi-lock-fill"></i></span>{% endif %}
+      </span>
+      <span class="pin-label">
+        {{ loc.name }}
+        {% if state.passed %}<span class="pin-score">{{ state.best_score }}/4</span>{% endif %}
+      </span>
+    {% if state.unlocked %}</a>{% else %}</div>{% endif %}
+    {% endfor %}
+
+    <!-- Final Assessment pin -->
+    {% set final_state = 'passed' if post_test_done else ('available' if show_post_test else 'locked') %}
+    {% if show_post_test %}
+    <a href="{{ url_for('eval.post_test') }}" class="map-pin portal {{ final_state }}"
+       data-x="{{ final_xy.x }}" data-y="{{ final_xy.y }}">
+    {% else %}
+    <div class="map-pin portal {{ final_state }}" data-x="{{ final_xy.x }}" data-y="{{ final_xy.y }}">
+    {% endif %}
+      <span class="pin-token">
+        <span class="pin-icon">{{ '🏆' if post_test_done else '🎓' }}</span>
+        {% if not (show_post_test or post_test_done) %}<span class="pin-status status-lock"><i class="bi bi-lock-fill"></i></span>{% endif %}
+      </span>
+      <span class="pin-label">Final Assessment</span>
+    {% if show_post_test %}</a>{% else %}</div>{% endif %}
+
+  </div>
+
+  <!-- ── Achievements ── -->
+  <section class="badges-strip">
+    <div class="badges-count">{{ stats.badges_earned }} / {{ stats.badges_total }} ACHIEVEMENTS</div>
+    <div class="badges-row">
+      {% for b in stats.badges %}
+      <div class="badge-chip {{ 'earned' if b.earned else 'locked' }}{{ ' newly-earned' if b.key in new_achievement_keys }}"
+           title="{% if b.earned %}{{ b.name }} — earned{% if b.earned_at %} {{ b.earned_at.strftime('%d %b %Y') }}{% endif %}{% else %}{{ b.name }} — {{ b.how }}{% endif %}">
+        <span class="badge-icon">{{ b.icon if b.earned else '🔒' }}</span>
+        <span class="badge-name">{{ b.name }}</span>
+        <span class="badge-new">NEW</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <footer class="hub-footer text-center">
+    Atlas Quest &mdash; Your Journey Through AI
+  </footer>
+
+</div>
+
+<!-- ── Achievement unlock celebration ── -->
+<div class="ach-popup-layer" id="ach-popup-layer" aria-hidden="true"></div>
+<script type="application/json" id="ach-new-data">{{ new_achievements | tojson }}</script>
+
+<!-- ── Professor Atlas: focused game tutorial (dims the map while he speaks) ── -->
+<div class="hub-onboard-overlay" id="hub-onboard" hidden>
+  <div class="hub-onboard-card">
+    <div class="hub-onboard-portrait"><span class="atlas-glyph" aria-hidden="true"></span></div>
+    <div class="atlas-name">Professor Atlas</div>
+    <p class="hub-onboard-text" id="hub-onboard-text"></p>
+    <div class="onboard-controls onboard-controls-center">
+      <div class="onboard-dots" id="hub-onboard-dots">
+        {% for s in game_steps %}<span class="onboard-dot"></span>{% endfor %}
+      </div>
+      <div class="onboard-btns">
+        <button type="button" class="onboard-btn" id="hub-onboard-prev">Back</button>
+        <button type="button" class="onboard-btn primary" id="hub-onboard-next">Next</button>
+        <button type="button" class="onboard-btn skip" id="hub-onboard-skip">Skip</button>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="hub-onboard-steps">{{ game_steps | tojson }}</script>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/hub-onboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/achievements.js') }}"></script>
+{% endblock %}
