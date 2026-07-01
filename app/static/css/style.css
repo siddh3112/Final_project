@@ -3623,3 +3623,20 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
   .badge-chip.newly-earned { animation: none; }
   .ach-spark { animation: none; opacity: 0; }
 }
+
+/* ── "Read aloud" (AtlasVoice) button — themed per location via --tts-accent ── */
+.tts-btn {
+  --tts-accent: var(--accent, #d4a84b);
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 2px solid var(--tts-accent); color: var(--tts-accent);
+  font-size: 1rem; line-height: 1; padding: 0; transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.tts-btn:hover { transform: scale(1.08); }
+.tts-btn.speaking { box-shadow: 0 0 0 0 var(--tts-accent); animation: tts-pulse 1.4s ease-out infinite; }
+@keyframes tts-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tts-accent) 70%, transparent); }
+  100% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--tts-accent) 0%, transparent); }
+}
+/* Placement helpers when floated in a corner of a card/panel */
+.tts-btn.tts-corner { position: absolute; top: 12px; right: 12px; z-index: 4; }

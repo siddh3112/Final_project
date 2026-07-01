@@ -163,7 +163,7 @@
                 <input type="hidden" name="{{ q.key }}" class="q-answer" value="" />
                 <div class="ticker-tape"><span class="tape-text" data-text="{{ q.question }}"></span></div>
                 <div class="console-options">
-                  {% for letter, text in q.options.items() %}
+                  {% for letter, text in q|shuffle_options %}
                   <button type="button" class="console-btn" data-val="{{ letter }}">
                     <span class="btn-led"></span>
                     <span class="btn-letter">{{ letter }}</span>

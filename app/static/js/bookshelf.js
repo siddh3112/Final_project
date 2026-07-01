@@ -48,6 +48,11 @@
   let pageCount = 0;
   let quizPassed = false;
 
+  // "Read aloud" button (Web Speech). Lives on the tome; wired per content page.
+  const ttsBtn = window.AtlasVoice && window.AtlasVoice.button("#d4a84b");
+  if (ttsBtn) { ttsBtn.classList.add("tts-corner"); ttsBtn.hidden = true; tome.appendChild(ttsBtn); }
+  function stopVoice() { if (window.AtlasVoice) window.AtlasVoice.stop(); }
+
   function escapeHtml(s) {
     return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   }
@@ -116,6 +121,7 @@
   function render() {
     clearTimeout(typeTimer);
     typing = false;
+    stopVoice(); // page changed — never let audio linger on a page you left
 
     const contentPages = book.pages.length;
     const quizPage = contentPages;
@@ -172,6 +178,18 @@
 
     if (isContent) typeBody(pageEl.querySelector("#bp-body"), splitSentences(body), keywords);
     if (page === quizPage) wireQuiz();
+
+    // Read-aloud: only on taught content pages (never the quiz or reward).
+    if (ttsBtn) {
+      if (isContent && body) {
+        ttsBtn.hidden = false;
+        const say = body;
+        ttsBtn.onclick = function () { window.AtlasVoice.toggle(say, "#d4a84b", ttsBtn); };
+      } else {
+        ttsBtn.hidden = true;
+        ttsBtn.onclick = null;
+      }
+    }
 
     updateNav();
   }
@@ -236,6 +254,8 @@
     render();
   }
   function openDecoy() {
+    stopVoice();
+    if (ttsBtn) ttsBtn.hidden = true; // decoys aren't taught content
     book = null;
     pageCount = 1;
     pageEl.innerHTML =
@@ -257,6 +277,7 @@
     tome.classList.add("opening");
   }
   function closeReader() {
+    stopVoice();
     reader.hidden = true;
     document.body.style.overflow = "";
   }

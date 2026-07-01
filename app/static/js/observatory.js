@@ -190,6 +190,7 @@
   if (muteBtn) muteBtn.addEventListener("click", function (e) {
     e.stopPropagation(); kick(); muted = !muted;
     try { if (master) master.gain.value = muted ? 0 : 1; } catch (er) {}
+    if (muted && window.AtlasVoice) window.AtlasVoice.stop(); // muting also silences read-aloud
     muteBtn.textContent = muted ? "🔇" : "🔊"; muteBtn.classList.toggle("muted", muted);
   });
 
@@ -597,6 +598,10 @@
   // ───────────────────────── PANEL ─────────────────────────
   const panel = document.getElementById("obs-panel");
   const closeBtn = document.getElementById("obs-panel-close");
+  // Read-aloud button in the concept panel (reads the concept text only).
+  const ttsBtn = window.AtlasVoice && window.AtlasVoice.button("#3ab8d8");
+  if (ttsBtn) { ttsBtn.classList.add("tts-corner"); document.getElementById("obs-panel-inner").appendChild(ttsBtn); }
+  function stopVoice() { if (window.AtlasVoice) window.AtlasVoice.stop(); }
   const checkQEl = document.getElementById("obs-check-q");
   const checkOptsEl = document.getElementById("obs-check-opts");
   const checkFbEl = document.getElementById("obs-check-fb");
@@ -660,11 +665,21 @@
       checkOptsEl.appendChild(b);
     });
 
+    // wire read-aloud to THIS concept's text (respects the observatory mute)
+    if (ttsBtn) {
+      stopVoice();
+      ttsBtn.onclick = function () {
+        if (muted) { stopVoice(); return; }
+        window.AtlasVoice.toggle(concept.content, "#3ab8d8", ttsBtn);
+      };
+    }
+
     panel.hidden = false; panel.classList.remove("show"); void panel.offsetWidth; panel.classList.add("show");
     miniMax = i + 1; miniOpen = true; cancelAnimationFrame(miniRAF); miniAngle = 0; drawMini();
   }
   function closePanel() {
     if (!checkPassed) return; // gated — must pass the check before leaving
+    stopVoice(); // leaving the concept — stop read-aloud
     panel.classList.remove("show"); panel.hidden = true; miniOpen = false; cancelAnimationFrame(miniRAF);
     ready = true; // the next star now becomes clickable and starts pulsing
     if (pendingUnlock) { pendingUnlock = false; ready = false; setTimeout(runUnlock, 300); }
