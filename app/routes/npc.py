@@ -3,7 +3,8 @@ import time
 from flask import Blueprint, abort, current_app, jsonify, request
 from flask_login import current_user, login_required
 
-from ..models import NpcInteraction, db
+from ..game_content import QUIZZES
+from ..models import NpcInteraction, QuizAttempt, db
 from ..services.npc_service import get_response
 from ..services.progress import get_or_create_open_session
 
@@ -23,9 +24,17 @@ def chat():
     if not message:
         return jsonify({"error": "empty message"}), 400
 
+    # ── Adaptive context: recent mistakes (STEMS ONLY) + recent dialogue ──
+    recent_mistakes = _recent_mistake_stems(current_user.id, location)
+    history = _recent_history(current_user.id, location)
+
     start = time.time()
     response, is_fallback = get_response(
-        location, message, ollama_enabled=current_app.config.get("OLLAMA_ENABLED", False)
+        location,
+        message,
+        ollama_enabled=current_app.config.get("OLLAMA_ENABLED", False),
+        recent_mistakes=recent_mistakes,
+        history=history,
     )
     elapsed_ms = int((time.time() - start) * 1000)
 
@@ -44,3 +53,44 @@ def chat():
     db.session.commit()
 
     return jsonify({"response": response, "is_fallback": is_fallback})
+
+
+def _recent_mistake_stems(user_id, location):
+    """Up to 5 recent question STEMS the learner got wrong here (options/answers
+    stripped), de-duplicated by question, most-recent first."""
+    if not location:
+        return []
+    stems_by_key = {q["key"]: q["question"] for q in QUIZZES.get(location, [])}
+    rows = (
+        QuizAttempt.query.filter_by(user_id=user_id, location=location, is_correct=False)
+        .order_by(QuizAttempt.created_at.desc())
+        .limit(20)
+        .all()
+    )
+    stems, seen = [], set()
+    for r in rows:
+        if r.question_key in seen:
+            continue
+        seen.add(r.question_key)
+        stem = stems_by_key.get(r.question_key)
+        if stem:
+            stems.append(stem)  # STEM ONLY — no options, no correct answer, no selection
+        if len(stems) >= 5:
+            break
+    return stems
+
+
+def _recent_history(user_id, location):
+    """The last 3 Atlas turns in this location, chronological order."""
+    if not location:
+        return []
+    rows = (
+        NpcInteraction.query.filter_by(user_id=user_id, location=location)
+        .order_by(NpcInteraction.created_at.desc())
+        .limit(3)
+        .all()
+    )
+    return [
+        {"user_message": r.user_message, "npc_response": r.npc_response}
+        for r in reversed(rows)
+    ]

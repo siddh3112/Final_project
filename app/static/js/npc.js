@@ -13,6 +13,7 @@
   const sendBtn = document.getElementById("atlas-send");
 
   function openChat() {
+    if (window.AtlasVoice) window.AtlasVoice.stop(); // don't let a lesson read-aloud overlap Atlas
     chat.hidden = false;
     widget.classList.add("open");
     if (window.LibFX) window.LibFX.atlasChime();

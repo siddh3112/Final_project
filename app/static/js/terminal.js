@@ -256,6 +256,7 @@
 
   // Screen-roll: current card rolls up, roll bar sweeps, next rolls in.
   function rollToCard(fromCard, toIdx) {
+    stopVoice(); // moving to the next sector — stop any read-aloud
     fromCard.classList.add("roll-out");
     if (crtRoll) { crtRoll.classList.remove("go"); void crtRoll.offsetWidth; crtRoll.classList.add("go"); }
     setTimeout(function () {
@@ -279,6 +280,25 @@
     const skip = card.querySelector(".term-skip");
     if (skip) skip.addEventListener("click", () => skipCard(card));
   });
+
+  // ── Read-aloud button per sector card (taught text only; respects mute) ──
+  if (window.AtlasVoice && window.AtlasVoice.supported) {
+    cards.forEach(function (card) {
+      const actions = card.querySelector(".term-actions");
+      if (!actions) return;
+      const txtEl = card.querySelector(".term-text");
+      const machineEl = card.querySelector(".machine-intro");
+      const say = txtEl ? (txtEl.dataset.text || txtEl.textContent) : (machineEl ? machineEl.textContent : "");
+      if (!say) return;
+      const b = window.AtlasVoice.button("#8ab4d4");
+      b.addEventListener("click", function () {
+        if (muted) { window.AtlasVoice.stop(); return; } // a muted lab shouldn't talk
+        window.AtlasVoice.toggle(say, "#8ab4d4", b);
+      });
+      actions.appendChild(b);
+    });
+  }
+  function stopVoice() { if (window.AtlasVoice) window.AtlasVoice.stop(); }
 
   // ───────────────── CARD 4: SORTING MACHINE ─────────────────
   let machineReady = false;
@@ -360,6 +380,7 @@
     setTimeout(function () { el.className = "crt-colorflash"; }, dur || 120);
   }
   function reboot() {
+    stopVoice();
     stopRumble();
     rebootSweep();
     flash("white", 90);
@@ -492,6 +513,7 @@
     muted = !muted;
     ac(); // ensure context + master exist
     try { if (master) master.gain.value = muted ? 0 : 1; } catch (err) {}
+    if (muted) stopVoice(); // muting also silences read-aloud
     muteBtn.textContent = muted ? "🔇" : "🔊";
     muteBtn.classList.toggle("muted", muted);
     muteBtn.setAttribute("aria-label", muted ? "Sound off" : "Sound on");

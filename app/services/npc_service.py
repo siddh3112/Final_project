@@ -174,11 +174,17 @@ def _looks_like_answer_request(message):
     return any(re.search(p, text) for p in ANSWER_REQUEST_PATTERNS)
 
 
-def get_response(location, message, ollama_enabled=False):
-    """Return (response_text, is_fallback)."""
+def get_response(location, message, ollama_enabled=False, recent_mistakes=None, history=None):
+    """Return (response_text, is_fallback).
+
+    recent_mistakes: optional list of question STEMS (no options/answers) the learner
+    recently got wrong here — used to scaffold (ZPD). history: optional list of prior
+    turns (dicts or objects with user_message/npc_response) for conversational memory.
+    Both default to None so existing callers keep working.
+    """
     # Step 10 slot: when enabled, defer to the local LLM.
     if ollama_enabled:
-        llm_text = _query_ollama(location, message)
+        llm_text = _query_ollama(location, message, recent_mistakes, history)
         if llm_text:
             return llm_text, False
         # If the LLM is unavailable, fall through to the rule-based engine.
@@ -257,6 +263,7 @@ STRICT RULES:
 3. Never give direct quiz answers. If a student asks for an answer, respond with a Socratic question that helps them think it through
 4. Stay in character as Professor Atlas at all times
 5. Keep answers concise — 2 to 4 sentences maximum
+6. When the learner answers correctly or seems close, occasionally ask them to explain WHY the other options are wrong, to deepen understanding
 
 COURSE CONTENT:
 {relevant_content}
@@ -264,8 +271,9 @@ COURSE CONTENT:
 Remember: you can ONLY draw from the course content above. Nothing else."""
 
 
-def _query_ollama(location, message):
-    """Ask Granite (via Ollama) to answer ONLY from this location's course content.
+def _query_ollama(location, message, recent_mistakes=None, history=None):
+    """Ask Granite (via Ollama) to answer ONLY from this location's course content,
+    scaffolded to the learner's recent mistakes and the last few turns of dialogue.
 
     Returns the generated text, or None on any failure so get_response() can fall
     back to the rule-based engine.
@@ -280,17 +288,35 @@ def _query_ollama(location, message):
     relevant_content = COURSE_KNOWLEDGE.get(location, "No content available for this location.")
     system = SYSTEM_PROMPT.format(relevant_content=relevant_content)
 
+    # Adaptive tutoring (ZPD): steer toward concepts the learner recently struggled
+    # with. STEMS ONLY — never options/answers; the no-answer rule above still wins.
+    if recent_mistakes:
+        system += (
+            "\n\nLEARNER CONTEXT — This learner recently struggled with the following "
+            "questions. Gently steer them toward understanding these concepts using hints "
+            "and questions. You must NEVER state or hint at the correct option for any quiz "
+            "question.\n"
+        )
+        for stem in recent_mistakes:
+            system += "- {}\n".format(stem)
+
+    # Build the message list: system, then the last 3 turns, then the new message.
+    messages = [{"role": "system", "content": system}]
+    for turn in (history or [])[-3:]:
+        if isinstance(turn, dict):
+            um, nr = turn.get("user_message"), turn.get("npc_response")
+        else:
+            um, nr = getattr(turn, "user_message", None), getattr(turn, "npc_response", None)
+        if um:
+            messages.append({"role": "user", "content": um})
+        if nr:
+            messages.append({"role": "assistant", "content": nr})
+    messages.append({"role": "user", "content": message})
+
     try:
         response = requests.post(
             f"{base_url}/api/chat",
-            json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": message},
-                ],
-                "stream": False,
-            },
+            json={"model": model, "messages": messages, "stream": False},
             timeout=timeout,
         )
         response.raise_for_status()

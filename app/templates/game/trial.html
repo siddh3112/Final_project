@@ -45,7 +45,7 @@
                  data-hint="{{ q.hint | default('') }}">
               <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
               <div class="q-options">
-                {% for letter, text in q.options.items() %}
+                {% for letter, text in q|shuffle_options %}
                 <label class="q-option">
                   <input type="radio" name="{{ q.key }}" value="{{ letter }}" />
                   <span class="q-option-letter">{{ letter }}</span>

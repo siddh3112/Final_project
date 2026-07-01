@@ -1,4 +1,5 @@
 import os
+import random
 
 from flask import Flask, request
 from flask_login import LoginManager, current_user, login_user
@@ -7,6 +8,26 @@ from .models import User, db
 
 login_manager = LoginManager()
 
+
+def shuffle_options(q):
+    """Return a question's (letter, text) options in a randomised DISPLAY order.
+
+    Grading compares the option's LETTER (each option keeps its original letter as
+    its submitted value), so only the on-screen position changes — never which
+    answer is correct. Questions that are intentionally ordered, or that contain an
+    'all/none of the above' style option, are returned UNSHUFFLED.
+    """
+    items = list((q.get("options") or {}).items())
+    if q.get("ordered") or q.get("no_shuffle"):
+        return items
+    if any("above" in (text or "").lower() for _, text in items):
+        return items
+    items = items[:]  # copy — never mutate the source content
+    for i in range(len(items) - 1, 0, -1):  # Fisher–Yates
+        j = random.randint(0, i)
+        items[i], items[j] = items[j], items[i]
+    return items
+
 # ── Login is disabled for now so we can jump straight into the game while
 # rebuilding the GUI. Set this back to False to restore real login/register. ──
 AUTH_DISABLED = True
@@ -14,6 +35,8 @@ AUTH_DISABLED = True
 
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
+
+    app.jinja_env.filters["shuffle_options"] = shuffle_options
 
     app.config["SECRET_KEY"] = "atlas-quest-dev-secret"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///atlas_quest.db"
