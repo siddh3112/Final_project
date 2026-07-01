@@ -7,18 +7,48 @@
 (function () {
   var supported = "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
 
-  // ── voice selection (handles the async voiceschanged quirk) ──
+  // ── voice selection: pick the most NATURAL English voice available ──
+  // Quality depends on the OS's installed voices; we score them so the best
+  // (Siri / Premium / Enhanced / Google) wins and the robotic/novelty ones lose.
   var chosenVoice = null;
+  var GOOD_NAMES = ["samantha", "ava", "serena", "allison", "susan", "zoe", "kate",
+    "stephanie", "alex", "daniel", "ryan", "aria", "jenny", "libby", "sonia", "natasha", "tom"];
+  var BAD_NAMES = /compact|eloquence|fred|albert|zarvox|trinoids|whisper|bells|bad news|boing|bubbles|cellos|deranged|good news|jester|organ|superstar|wobble|bahh|bad|grandma|grandpa|reed|rocko|sandy|shelley/i;
+
+  function scoreVoice(v) {
+    var name = (v.name || "").toLowerCase();
+    var lang = (v.lang || "").toLowerCase();
+    if (lang.indexOf("en") !== 0) return -1;          // English only
+    var s = 0;
+    if (lang.indexOf("en-gb") === 0) s += 3;
+    else if (lang.indexOf("en-us") === 0) s += 2;
+    else s += 1;
+    if (/premium|enhanced|natural|neural/.test(name)) s += 12; // downloadable HQ voices
+    if (/siri/.test(name)) s += 11;
+    if (/google/.test(name)) s += 8;                  // Chrome's voices are much nicer
+    if (GOOD_NAMES.some(function (g) { return name.indexOf(g) !== -1; })) s += 5;
+    if (BAD_NAMES.test(name)) s -= 15;                // novelty / low-quality voices
+    if (v.localService === false) s += 1;             // often the higher-quality ones
+    return s;
+  }
+
   function pickVoice() {
     if (!supported) return null;
     var voices = window.speechSynthesis.getVoices() || [];
     if (!voices.length) return null;
-    var prefer = function (test) { for (var i = 0; i < voices.length; i++) if (test(voices[i])) return voices[i]; return null; };
-    chosenVoice =
-      prefer(function (v) { return /en-GB/i.test(v.lang); }) ||
-      prefer(function (v) { return /en-US/i.test(v.lang); }) ||
-      prefer(function (v) { return /^en/i.test(v.lang); }) ||
-      voices[0];
+    // honour a saved user choice if it still exists
+    try {
+      var saved = localStorage.getItem("atlas_voice");
+      if (saved) {
+        for (var k = 0; k < voices.length; k++) if (voices[k].name === saved) { chosenVoice = voices[k]; return chosenVoice; }
+      }
+    } catch (e) {}
+    var best = null, bestScore = -Infinity;
+    for (var i = 0; i < voices.length; i++) {
+      var sc = scoreVoice(voices[i]);
+      if (sc > bestScore) { bestScore = sc; best = voices[i]; }
+    }
+    chosenVoice = best || voices[0];
     return chosenVoice;
   }
   if (supported) {
