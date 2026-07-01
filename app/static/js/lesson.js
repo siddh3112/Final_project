@@ -17,10 +17,26 @@
   let idx = 0;
   let trialUnlocked = false;
 
+  // Read-aloud button for the active lesson card (accent from the page theme).
+  const accent = (getComputedStyle(document.querySelector(".location-page") || document.body)
+    .getPropertyValue("--accent") || "").trim() || "#d4a84b";
+  const ttsBtn = window.AtlasVoice && window.AtlasVoice.button(accent);
+  if (ttsBtn) {
+    const nav = document.querySelector(".lesson-nav");
+    if (nav) nav.insertBefore(ttsBtn, nav.firstChild);
+  }
+
   function render() {
+    if (window.AtlasVoice) window.AtlasVoice.stop(); // stop read-aloud on page change
     cards.forEach((c, i) => c.classList.toggle("active", i === idx));
     curEl.textContent = idx + 1;
     fillEl.style.width = ((idx + 1) / total) * 100 + "%";
+
+    if (ttsBtn) {
+      const textEl = cards[idx].querySelector(".lesson-card-text");
+      const say = textEl ? textEl.textContent : "";
+      ttsBtn.onclick = function () { window.AtlasVoice.toggle(say, accent, ttsBtn); };
+    }
 
     prevBtn.disabled = idx === 0;
 
