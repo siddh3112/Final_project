@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% if prefs.reduce_motion %}reduce-motion {% endif %}{% if prefs.large_text %}large-text{% endif %}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,6 +40,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>window.ATLAS_PREFS = {{ prefs | tojson }};</script>
+  <script src="{{ url_for('static', filename='js/prefs.js') }}"></script>
   <script src="{{ url_for('static', filename='js/tts.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>

@@ -7,8 +7,7 @@ any newly-qualifying achievements and returns the keys that were just earned
 (so the hub can celebrate them with a popup).
 """
 
-from ..game_content import LOCATION_ORDER
-from ..models import Achievement, LocationProgress, QuizAttempt, db
+from ..models import Achievement, LocationProgress, db
 
 # Display order + popup/tooltip copy. (Single source of truth for badges.)
 ACHIEVEMENTS = [
@@ -21,9 +20,6 @@ ACHIEVEMENTS = [
     {"key": "stargazer", "name": "Stargazer", "icon": "✨",
      "desc": "You traced the constellation of machine learning.",
      "how": "Complete the Observatory"},
-    {"key": "flawless", "name": "Flawless", "icon": "💎",
-     "desc": "A perfect quiz on the first try. No hints needed.",
-     "how": "Pass any Trial 4/4 on your first attempt, with no hints"},
     {"key": "atlas_sage", "name": "Atlas Sage", "icon": "🏆",
      "desc": "You completed the entire Atlas. You are a master cartographer of AI.",
      "how": "Complete the Final Assessment"},
@@ -45,13 +41,6 @@ def _qualifying(user):
 
     if getattr(user, "post_test_done", False):
         keys.add("atlas_sage")
-
-    # Flawless: a first-attempt 4/4 with no hints consulted, in any location.
-    for loc in LOCATION_ORDER:
-        rows = QuizAttempt.query.filter_by(user_id=user.id, location=loc, attempt_number=1).all()
-        if rows and len(rows) >= 4 and all(r.is_correct for r in rows) and not any(r.npc_consulted for r in rows):
-            keys.add("flawless")
-            break
 
     return keys
 

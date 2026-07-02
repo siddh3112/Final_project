@@ -39,33 +39,54 @@
     setTimeout(() => el.remove(), 1400);
   }
 
-  // Answer a question: instant green/red feedback, then auto-advance.
+  function advance() {
+    if (idx < total - 1) {
+      idx++;
+      show();
+    } else {
+      form.submit(); // server grades + records, then shows results
+    }
+  }
+
+  // Answer a question: instant green/red feedback + elaborative explanation,
+  // then wait for the learner to press Continue.
   function answer(q, opt) {
     if (locked) return;
     locked = true;
 
     const correct = q.dataset.correct;
+    const isRight = opt.querySelector("input").value === correct;
     const opts = Array.from(q.querySelectorAll(".q-option"));
     opts.forEach((o) => {
       o.classList.add("locked");
       if (o.querySelector("input").value === correct) o.classList.add("correct");
     });
 
-    if (opt.querySelector("input").value === correct) {
+    if (isRight) {
       opt.classList.add("flash-ok");
       floatXP(opt);
     } else {
       opt.classList.add("flash-no", "shake");
     }
 
-    setTimeout(function () {
-      if (idx < total - 1) {
-        idx++;
-        show();
-      } else {
-        form.submit(); // server grades + records, then shows results
+    // Elaborative feedback (the "explain why" upgrade).
+    const fb = q.querySelector(".q-feedback");
+    if (fb) {
+      const txt = fb.querySelector(".q-feedback-text");
+      const msg = isRight ? q.dataset.fbok : q.dataset.fbno;
+      if (txt) txt.textContent = msg || "";
+      fb.classList.toggle("is-ok", isRight);
+      fb.classList.toggle("is-no", !isRight);
+      fb.hidden = false;
+      const nextBtn = fb.querySelector(".q-next-btn");
+      if (nextBtn) {
+        nextBtn.textContent = idx < total - 1 ? "Continue" : "See results";
+        nextBtn.focus();
+        nextBtn.addEventListener("click", advance, { once: true });
       }
-    }, 1500);
+    } else {
+      setTimeout(advance, 1500);
+    }
   }
 
   // Per-question hint → Professor Atlas (logged as consulted for this question).

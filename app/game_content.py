@@ -55,11 +55,11 @@ LIBRARY_BOOKS = [
             {"type": "intro", "title": "The Book of Augmented Intelligence",
              "body": "Two ideas are often confused, explorer. Let me show you the difference between true AI and its humbler cousin."},
             {"type": "concept", "title": "AI vs Augmented Intelligence",
-             "body": "Augmented intelligence helps humans with impractical tasks — like reading 1000 pages in an hour. True AI aims higher: to mimic human thinking itself.",
-             "keywords": ["augmented", "assists humans", "mimic human thinking"]},
+             "body": "Augmented intelligence helps humans with impractical tasks — like reading 1000 pages in an hour. Its defining trait is that it amplifies human judgement rather than replacing it: a person always keeps the final call and the accountability. True AI aims higher — to mimic human thinking itself.",
+             "keywords": ["augmented", "amplifies judgement", "human keeps accountability"]},
             {"type": "example", "title": "In the Real World",
-             "body": "Augmented intelligence can scan thousands of medical records to surface clues. But AI today is not mature enough to diagnose on its own.",
-             "hint": "Think of augmented intelligence as a powerful assistant — not a replacement."},
+             "body": "A bank might use AI to pre-screen loan applications and flag risk factors, but a human officer makes the final decision. That 'AI + human' arrangement — the most common and responsible pattern in the real world — is augmented intelligence.",
+             "hint": "Think of augmented intelligence as a powerful assistant that keeps a human in charge — not a replacement."},
         ],
         "quiz": {
             "question": "A doctor uses a tool that reads 1,000 scans in minutes and flags unusual ones for review. This is best described as:",
@@ -136,11 +136,11 @@ LIBRARY_BOOKS = [
             {"type": "intro", "title": "The Book of the Three Levels",
              "body": "Finally, gaze toward the horizon. Artificial intelligence grows in three great stages."},
             {"type": "concept", "title": "Narrow, Broad & General",
-             "body": "Narrow AI does one task well. Broad AI handles many domains — most companies use it today. General AI, with human-level intelligence, is still to come.",
-             "keywords": ["Narrow AI", "Broad AI", "General AI"]},
+             "body": "Think of AI on a spectrum. Narrow AI is built for one task and can't step outside it — spam filters, face unlock and chess engines are all narrow. Broad AI, IBM's term for today's systems, integrates several narrow components into one business process trained on an organisation's own data. General AI — reasoning across any domain like a human — does not exist yet; it remains a long-term research goal.",
+             "keywords": ["Narrow AI", "Broad AI (integrated)", "General AI (not yet)"]},
             {"type": "example", "title": "In the Real World",
-             "body": "A chess engine is Narrow AI. A system that organises a company's messy data is Broad AI. A machine that thinks like us across everything would be General AI — not yet here.",
-             "hint": "Narrow and Broad are real today. General AI lies in the future."},
+             "body": "A self-driving car is Broad AI: it combines separate systems for vision, route-planning and decision-making into one integrated whole. A single spam filter is Narrow AI. A machine that could teach itself any new task the way a person does would be General AI — which no one has built.",
+             "hint": "Narrow and Broad are real today. A self-driving car is Broad AI; General AI lies in the future."},
         ],
         "quiz": {
             "question": "A program plays chess brilliantly but can do nothing else. Which level of AI is it?",
@@ -191,7 +191,7 @@ LOCATIONS = {
             },
             {
                 "heading": "AI vs Augmented Intelligence",
-                "text": "When learning about AI, you will come across the term augmented intelligence. Both share the same objective but have different approaches. Augmented intelligence has a modest goal of helping humans with tasks that are not practical to do — for example, reading 1000 pages in an hour. In contrast, AI has a loftier goal of mimicking human thinking and processes. It is important to note that AI today is not mature enough to perform independent tasks such as diagnosing cancer."
+                "text": "When learning about AI, you will come across the term augmented intelligence. Both share the same objective but have different approaches. Augmented intelligence has a modest goal of helping humans with tasks that are not practical to do — for example, reading 1000 pages in an hour. Crucially, it amplifies human judgement rather than replacing it: a bank might use AI to pre-screen loan applications and flag risks, but a human officer makes the final call and keeps accountability. This 'AI + human' pattern is the most common, responsible use of AI in the real world. In contrast, full AI has a loftier goal of mimicking human thinking and processes, and today it is not mature enough to perform independent tasks such as diagnosing cancer."
             },
             {
                 "heading": "What Does AI Do?",
@@ -203,7 +203,7 @@ LOCATIONS = {
             },
             {
                 "heading": "How is AI Evolving?",
-                "text": "Computer scientists have identified three levels of AI based on predicted growth in its ability to analyse data and make predictions. Narrow AI is designed to perform one specific task. Broad AI can handle multiple domains — most enterprises use Broad AI today. General AI would have human-level general intelligence but will not come online until sometime in the future. Both Narrow AI and Broad AI are available right now."
+                "text": "It helps to picture AI on a spectrum of capability. Narrow AI is built for one specific task and can't step outside it — spam filters, face-unlock and chess engines are all narrow, and almost every AI you meet today is too. Broad AI, IBM's term for the middle of the spectrum, integrates several narrow components into one business process trained on an organisation's own data — a self-driving car, for instance, combines vision, route-planning and decision-making into one integrated system. General AI would reason and transfer knowledge across any domain the way a human does, but it does not exist yet; it remains a long-term research goal. Both Narrow AI and Broad AI are available right now."
             }
         ],
         "learning_objectives": [
@@ -243,7 +243,7 @@ LOCATIONS = {
             },
             {
                 "heading": "Structured, Semi-Structured, and Unstructured Data",
-                "text": "Data can be organised into three types. Structured data is highly organised and stored in rows and columns — think spreadsheets, names, dates, credit card numbers. Unstructured data, also called dark data, has no built-in organisation — examples include images, customer comments, medical records, and social media posts. Semi-structured data is the bridge between the two — a video with hashtags is a good example, because the video itself is unstructured but the hashtags give it searchable structure. About 80% of all data in the world today is unstructured, and AI is the only technology capable of making sense of it."
+                "text": "Data can be organised into three types. Structured data is highly organised and stored in rows and columns — spreadsheets of names, ages, dates and account balances, easily queried with SQL. Unstructured data has no built-in schema and is kept in its native form — emails, PDFs, contracts, images, audio, video, chat logs and social media posts. Semi-structured data is the bridge between the two: it carries tags, keys or metadata that make it machine-readable without a rigid schema — JSON, XML and CSV are the classic examples (a video with hashtags is another). An estimated 80–90% of enterprise data is unstructured, yet most reporting tools were built for the structured 10–20%, so company dashboards often cover only a thin slice — AI is what finally makes the unstructured majority usable. Beware of dark data too: information that is collected and stored but never used. Dark data can be any type — even perfectly tidy structured records count as dark if they sit unqueried — and studies suggest it is more than half of all enterprise data."
             }
         ],
         "learning_objectives": [
@@ -296,89 +296,92 @@ LOCATIONS = {
     }
 }
 
+# ── Scenario-based question banks (Content Enrichment Pack) ──
+# Each Trial draws TRIAL_COUNT questions at random from its bank (the AI Lab
+# additionally pins lab_q3, its live data-sorting diagnostic). The exact set
+# shown is stored per-attempt so the graded questions == the shown questions.
+# Every question tests APPLICATION and carries elaborative feedback
+# (feedback_correct / feedback_wrong) plus a non-revealing hint.
 QUIZZES = {
     "library": [
         {
-            "key": "lib_q1",
-            "question": "What does artificial intelligence (AI) refer to?",
+            "key": "lib_s1",
+            "question": "A hospital deploys a system that reads chest X-rays to flag possible pneumonia. It cannot schedule surgeries or answer patient questions — only read X-rays. What type of AI is this?",
             "options": {
-                "A": "The ability of a machine to store and process large amounts of data",
-                "B": "The ability of a machine to learn patterns and make predictions",
-                "C": "Software that follows pre-written rules to complete specific tasks",
-                "D": "Hardware designed to perform calculations faster than humans"
+                "A": "Narrow AI",
+                "B": "General AI",
+                "C": "Broad AI",
+                "D": "Super AI"
+            },
+            "correct": "A",
+            "feedback_correct": "Exactly — narrow AI is built for one specific task and can't transfer to others. That inability to generalise is its signature.",
+            "feedback_wrong": "This is narrow AI. A pneumonia-detector that can't do anything else is task-locked — the defining trait of narrow AI. General AI (which doesn't exist yet) could move across tasks like a human.",
+            "explanation": "Exactly — narrow AI is built for one specific task and can't transfer to others. That inability to generalise is its signature.",
+            "hint": "The system does exactly one job and nothing else. Which level of AI is locked to a single task?"
+        },
+        {
+            "key": "lib_s2",
+            "question": "A self-driving car combines separate systems for vision, route-planning and decision-making, all trained on one company's driving data. IBM would classify this integrated, business-specific system as:",
+            "options": {
+                "A": "Narrow AI",
+                "B": "Broad AI",
+                "C": "General AI",
+                "D": "Not AI at all"
             },
             "correct": "B",
-            "explanation": "AI refers to the ability of a machine to learn patterns and make predictions. Rather than replacing human decisions, AI adds value to human judgment.",
-            "hint": "Does an intelligent machine merely follow fixed rules, or does it learn patterns from data and make predictions? Recall how the Library defined AI."
+            "feedback_correct": "Right — broad AI integrates several narrow components into one business process using enterprise-specific data.",
+            "feedback_wrong": "This is broad AI — a collection of narrow-AI systems working together on a specific business problem. It's broader than a single task, but still far from general, human-like intelligence.",
+            "explanation": "Right — broad AI integrates several narrow components into one business process using enterprise-specific data.",
+            "hint": "Several narrow systems working together on one company's problem — that's the middle of the AI spectrum. What does IBM call it?"
         },
         {
-            "key": "lib_q2",
-            "question": "What two core things do AI services do?",
+            "key": "lib_s3",
+            "question": "Someone claims their chatbot is \"General AI because it can answer questions on any topic.\" Why is this claim almost certainly wrong?",
             "options": {
-                "A": "Store data and create algorithms",
-                "B": "Secure systems and enforce rules",
-                "C": "Analyse data and make predictions",
-                "D": "Identify emotions and transfer information"
+                "A": "Chatbots can't process language",
+                "B": "General AI only works on images",
+                "C": "General AI doesn't exist yet; the chatbot is narrow AI predicting text from training data",
+                "D": "It's actually Super AI"
             },
             "correct": "C",
-            "explanation": "AI services analyse data and based on that analysis make predictions. These two actions — analysis and prediction — can have an enormous impact on human life.",
-            "hint": "Every AI service has a two-step rhythm — one step studies the data to find patterns, the next looks ahead. What were those two steps called in your reading?"
+            "feedback_correct": "Spot on — answering many questions isn't the same as reasoning across domains like a human.",
+            "feedback_wrong": "General AI — reasoning and learning across any domain like a human — is still theoretical. A wide-ranging chatbot is still narrow AI: it predicts text statistically and can't truly transfer understanding.",
+            "explanation": "Spot on — answering many questions isn't the same as reasoning across domains like a human.",
+            "hint": "Answering many questions isn't the same as reasoning like a human. Has true general AI actually been built yet?"
         },
         {
-            "key": "lib_q3",
-            "question": "What is the key difference between AI and augmented intelligence?",
+            "key": "lib_s4",
+            "question": "A bank uses AI to pre-screen loan applications and highlight risk factors, while human officers make the final decision. This \"AI + human\" arrangement is best described as:",
             "options": {
-                "A": "Augmented intelligence is more powerful and will eventually replace AI",
-                "B": "AI helps with simple tasks while augmented intelligence handles complex ones",
-                "C": "AI aims to mimic human thinking while augmented intelligence helps humans with tasks not practical to do",
-                "D": "There is no real difference — they are the same technology with different names"
+                "A": "General AI",
+                "B": "Replacing humans entirely",
+                "C": "Unsupervised learning",
+                "D": "Augmented intelligence"
             },
-            "correct": "C",
-            "explanation": "Augmented intelligence has a modest goal of helping humans with impractical tasks like reading 1000 pages in an hour. AI has the loftier goal of mimicking human thinking and processes.",
-            "hint": "One of these merely assists humans with impractical tasks; the other aims to mimic human thinking itself. Which description fits augmented intelligence?"
+            "correct": "D",
+            "feedback_correct": "Yes — augmented intelligence amplifies human judgement rather than replacing it.",
+            "feedback_wrong": "This is augmented intelligence — AI does the heavy lifting (screening, flagging) but a human keeps judgement and accountability. It's the responsible, common real-world pattern.",
+            "explanation": "Yes — augmented intelligence amplifies human judgement rather than replacing it.",
+            "hint": "The AI assists but a human makes the final call. What do we call AI that amplifies human judgement instead of replacing it?"
         },
         {
-            "key": "lib_q4",
-            "question": "Which statement about the three levels of AI is correct?",
+            "key": "lib_s5",
+            "question": "Which of these is NOT an example of narrow AI?",
             "options": {
-                "A": "All three levels — Narrow, Broad, and General — are available today",
-                "B": "Only Narrow AI is available today, Broad and General AI are still in development",
-                "C": "Narrow AI and Broad AI are available today, General AI is still in the future",
-                "D": "General AI is the most commonly used type in businesses today"
+                "A": "A machine that could teach itself any new task on its own, like a human",
+                "B": "A spam filter",
+                "C": "A face-unlock feature",
+                "D": "A film recommendation engine"
             },
-            "correct": "C",
-            "explanation": "Narrow and Broad AI are both available today. Most enterprises use Broad AI. General AI will not come online until sometime in the future.",
-            "hint": "Which levels are in use today, and which is still on the horizon? Think Narrow, Broad… and the one that has not yet arrived."
+            "correct": "A",
+            "feedback_correct": "Correct — that describes general AI, which doesn't exist yet. The other three are all narrow AI.",
+            "feedback_wrong": "Spam filters, face unlock and recommendations are all narrow AI — each does one job well. A system that could learn any new task the way a person does would be general AI, which doesn't exist.",
+            "explanation": "Correct — that describes general AI, which doesn't exist yet. The other three are all narrow AI.",
+            "hint": "Three of these each do one fixed job. The odd one out describes a human-like, learn-anything machine."
         }
     ],
 
     "ai_lab": [
-        {
-            "key": "lab_q1",
-            "question": "What was the main breakthrough of the Era of Programming?",
-            "options": {
-                "A": "Computers could now store unlimited amounts of data",
-                "B": "Computers could run multiple kinds of instructions to perform more than one type of calculation",
-                "C": "Computers could understand human language for the first time",
-                "D": "Computers no longer needed human operators to function"
-            },
-            "correct": "B",
-            "explanation": "Programmable computers like ENIAC could run different programs, meaning one machine could perform many different types of calculation — a huge leap forward from single-purpose machines.",
-            "hint": "Recall what made ENIAC special — could it do only one fixed job, or be given many different sets of instructions?"
-        },
-        {
-            "key": "lab_q2",
-            "question": "Where and when was the term artificial intelligence first coined?",
-            "options": {
-                "A": "MIT in 1971 during the first AI winter",
-                "B": "IBM Research Labs in 1997 when Deep Blue beat the chess champion",
-                "C": "Dartmouth College in 1956 by McCarthy and Minsky",
-                "D": "The University of Pennsylvania in the 1940s when ENIAC was built"
-            },
-            "correct": "C",
-            "explanation": "In the summer of 1956, researchers at Dartmouth College led by John McCarthy and Marvin Minsky coined the term artificial intelligence and proposed that machines could simulate every aspect of human learning.",
-            "hint": "Think of a 1956 summer gathering at an American college, led by McCarthy and Minsky — not a company lab or a chess match."
-        },
         {
             "key": "lab_q3",
             "question": "Which of the following is an example of unstructured data?",
@@ -389,75 +392,214 @@ QUIZZES = {
                 "D": "A table of stock prices organised by date"
             },
             "correct": "C",
+            "feedback_correct": "Unstructured data, also called dark data, lacks any built-in organisation. Social media posts, images, and customer comments cannot be processed by conventional programs.",
+            "feedback_wrong": "The answer is social media posts and customer comments. Unstructured data has no built-in rows and columns — unlike spreadsheets, databases and tables.",
             "explanation": "Unstructured data, also called dark data, lacks any built-in organisation. Social media posts, images, and customer comments cannot be processed by conventional computer programs.",
-            "hint": "Which option has no neat rows and columns — something free-form like text, images, or comments?"
+            "hint": "Which option has no neat rows and columns — something free-form like text, images, or comments?",
+            "no_shuffle": True
         },
         {
-            "key": "lab_q4",
-            "question": "Why is unstructured data a challenge for traditional computers?",
+            "key": "lab_s1",
+            "question": "A retailer wants to analyse customer emails and call-centre recordings to understand complaints. What type of data is this?",
             "options": {
-                "A": "It takes up too much storage space on a hard drive",
-                "B": "It changes too slowly for computers to keep up with",
-                "C": "Conventional programs cannot process data that lacks organisation",
-                "D": "Traditional computers can only work with numbers, not text"
+                "A": "Structured — fits neatly in tables",
+                "B": "Unstructured — no fixed schema, needs AI like NLP to interpret",
+                "C": "Semi-structured — it has a rigid schema",
+                "D": "It isn't data"
+            },
+            "correct": "B",
+            "feedback_correct": "Right — emails and audio have no rows-and-columns schema, so traditional databases can't query them directly.",
+            "feedback_wrong": "This is unstructured data. Around 80–90% of enterprise data looks like this (Gartner/IBM), and AI like natural-language processing is what unlocks it.",
+            "explanation": "Right — emails and audio have no rows-and-columns schema, so traditional databases can't query them directly.",
+            "hint": "Emails and audio recordings don't fit into neat rows and columns. Which data type has no fixed schema?"
+        },
+        {
+            "key": "lab_s2",
+            "question": "A company stores millions of JSON API logs with tags and key-value pairs, but no rigid table schema. This is:",
+            "options": {
+                "A": "Structured data",
+                "B": "Unstructured data",
+                "C": "Semi-structured data",
+                "D": "Dark data by definition"
             },
             "correct": "C",
-            "explanation": "About 80% of all data today is unstructured. No conventional computer program can learn much from it because it contains too many variables and changes too quickly. AI is the solution.",
-            "hint": "Conventional programs need organised input. What happens when the vast majority of data has no built-in structure?"
+            "feedback_correct": "Correct — tags and keys make it machine-readable without a fixed schema.",
+            "feedback_wrong": "This is semi-structured data — JSON and XML carry metadata/keys that give partial organisation without a rigid schema. It sits between structured tables and raw unstructured content.",
+            "explanation": "Correct — tags and keys make it machine-readable without a fixed schema.",
+            "hint": "It has tags and key-value pairs but no rigid table. What sits between structured and unstructured?"
+        },
+        {
+            "key": "lab_s3",
+            "question": "A bank finds years of archived transaction records in an old system that nobody ever queries. Though neatly organised, what is this an example of?",
+            "options": {
+                "A": "Dark data",
+                "B": "Unstructured data",
+                "C": "Semi-structured data",
+                "D": "Real-time data"
+            },
+            "correct": "A",
+            "feedback_correct": "Yes — dark data is collected and stored but never used, and it can be perfectly structured.",
+            "feedback_wrong": "This is dark data — unused information that can be any type, including tidy structured tables. More than half of enterprise data is estimated to be dark (Splunk): a huge untapped, and unsecured, resource.",
+            "explanation": "Yes — dark data is collected and stored but never used, and it can be perfectly structured.",
+            "hint": "The records are tidy but nobody ever uses them. What do we call collected data that just sits unused?"
+        },
+        {
+            "key": "lab_s4",
+            "question": "Why do most companies' dashboards and reports only cover a small slice of their total data?",
+            "options": {
+                "A": "Unstructured data doesn't exist",
+                "B": "Structured data can't be analysed",
+                "C": "All data is equally easy to use",
+                "D": "Traditional tools were built for the ~10–20% that's structured"
+            },
+            "correct": "D",
+            "feedback_correct": "Right — legacy reporting tools were designed for structured data, leaving the unstructured 80%+ largely untouched until AI arrived.",
+            "feedback_wrong": "Most reporting tools target structured data — the ~10–20% that fits neat tables. The unstructured majority (emails, PDFs, images, audio) stayed hard to use until AI made it actionable.",
+            "explanation": "Right — legacy reporting tools were designed for structured data, leaving the unstructured 80%+ largely untouched until AI arrived.",
+            "hint": "Old reporting tools were designed for one kind of data. Which small slice — structured or unstructured — could they actually handle?"
+        },
+        {
+            "key": "lab_s5",
+            "question": "Which item is structured data?",
+            "options": {
+                "A": "A folder of scanned contracts",
+                "B": "A spreadsheet of customer names, ages and balances in fixed columns",
+                "C": "A podcast recording",
+                "D": "A collection of social-media photos"
+            },
+            "correct": "B",
+            "feedback_correct": "Correct — fixed fields in labelled columns, easily queried with SQL.",
+            "feedback_wrong": "The spreadsheet is structured — predefined fields like name/age/balance. Contracts, audio and photos are unstructured: no fixed schema, stored in native form.",
+            "explanation": "Correct — fixed fields in labelled columns, easily queried with SQL.",
+            "hint": "Only one of these fits neatly into labelled rows and columns you could query with SQL."
         }
     ],
 
     "observatory": [
         {
-            "key": "obs_q1",
-            "question": "What is the key difference between deterministic and probabilistic computation?",
+            "key": "obs_s1",
+            "question": "A team has 50,000 emails already labelled \"spam\" or \"not spam\" and wants to train a filter. Which ML method fits?",
             "options": {
-                "A": "Deterministic systems are faster than probabilistic ones",
-                "B": "Deterministic systems give yes or no answers while probabilistic systems give a confidence level",
-                "C": "Probabilistic systems require more storage than deterministic ones",
-                "D": "Deterministic systems can handle unstructured data better than probabilistic ones"
+                "A": "Supervised learning",
+                "B": "Unsupervised learning",
+                "C": "Reinforcement learning",
+                "D": "None of these"
+            },
+            "correct": "A",
+            "feedback_correct": "Right — labelled data with known answers is the hallmark of supervised learning.",
+            "feedback_wrong": "This is supervised learning — it trains on labelled examples (spam/not-spam) and learns to predict the label for new, unseen emails.",
+            "explanation": "Right — labelled data with known answers is the hallmark of supervised learning.",
+            "hint": "The training data already carries the correct answers. Which method learns from labelled examples?"
+        },
+        {
+            "key": "obs_s2",
+            "question": "A streaming service wants to group viewers with similar tastes, but nobody has defined what the groups should be. Which method?",
+            "options": {
+                "A": "Supervised learning",
+                "B": "Unsupervised learning",
+                "C": "Reinforcement learning",
+                "D": "Deterministic rules"
             },
             "correct": "B",
-            "explanation": "A deterministic system flags answers as YES or NO based on pre-written rules. Machine learning is probabilistic — it says I am 84% confident rather than giving a binary answer, allowing it to handle real-world complexity."
+            "feedback_correct": "Correct — with no predefined labels, the model discovers clusters on its own.",
+            "feedback_wrong": "This is unsupervised learning — it finds hidden structure in unlabelled data. Grouping viewers with no preset categories is a classic clustering (segmentation) task.",
+            "explanation": "Correct — with no predefined labels, the model discovers clusters on its own.",
+            "hint": "There are no predefined groups or labels — the model must find the patterns itself. Which method is that?"
         },
         {
-            "key": "obs_q2",
-            "question": "What does supervised learning require that unsupervised learning does not?",
+            "key": "obs_s3",
+            "question": "Amazon trains warehouse robots to pick and move goods, rewarding good actions and penalising mistakes so they improve through trial and error. This is:",
             "options": {
-                "A": "A very large dataset with millions of records",
-                "B": "A powerful GPU to process the data quickly",
-                "C": "Labelled training data with correct answers provided",
-                "D": "A constant connection to the internet during training"
+                "A": "Supervised learning",
+                "B": "Unsupervised learning",
+                "C": "Reinforcement learning",
+                "D": "Structured data sorting"
             },
             "correct": "C",
-            "explanation": "Supervised learning requires labelled data — samples tagged with the correct answer so the machine can learn from them. Unsupervised learning receives unlabelled data and finds patterns entirely by itself."
+            "feedback_correct": "Yes — learning through rewards and feedback while interacting with an environment is reinforcement learning.",
+            "feedback_wrong": "This is reinforcement learning — an agent learns which actions maximise reward through trial and error, exactly like game-playing AIs and warehouse robots. There's no labelled answer key.",
+            "explanation": "Yes — learning through rewards and feedback while interacting with an environment is reinforcement learning.",
+            "hint": "The robot learns from rewards and penalties by trial and error. Which method uses feedback from an environment?"
         },
         {
-            "key": "obs_q3",
-            "question": "How does reinforcement learning improve its accuracy over time?",
+            "key": "obs_s4",
+            "question": "A calculator returns exactly the same answer every time you enter 7 × 8, and an autonomous car's braking logic is built to behave the same predictable way. These are examples of:",
             "options": {
-                "A": "A human programmer updates the rules manually after each mistake",
-                "B": "The machine copies correct answers from a pre-built database",
-                "C": "The machine receives rewards for correct predictions and penalties for incorrect ones",
-                "D": "The machine downloads updated training data from the internet after each session"
+                "A": "Probabilistic systems",
+                "B": "Unsupervised learning",
+                "C": "Dark data",
+                "D": "Deterministic systems"
             },
-            "correct": "C",
-            "explanation": "Reinforcement learning is based on trial and error. Positive numerical feedback rewards correct predictions and negative feedback penalises incorrect ones. Over time the machine improves automatically without human intervention."
+            "correct": "D",
+            "feedback_correct": "Right — same input, same output, no randomness. Ideal where predictability is critical.",
+            "feedback_wrong": "These are deterministic — they map the same input to the same output every time. That predictability is exactly what you want for braking or calculation.",
+            "explanation": "Right — same input, same output, no randomness. Ideal where predictability is critical.",
+            "hint": "Same input, same output, every single time. Is that predictable behaviour deterministic or probabilistic?"
         },
         {
-            "key": "obs_q4",
-            "question": "Which description best matches General AI?",
+            "key": "obs_s5",
+            "question": "A medical AI outputs \"78% likelihood this scan shows a tumour\" instead of a flat yes/no. What kind of system is this, and why is it useful?",
             "options": {
-                "A": "AI that specialises in one specific task like playing chess or detecting spam",
-                "B": "AI that can structure unstructured data and is widely used by enterprises today",
-                "C": "A future superintelligence smarter than the best human brains across practically every field",
-                "D": "AI that learns through trial and error using rewards and penalties"
+                "A": "Probabilistic — it expresses confidence/uncertainty, helping doctors prioritise",
+                "B": "Deterministic — it's always exact",
+                "C": "Unsupervised — it has no data",
+                "D": "Broken; AI should never be unsure"
             },
-            "correct": "C",
-            "explanation": "General AI is the predicted third level of artificial intelligence — an intellect much smarter than the best human brains in practically every field including scientific creativity, general wisdom, and social skills. It is not yet available."
+            "correct": "A",
+            "feedback_correct": "Exactly — a confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
+            "feedback_wrong": "This is probabilistic — it expresses outputs as likelihoods. A \"78% likelihood\" helps a doctor prioritise and handle uncertainty, which is far safer in medicine than false certainty.",
+            "explanation": "Exactly — a confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
+            "hint": "The output is a confidence percentage, not a flat yes/no. Which kind of system expresses likelihoods?"
+        },
+        {
+            "key": "obs_s6",
+            "question": "Recall from the Library that a self-driving car is broad AI. Which ML method most likely helps the car improve its driving decisions through trial, reward and consequence?",
+            "options": {
+                "A": "Supervised only",
+                "B": "Reinforcement learning",
+                "C": "Unsupervised only",
+                "D": "It uses no machine learning"
+            },
+            "correct": "B",
+            "feedback_correct": "Right — self-driving decision systems often use reinforcement learning, and the car as a whole is broad AI (many methods combined).",
+            "feedback_wrong": "Reinforcement learning — improving actions through feedback and reward, like a game-playing agent. It also ties back to \"broad AI\": many ML methods integrated into one system.",
+            "explanation": "Right — self-driving decision systems often use reinforcement learning, and the car as a whole is broad AI (many methods combined).",
+            "hint": "The key words are trial, reward and consequence. Which learning method improves through feedback?"
         }
     ]
 }
+
+# How many questions each Trial shows (and grades). Kept at 4 — PASS_THRESHOLD
+# of 3/4 is unchanged.
+TRIAL_COUNT = 4
+
+# Questions that must always appear in a location's Trial. The AI Lab pins its
+# hands-on data-sorting diagnostic (lab_q3, rendered as the sorting machine).
+PINNED_QUESTIONS = {
+    "ai_lab": ["lab_q3"],
+}
+
+
+def select_trial_questions(location_key, count=TRIAL_COUNT):
+    """Pick which question keys to show for one Trial attempt.
+
+    Pinned questions (e.g. the AI Lab sorting diagnostic) are always included
+    and kept first; the remainder are sampled at random from the bank. Returns
+    a list of question keys.
+    """
+    bank = QUIZZES.get(location_key, [])
+    by_key = {q["key"]: q for q in bank}
+    pinned = [k for k in PINNED_QUESTIONS.get(location_key, []) if k in by_key]
+    pool = [q["key"] for q in bank if q["key"] not in pinned]
+    need = max(0, count - len(pinned))
+    chosen = _random.sample(pool, min(need, len(pool)))
+    return pinned + chosen
+
+
+def get_questions_by_keys(location_key, keys):
+    """Return the question dicts for `keys`, in the given order."""
+    by_key = {q["key"]: q for q in QUIZZES.get(location_key, [])}
+    return [by_key[k] for k in keys if k in by_key]
 
 
 import random as _random
@@ -517,15 +659,21 @@ def build_library_shelves(items, rows=3, per_row=8, seed=7):
     return [books[r * per_row:(r + 1) * per_row] for r in range(rows)]
 
 
-def grade_quiz(location_key, submitted_answers):
+def grade_quiz(location_key, submitted_answers, shown_keys=None):
     """Grade a submitted quiz.
 
-    submitted_answers: dict like {"lib_q1": "B", ...} (a letter or None).
+    submitted_answers: dict like {"lib_s1": "B", ...} (a letter or None).
+    shown_keys: the exact question keys that were shown this attempt. Only these
+        are graded, so the graded set always matches what the learner saw. When
+        omitted, the whole bank is graded (legacy behaviour).
 
     Returns (results, score, total, passed) where results is a list of per-question
     dicts the results template can render directly.
     """
-    quiz = QUIZZES.get(location_key, [])
+    if shown_keys:
+        quiz = get_questions_by_keys(location_key, shown_keys)
+    else:
+        quiz = QUIZZES.get(location_key, [])
     results = []
     score = 0
 
@@ -542,7 +690,9 @@ def grade_quiz(location_key, submitted_answers):
                 "selected": selected,
                 "correct": q["correct"],
                 "is_correct": is_correct,
-                "explanation": q["explanation"],
+                "explanation": q.get("explanation", ""),
+                "feedback": (q.get("feedback_correct") if is_correct
+                             else q.get("feedback_wrong")) or q.get("explanation", ""),
             }
         )
 

@@ -86,7 +86,7 @@
           </div>
 
           <div class="explanation">
-            <i class="bi bi-lightbulb me-2"></i>{{ r.explanation }}
+            <i class="bi bi-lightbulb me-2"></i>{{ r.feedback | default(r.explanation) }}
           </div>
         </div>
         {% endfor %}

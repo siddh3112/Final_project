@@ -62,6 +62,14 @@ def create_app():
     def load_user(user_id):
         return db.session.get(User, int(user_id))
 
+    # Front-of-house preferences (audio/accessibility) available to every
+    # template, plus the guest-mode flag the Settings panel needs.
+    from .prefs import current_prefs
+
+    @app.context_processor
+    def _inject_prefs():
+        return {"prefs": current_prefs(), "auth_disabled": AUTH_DISABLED}
+
     # Blueprints
     from .routes.auth import auth_bp
     from .routes.eval_routes import eval_bp
@@ -95,5 +103,23 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _ensure_sqlite_columns()
 
     return app
+
+
+def _ensure_sqlite_columns():
+    """Lightweight guarded migrations for SQLite (create_all won't ALTER existing
+    tables). Adds any missing nullable columns without touching existing data."""
+    from sqlalchemy import text
+
+    wanted = {
+        "knowledge_tests": [("time_spent_seconds", "INTEGER")],
+    }
+    conn = db.session.connection()
+    for table, cols in wanted.items():
+        existing = {row[1] for row in conn.execute(text(f"PRAGMA table_info({table})"))}
+        for name, coltype in cols:
+            if name not in existing:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {coltype}"))
+    db.session.commit()

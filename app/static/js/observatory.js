@@ -22,20 +22,20 @@
   ];
 
   const CONCEPTS = [
-    { heading: "What is Machine Learning?", era: "CONCEPT 1 — FOUNDATION",
-      content: "Machine learning is the way AI solves the unstructured data problem. Traditional computers are deterministic — they say yes or no based on pre-written rules. Machine learning is probabilistic — it says I am 84% confident rather than yes or no. It constructs every possible answer and compares them in real time. Most importantly it can predict outcomes and learn and improve by itself over time without being reprogrammed.",
+    { heading: "How Machines Learn & Answer", era: "CONCEPT 1 — FOUNDATION",
+      content: "Machine learning is how AI makes sense of the messy, unstructured majority of real-world data. Two ideas help: how a system learns, and how it answers. On answering — a deterministic system gives the same output for the same input every time (a calculator always returns 56 for 7 × 8; a car's emergency-braking logic behaves identically each time), which makes it predictable and easy to audit. A probabilistic system instead expresses confidence, like a medical AI saying '78% likelihood of a tumour' rather than a flat yes or no. That ability to weigh uncertainty is what lets machine learning handle ambiguity, predict outcomes, and improve on its own over time.",
       type: "normal" },
     { heading: "Supervised Learning", era: "CONCEPT 2 — LABELLED DATA",
-      content: "Supervised learning provides AI with enough labelled examples to make accurate predictions. Labelled data is grouped into samples tagged with the correct answer. The machine is shown thousands of photos labelled dog and learns the pattern. When shown a new photo it has never seen it correctly identifies it with high accuracy. This is called a classification problem and powers image recognition, spam filters, and medical diagnosis.",
+      content: "Supervised learning trains on labelled data — examples where the correct answer is already known. Feed it 50,000 emails each tagged 'spam' or 'not spam' and it learns the input→label relationship, then predicts the label for new, unseen emails. It covers classification (sorting into categories, like spam / not-spam or a photo labelled 'dog') and regression (predicting a number). It's the engine behind spam filters, image recognition, and medical-diagnosis tools.",
       type: "breakthrough" },
     { heading: "Unsupervised Learning", era: "CONCEPT 3 — FINDING PATTERNS",
-      content: "In unsupervised learning a machine is fed unlabelled data and finds patterns entirely by itself — no right or wrong answers are provided. A bank could feed customer financial data to an unsupervised algorithm and it would discover natural groupings of similar customers without being told what categories to create. It is ideal for customer segmentation, exploratory analysis, and anomaly detection.",
+      content: "Unsupervised learning works on unlabelled data with no correct answers provided — it finds hidden structure on its own. A streaming service that wants to group viewers with similar tastes, without anyone defining the groups in advance, is a classic case: the model clusters similar people together (customer segmentation). The same idea powers exploratory analysis and anomaly detection.",
       type: "normal" },
     { heading: "Reinforcement Learning", era: "CONCEPT 4 — TRIAL AND ERROR",
-      content: "Reinforcement learning works through trial and error. The algorithm learns by receiving positive rewards for correct predictions and penalties for incorrect ones. Over time its predictions grow more accurate automatically without any human intervention. It is the method behind AI systems that learn to play games, navigate environments, and optimise complex real-world processes.",
+      content: "Reinforcement learning has no answer key at all. An agent learns by trial and error, earning rewards for good actions and penalties for bad ones as it interacts with an environment. Amazon's warehouse robots learn to pick and move goods this way, and game-playing AIs (chess, Go) master their games through the same reward-and-consequence loop. Over time the agent's decisions improve automatically, without human intervention.",
       type: "breakthrough" },
     { heading: "The Three Levels of AI", era: "CONCEPT 5 — THE BIG PICTURE",
-      content: "Now that you understand machine learning the three levels of AI make deeper sense. Narrow AI specialises in one area. Broad AI, available today, can structure vast amounts of unstructured data and find patterns to extend human expertise. General AI, expected perhaps 25 years from now, would be superintelligent — smarter than the best human brains in practically every field including creativity, wisdom, and social skills.",
+      content: "Now the three levels of AI make deeper sense. Narrow AI specialises in one task and can't transfer it elsewhere — almost every AI you meet is narrow. Broad AI, IBM's term for what's available today, integrates several narrow components into one business process: a self-driving car combines vision, route-planning and decision-making — often improved through reinforcement learning — into a single system. General AI, still only a research goal, would reason and learn across any domain like a human. It does not exist yet.",
       type: "present" },
   ];
 
@@ -66,12 +66,14 @@
   const PENTA = [261.63, 293.66, 329.63, 392.0, 440.0]; // hover notes
 
   // ───────────────────────── AUDIO ─────────────────────────
-  let actx = null, master = null, muted = false, ambient = null;
+  // Start muted if the hub "Master sound" preference is off (the local mute
+  // button below still overrides it on this page).
+  let actx = null, master = null, muted = !!(window.ATLAS_PREFS && window.ATLAS_PREFS.sound === false), ambient = null;
   function ac() {
     try {
       if (!actx) {
         const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
-        actx = new C(); master = actx.createGain(); master.gain.value = 1; master.connect(actx.destination);
+        actx = new C(); master = actx.createGain(); master.gain.value = muted ? 0 : 1; master.connect(actx.destination);
       }
       if (actx.state === "suspended") actx.resume();
       return actx;
@@ -187,6 +189,10 @@
   function kick() { if (kicked) return; kicked = true; ac(); if (!muted) startAmbient(); }
   ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, kick, { once: true }));
   const muteBtn = document.getElementById("obs-mute");
+  if (muteBtn && muted) {  // reflect the inherited master-sound preference
+    muteBtn.textContent = "🔇"; muteBtn.classList.add("muted");
+    muteBtn.setAttribute("aria-label", "Sound off");
+  }
   if (muteBtn) muteBtn.addEventListener("click", function (e) {
     e.stopPropagation(); kick(); muted = !muted;
     try { if (master) master.gain.value = muted ? 0 : 1; } catch (er) {}

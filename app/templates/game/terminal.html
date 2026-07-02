@@ -106,7 +106,7 @@
               <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: DATA_CLASSIFICATION | DIAGNOSTIC<span class="term-load">CONVEYOR: ONLINE</span></div>
               <hr class="term-hr" />
               <h2 class="term-head static">&gt; SECTOR: DATA_CLASSIFICATION</h2>
-              <p class="machine-intro">&gt; Items are arriving on the conveyor. Drag each into the correct bin.<br />&gt; About 80% of all data is unstructured — sort all six to proceed.</p>
+              <p class="machine-intro">&gt; DATA comes in three forms. STRUCTURED fits neat rows and columns — a spreadsheet of names, ages and balances, easily queried with SQL. UNSTRUCTURED has no schema and is stored raw: emails, images, audio, chat logs. SEMI-STRUCTURED sits between the two — tags or keys give partial order without a rigid table (JSON, XML).<br />&gt; An estimated 80–90% of enterprise data is unstructured, yet most legacy tools were built for the structured ~10–20% — so dashboards often show only a thin slice. Watch for DARK DATA too: information collected but never used (it can even be tidy, structured records).<br />&gt; Drag each item on the conveyor into the correct bin — sort all six to proceed.</p>
 
               <div class="sorting-game" data-qkey="lab_q3" data-correctval="{{ ns.q3_correct }}">
                 <!-- Conveyor belt feed -->
@@ -147,6 +147,7 @@
         <section class="term-quiz" id="term-quiz" hidden>
           <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post" id="terminal-quiz" data-location="{{ loc.key }}">
             <input type="hidden" name="consulted" id="consulted" value="" />
+            <input type="hidden" name="shown_keys" value="{{ shown_keys|join(',') }}" />
             <!-- Q3 answer comes from the sorting machine on the previous card -->
             <input type="hidden" name="lab_q3" id="q3-answer" value="" />
 
@@ -159,7 +160,9 @@
               {% for q in quiz %}{% if q.key != 'lab_q3' %}
               <div class="ticker-q" data-qkey="{{ q.key }}" data-correct="{{ q.correct }}"
                    data-question="{{ q.question }}" data-hint="{{ q.hint | default('') }}"
-                   data-explain="{{ q.explanation }}">
+                   data-explain="{{ q.explanation }}"
+                   data-fbok="{{ q.feedback_correct | default('') }}"
+                   data-fbno="{{ q.feedback_wrong | default('') }}">
                 <input type="hidden" name="{{ q.key }}" class="q-answer" value="" />
                 <div class="ticker-tape"><span class="tape-text" data-text="{{ q.question }}"></span></div>
                 <div class="console-options">

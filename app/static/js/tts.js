@@ -96,9 +96,15 @@
     clearSpeaking();
   }
 
+  // Read-aloud is disabled when the user turns the "Professor Atlas voice"
+  // preference off in Settings (presentation only — no effect on content).
+  function voiceEnabled() {
+    return !(window.ATLAS_PREFS && window.ATLAS_PREFS.voice === false);
+  }
+
   // speak(text, accentColor, btn) — btn is optional (the button to show state on).
   function speak(text, accentColor, btn) {
-    if (!supported) return;
+    if (!supported || !voiceEnabled()) return;
     var say = plainText(text);
     if (!say) return;
     stop(); // only one thing speaks at a time

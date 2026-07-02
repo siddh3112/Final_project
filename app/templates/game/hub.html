@@ -18,27 +18,39 @@
 
 <div class="map-screen">
 
+  <button class="settings-gear" id="settings-gear" type="button" aria-label="Settings" title="Settings">
+    <i class="bi bi-gear-fill"></i>
+  </button>
+
+  <button class="lb-trophy" id="lb-trophy" type="button" aria-label="Your best runs" title="Your best runs">
+    <i class="bi bi-trophy-fill"></i>
+  </button>
+
   <header class="hub-header text-center">
     <h1 class="hub-title">Atlas Quest</h1>
     <button class="howto-btn" id="howto-btn" type="button"><span class="atlas-glyph" aria-hidden="true"></span> How to Play</button>
   </header>
 
   <!-- ── Adventurer HUD ── -->
-  <section class="hud">
+  <section class="hud{{ ' hud-complete' if stats.journey_complete }}">
     <div class="hud-rank">
-      <span class="hud-level">LVL {{ stats.level }}</span>
+      <span class="hud-level">{{ 'MAX' if stats.journey_complete else 'LVL ' ~ stats.level }}</span>
       <span class="hud-rank-name">{{ stats.rank }}</span>
     </div>
     <div class="hud-xp">
       <div class="hud-xp-top">
         <span><i class="bi bi-star-fill me-1"></i>{{ stats.xp }} XP</span>
+        {% if stats.journey_complete %}
+        <span class="hud-xp-next hud-xp-done"><i class="bi bi-check-circle-fill me-1"></i>All levels mastered</span>
+        {% else %}
         <span class="hud-xp-next">{{ stats.xp_into_level }}/{{ stats.xp_per_level }} to next level</span>
+        {% endif %}
       </div>
-      <div class="hud-bar"><div class="hud-bar-fill" data-pct="{{ stats.level_pct }}"></div></div>
+      <div class="hud-bar"><div class="hud-bar-fill{{ ' is-full' if stats.journey_complete }}" data-pct="{{ stats.level_pct }}"></div></div>
     </div>
     <div class="hud-journey">
       <span class="hud-journey-label"><i class="bi bi-geo-alt-fill me-1"></i>Journey</span>
-      <span class="hud-journey-count">{{ stats.passed_count }}/{{ stats.total }}</span>
+      <span class="hud-journey-count">{{ stats.journey_done }}/{{ stats.journey_total }}</span>
     </div>
   </section>
 
@@ -104,15 +116,25 @@
     <div class="badges-count">{{ stats.badges_earned }} / {{ stats.badges_total }} ACHIEVEMENTS</div>
     <div class="badges-row">
       {% for b in stats.badges %}
-      <div class="badge-chip {{ 'earned' if b.earned else 'locked' }}{{ ' newly-earned' if b.key in new_achievement_keys }}"
-           title="{% if b.earned %}{{ b.name }} — earned{% if b.earned_at %} {{ b.earned_at.strftime('%d %b %Y') }}{% endif %}{% else %}{{ b.name }} — {{ b.how }}{% endif %}">
+      {% set d = badge_detail.get(b.key) if b.earned else None %}
+      <div class="badge-chip {{ 'earned' if b.earned else 'locked' }}{{ ' newly-earned' if b.key in new_achievement_keys }}{{ ' is-perfect' if d and d.perfect }}"
+           title="{% if b.earned %}{{ b.name }} — earned{% if b.earned_at %} {{ b.earned_at.strftime('%d %b %Y') }}{% endif %}{% else %}{{ b.name }} — {{ b.how }}{% endif %}"
+           {% if b.earned %}data-badge-key="{{ b.key }}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="{{ b.name }} — view details"{% endif %}>
         <span class="badge-icon">{{ b.icon if b.earned else '🔒' }}</span>
         <span class="badge-name">{{ b.name }}</span>
+        {% if b.earned %}
+        <span class="badge-caption">
+          {%- if d and d.score is not none -%}{{ d.score }} / {{ d.max }}{%- endif -%}
+        </span>
+        {% endif %}
         <span class="badge-new">NEW</span>
       </div>
       {% endfor %}
     </div>
   </section>
+
+  <!-- Per-badge detail data for the on-demand card (earned badges only) -->
+  <script type="application/json" id="badge-detail-data">{{ badge_detail | tojson }}</script>
 
   <footer class="hub-footer text-center">
     Atlas Quest &mdash; Your Journey Through AI
@@ -120,9 +142,134 @@
 
 </div>
 
+<!-- ══════════ Settings panel (front-of-house controls only) ══════════ -->
+<div class="settings-backdrop" id="settings-backdrop" hidden></div>
+<aside class="settings-panel" id="settings-panel" aria-hidden="true" aria-label="Settings">
+  <div class="settings-head">
+    <h2 class="settings-title">Settings</h2>
+    <button class="settings-close" id="settings-close" type="button" aria-label="Close settings">&times;</button>
+  </div>
+
+  <div class="settings-body">
+
+    <section class="set-section">
+      <h3 class="set-h">Audio</h3>
+      <label class="set-row">
+        <span class="set-label">Master sound<small>Web-Audio effects &amp; ambience</small></span>
+        <span class="set-switch"><input type="checkbox" id="set-sound" {{ 'checked' if prefs.sound }} /><span class="set-slider"></span></span>
+      </label>
+      <label class="set-row" id="set-voice-row">
+        <span class="set-label">Professor Atlas voice<small>Read taught text aloud</small></span>
+        <span class="set-switch"><input type="checkbox" id="set-voice" {{ 'checked' if prefs.voice }} /><span class="set-slider"></span></span>
+      </label>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">Accessibility</h3>
+      <label class="set-row">
+        <span class="set-label">Reduce motion<small id="set-motion-note">Calmer animations &amp; effects</small></span>
+        <span class="set-switch"><input type="checkbox" id="set-motion" {{ 'checked' if prefs.reduce_motion }} /><span class="set-slider"></span></span>
+      </label>
+      <label class="set-row">
+        <span class="set-label">Larger text<small>Bump the base font size</small></span>
+        <span class="set-switch"><input type="checkbox" id="set-text" {{ 'checked' if prefs.large_text }} /><span class="set-slider"></span></span>
+      </label>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">Game</h3>
+      <button class="set-btn" id="set-replay" type="button"><i class="bi bi-arrow-repeat me-2"></i>Replay How-to-Play</button>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">Progress</h3>
+      <div class="set-progress">
+        {% for key in order %}
+        {% set st = pmap[key] %}
+        <div class="set-prog-row">
+          <span class="set-prog-name">{{ locations[key].icon }} {{ locations[key].name }}</span>
+          <span class="set-prog-mark {{ 'done' if st.passed }}">{{ '✓' if st.passed else '▢' }}</span>
+        </div>
+        {% endfor %}
+        <div class="set-prog-row">
+          <span class="set-prog-name">🎓 Final Assessment</span>
+          <span class="set-prog-mark {{ 'done' if post_test_done }}">{{ '✓' if post_test_done else '▢' }}</span>
+        </div>
+        <div class="set-prog-meta">Rank <b>{{ stats.rank }}</b> &middot; Level <b>{{ stats.level }}</b> &middot; {{ stats.xp }} XP</div>
+      </div>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">Account</h3>
+      {% if auth_disabled %}
+      <div class="set-account"><i class="bi bi-person-badge me-2"></i>Guest mode (testing)</div>
+      <button class="set-btn" type="button" disabled title="Logout is disabled in guest mode">Log out</button>
+      {% else %}
+      <div class="set-account"><i class="bi bi-person-fill me-2"></i>Signed in as <b>{{ current_user.username }}</b></div>
+      <a href="{{ url_for('auth.logout') }}" class="set-btn set-btn-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</a>
+      {% endif %}
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">About</h3>
+      <p class="set-about">Atlas Quest — MSc project, Siddhant Pande, King's College London. Learning content adapted from IBM SkillsBuild: Introduction to Artificial Intelligence.</p>
+    </section>
+
+  </div>
+</aside>
+
 <!-- ── Achievement unlock celebration ── -->
 <div class="ach-popup-layer" id="ach-popup-layer" aria-hidden="true"></div>
 <script type="application/json" id="ach-new-data">{{ new_achievements | tojson }}</script>
+
+<!-- ── On-demand badge detail card ── -->
+<div class="badge-card-layer" id="badge-card-layer" hidden></div>
+
+<!-- ══════════ Personal best-runs leaderboard (this user only) ══════════ -->
+<div class="lb-backdrop" id="lb-backdrop" hidden></div>
+<aside class="lb-panel" id="lb-panel" aria-hidden="true" aria-label="Your best runs">
+  <div class="lb-head">
+    <h2 class="lb-title">Your Best Runs</h2>
+    <button class="lb-close" id="lb-close" type="button" aria-label="Close">&times;</button>
+  </div>
+
+  <div class="lb-body">
+    {% if runs %}
+    <div class="lb-stats">
+      <div class="lb-stat"><span class="lb-stat-label">Best Score</span><b>{{ run_stats.best_score }}</b></div>
+      <div class="lb-stat"><span class="lb-stat-label">Best Post-Test</span><b>{{ run_stats.best_post_test }}/10</b></div>
+      <div class="lb-stat"><span class="lb-stat-label">Fastest</span><b>{% if run_stats.fastest is not none %}{{ '%d:%02d'|format(run_stats.fastest // 60, run_stats.fastest % 60) }}{% else %}—{% endif %}</b></div>
+      <div class="lb-stat"><span class="lb-stat-label">Total Runs</span><b>{{ run_stats.total }}</b></div>
+    </div>
+
+    <ol class="lb-list">
+      {% for r in runs %}
+      <li class="lb-run {{ 'lb-best' if loop.first }}">
+        <span class="lb-pos">#{{ loop.index }}</span>
+        <div class="lb-run-main">
+          <div class="lb-run-top">
+            <span class="lb-combined">{{ r.combined_score }}</span>
+            <span class="lb-post">{{ r.post_test_score }}/{{ r.post_test_max }}</span>
+            {% if loop.first %}<span class="lb-pb-tag">PERSONAL BEST</span>{% endif %}
+          </div>
+          <div class="lb-run-sub">
+            <span class="lb-locs">L{{ r.library_score }} · A{{ r.ai_lab_score }} · O{{ r.observatory_score }}</span>
+            <span class="lb-badges"><i class="bi bi-award-fill"></i> {{ r.badges_count }}</span>
+            {% if r.time_spent_seconds is not none %}<span class="lb-time"><i class="bi bi-stopwatch"></i> {{ '%d:%02d'|format(r.time_spent_seconds // 60, r.time_spent_seconds % 60) }}</span>{% endif %}
+            <span class="lb-date">{{ r.created_at.strftime('%d %b %Y') }}</span>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <div class="lb-empty">
+      <div class="lb-empty-icon">🏔️</div>
+      <p>Complete the Final Ascent to record your first run.</p>
+    </div>
+    {% endif %}
+  </div>
+</aside>
 
 <!-- ── Professor Atlas: focused game tutorial (dims the map while he speaks) ── -->
 <div class="hub-onboard-overlay" id="hub-onboard" hidden>
@@ -149,4 +296,6 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/hub-onboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/achievements.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+<script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
 {% endblock %}

@@ -11,7 +11,9 @@
   const location = page.dataset.location || "";
 
   // ───────────────────────── AUDIO ─────────────────────────
-  let actx = null, master = null, muted = false;
+  // Start muted if the hub "Master sound" preference is off (the local mute
+  // button below still works to override it on this page).
+  let actx = null, master = null, muted = !!(window.ATLAS_PREFS && window.ATLAS_PREFS.sound === false);
   function ac() {
     try {
       if (!actx) {
@@ -438,19 +440,43 @@
           btn.classList.add("led-green");
           flash("green", 160);
           correctChime();
-          if (status) { status.hidden = false; status.textContent = "VERIFIED ✓"; status.className = "ticker-status ok"; }
         } else {
           btn.classList.add("led-red", "shake");
           flash("red", 110);
           wrongBuzz();
           btns.forEach((b) => { if (b.dataset.val === correct) b.classList.add("led-green", "pulse"); else if (b !== btn) b.classList.add("dimmed"); });
-          if (status) { status.hidden = false; status.textContent = "INCORRECT — RETRY LOGGED"; status.className = "ticker-status bad"; }
         }
         btns.forEach((b) => (b.disabled = true));
-        setTimeout(function () {
-          if (tIdx < tQs.length - 1) { showTicker(tIdx + 1); }
-          else { finishQuiz(); }
-        }, 1500);
+
+        // Elaborative feedback + manual proceed (Enter or click).
+        const last = tIdx >= tQs.length - 1;
+        const proceed = function () { if (last) finishQuiz(); else showTicker(tIdx + 1); };
+        q._proceed = proceed;
+        if (status) {
+          status.hidden = false;
+          status.className = "ticker-status " + (ok ? "ok" : "bad");
+          status.innerHTML = "";
+          const verdict = document.createElement("div");
+          verdict.className = "ts-verdict";
+          verdict.textContent = ok ? "VERIFIED ✓" : "INCORRECT — RETRY LOGGED";
+          status.appendChild(verdict);
+          const fbmsg = ok ? q.dataset.fbok : q.dataset.fbno;
+          if (fbmsg) {
+            const fb = document.createElement("div");
+            fb.className = "ts-feedback";
+            fb.textContent = "> " + fbmsg;
+            status.appendChild(fb);
+          }
+          const nextBtn = document.createElement("button");
+          nextBtn.type = "button";
+          nextBtn.className = "term-continue ts-next";
+          nextBtn.textContent = last ? "> SUBMIT ASSESSMENT [ENTER]" : "> NEXT QUERY [ENTER]";
+          nextBtn.addEventListener("click", proceed, { once: true });
+          status.appendChild(nextBtn);
+          try { nextBtn.focus(); } catch (err) {}
+        } else {
+          setTimeout(proceed, 1500);
+        }
       });
     });
     // per-question hint → Atlas mini-monitor
@@ -498,6 +524,13 @@
       if (begin && begin.classList.contains("show")) { e.preventDefault(); begin.click(); }
       return;
     }
+    // active quiz question awaiting proceed (after answering)
+    const activeTq = document.querySelector(".ticker-q.active.answered");
+    if (activeTq) {
+      const nb = activeTq.querySelector(".ts-next");
+      if (nb) { e.preventDefault(); nb.click(); }
+      return;
+    }
     // active learn / machine card continue
     const activeCard = document.querySelector(".term-card.active");
     if (activeCard) {
@@ -508,6 +541,11 @@
 
   // ───────────────── MUTE TOGGLE ─────────────────
   const muteBtn = document.getElementById("term-mute");
+  if (muteBtn && muted) {  // reflect the inherited master-sound preference
+    muteBtn.textContent = "🔇";
+    muteBtn.classList.add("muted");
+    muteBtn.setAttribute("aria-label", "Sound off");
+  }
   if (muteBtn) muteBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     muted = !muted;

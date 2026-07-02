@@ -1,59 +1,87 @@
 {% extends "base.html" %}
 
-{% block title %}Final Assessment — Atlas Quest{% endblock %}
+{% block title %}The Final Ascent — Atlas Quest{% endblock %}
+{% block body_class %}ascent-body{% endblock %}
+
+{% set romans = {1: 'I', 2: 'II', 3: 'III', 4: 'IV'} %}
 
 {% block body %}
-<div class="location-page">
+<div class="ascent" id="ascent" data-total="{{ total }}">
 
-  <nav class="loc-topbar">
-    <a href="{{ url_for('game.hub') }}" class="back-link">
-      <i class="bi bi-map me-1"></i> Return to Map
-    </a>
-  </nav>
+  <!-- Progress rail: one node per question, fills gold as answered -->
+  <div class="ascent-rail" id="ascent-rail" aria-hidden="true">
+    {% for i in range(total) %}<span class="rail-node"></span>{% endfor %}
+  </div>
 
-  <main class="container pb-5">
+  <form action="{{ url_for('eval.submit_post_test') }}" method="post" id="ascent-form">
+    <!-- Silent timing telemetry (no visible timer; never affects the score) -->
+    <input type="hidden" name="time_spent_seconds" value="" />
+    <input type="hidden" name="per_question_seconds" value="" />
 
-    <header class="text-center loc-header">
-      <div class="loc-icon">🎓</div>
-      <h1 class="loc-name">The Final Assessment</h1>
-      <p class="loc-tagline">Everything you have learned across your journey</p>
-    </header>
-
-    <hr class="gold-divider mx-auto my-4" />
-
-    <div class="row justify-content-center">
-      <div class="col-12 col-lg-8">
-
-        <p class="quiz-intro text-center">
-          Answer all <strong>10</strong> questions, then submit. This is the final
-          step of Atlas Quest.
-        </p>
-
-        <form action="{{ url_for('eval.submit_post_test') }}" method="post" class="quiz-form">
-          {% for q in questions %}
-          <div class="quiz-question">
-            <p class="q-text">
-              <span class="q-number">{{ loop.index }}</span>{{ q.question }}
-            </p>
-            <div class="q-options">
-              {% for letter, text in q|shuffle_options %}
-              <label class="q-option">
-                <input type="radio" name="{{ q.key }}" value="{{ letter }}" required />
-                <span class="q-option-letter">{{ letter }}</span>
-                <span class="q-option-text">{{ text }}</span>
-              </label>
-              {% endfor %}
-            </div>
-          </div>
-          {% endfor %}
-
-          <div class="text-center mt-4">
-            <button type="submit" class="btn-submit-quiz">Submit Final Assessment</button>
-          </div>
-        </form>
-
+    <!-- ── Instructions screen (shown once, before any question) ── -->
+    <section class="ascent-chapter ascent-open" data-step="intro" data-chapter="0">
+      <div class="chapter-inner">
+        <div class="chapter-kicker">THE FINAL ASSESSMENT</div>
+        <div class="chapter-title chapter-title-lg">The Final Ascent</div>
+        <p class="chapter-blurb">This is the summit of your journey — a final check of everything you have learned. Take your time; there is no clock.</p>
+        <ul class="ascent-instructions">
+          <li><i class="bi bi-list-ol"></i> <span><b>10 questions</b> across 4 chapters — Foundations, The Data Deep, The Learning Machines &amp; Synthesis.</span></li>
+          <li><i class="bi bi-arrow-left-right"></i> <span>You can move <b>Back</b> and <b>Forward</b> and change your answers before submitting.</span></li>
+          <li><i class="bi bi-eye-slash"></i> <span>Nothing is revealed until you submit — this is your <b>final assessment</b>.</span></li>
+          <li><i class="bi bi-slash-circle"></i> <span>Professor Atlas is <b>not available</b> during the assessment.</span></li>
+          <li><i class="bi bi-check2-circle"></i> <span>Answer all 10, then press <b>Submit</b> to see your results and rank.</span></li>
+        </ul>
+        <button type="button" class="ascent-begin" data-advance>Begin the Ascent <i class="bi bi-arrow-up-right ms-1"></i></button>
+        <a href="{{ url_for('game.hub') }}" class="ascent-exit"><i class="bi bi-arrow-left me-1"></i>Exit to Map</a>
       </div>
-    </div>
-  </main>
+    </section>
+
+    {% set ns = namespace(gidx=0) %}
+    {% for ch in chapters %}
+
+    <!-- ── Chapter card ── -->
+    <section class="ascent-chapter" data-step="chapter" data-chapter="{{ ch.num }}" hidden>
+      <div class="chapter-inner">
+        <div class="chapter-roman">CHAPTER {{ romans[ch.num] }}</div>
+        <div class="chapter-title">{{ ch.title }}</div>
+        <div class="chapter-hint">click anywhere or press <b>Enter</b> to begin</div>
+      </div>
+    </section>
+
+    <!-- ── Questions in this chapter ── -->
+    {% for q in ch.questions %}
+    {% set ns.gidx = ns.gidx + 1 %}
+    <section class="ascent-q" data-step="question" data-key="{{ q.key }}" data-chapter="{{ ch.num }}" data-gidx="{{ ns.gidx }}" hidden>
+      <div class="q-top">
+        <span class="q-chip">CH {{ romans[ch.num] }} · {{ ch.title }}</span>
+        <span class="q-count">Q <b>{{ ns.gidx }}</b> / {{ total }}</span>
+      </div>
+      <p class="ascent-stem">{{ q.question }}</p>
+      <div class="ascent-options">
+        {% for letter, text in q|shuffle_options %}
+        <button type="button" class="ascent-opt" data-letter="{{ letter }}">
+          <span class="opt-marker" aria-hidden="true"></span>
+          <span class="opt-text">{{ text }}</span>
+        </button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="{{ q.key }}" value="" />
+    </section>
+    {% endfor %}
+
+    {% endfor %}
+  </form>
+
+  <!-- ── Back / Next navigation (shown only during questions) ── -->
+  <div class="ascent-nav" id="ascent-nav" hidden>
+    <button type="button" class="asc-nav-btn asc-back" id="asc-back"><i class="bi bi-arrow-left me-1"></i>Back</button>
+    <span class="asc-nav-progress" id="asc-nav-progress"></span>
+    <button type="button" class="asc-nav-btn asc-next" id="asc-next">Next<i class="bi bi-arrow-right ms-1"></i></button>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ascent.js') }}"></script>
 {% endblock %}

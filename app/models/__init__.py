@@ -1,5 +1,5 @@
 """
-Database models for Atlas Quest — 6 tables.
+Database models for Atlas Quest — 7 tables.
 
 The single SQLAlchemy instance `db` lives here and is initialised in
 app/__init__.py via db.init_app(app). SQLite auto-creates at
@@ -78,6 +78,9 @@ class KnowledgeTest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     answers_json = db.Column(db.Text, nullable=False)
     score = db.Column(db.Integer, nullable=False)
+    # Silent research telemetry: total wall-clock seconds on the assessment.
+    # Never shown to the learner and never affects the score.
+    time_spent_seconds = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -102,3 +105,27 @@ class Achievement(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     achievement_key = db.Column(db.String(40), nullable=False)
     earned_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class RunHistory(db.Model):
+    """One row per completed post-test run — a PERSONAL best-runs history.
+
+    This is per-user history for a personal leaderboard; it is never ranked
+    across users or by condition. Additive telemetry: it does not affect scoring.
+    """
+
+    __tablename__ = "run_history"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    combined_score = db.Column(db.Integer, nullable=False)
+    post_test_score = db.Column(db.Integer, nullable=False)
+    post_test_max = db.Column(db.Integer, nullable=False)
+    library_score = db.Column(db.Integer, nullable=False, default=0)
+    ai_lab_score = db.Column(db.Integer, nullable=False, default=0)
+    observatory_score = db.Column(db.Integer, nullable=False, default=0)
+    badges_count = db.Column(db.Integer, nullable=False, default=0)
+    time_spent_seconds = db.Column(db.Integer, nullable=True)
+    xp = db.Column(db.Integer, nullable=False, default=0)
+    rank = db.Column(db.String(40), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

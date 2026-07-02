@@ -88,15 +88,26 @@ def gamification_summary(user):
     xp_into_level = xp % XP_PER_LEVEL
     level_pct = round(xp_into_level / XP_PER_LEVEL * 100)
 
+    # Journey counts the 3 locations PLUS the final assessment as a 4th milestone.
+    journey_total = total + 1
+    journey_done = passed_count + (1 if user.post_test_done else 0)
+    # Everything done: all locations passed AND the final assessment complete.
+    # At that point there is no more content, so the HUD shows a "complete"
+    # state instead of a misleading "X/200 to next level" teaser.
+    journey_complete = journey_done >= journey_total
+
     return {
         "xp": xp,
         "level": level,
-        "level_pct": level_pct,
+        "level_pct": 100 if journey_complete else level_pct,
         "xp_into_level": xp_into_level,
         "xp_per_level": XP_PER_LEVEL,
         "rank": rank,
         "passed_count": passed_count,
         "total": total,
+        "journey_done": journey_done,
+        "journey_total": journey_total,
+        "journey_complete": journey_complete,
         "journey_pct": round(passed_count / total * 100) if total else 0,
         "badges": badges,
         "badges_earned": badges_earned,
