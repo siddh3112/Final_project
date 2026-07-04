@@ -19,6 +19,12 @@ CHAPTER_TITLES = {
     4: "Final Synthesis",
 }
 
+# Minimum correct answers (out of len(POST_TEST) = 10) to PASS the Final
+# Assessment. Passing marks the Final Ascent conquered (post_test_done) and
+# unlocks the certificate / Atlas Sage. Every attempt is still recorded for
+# research regardless of pass/fail.
+POST_TEST_PASS = 8
+
 POST_TEST = [
     {
         "key": "p1",
@@ -150,4 +156,13 @@ POST_TEST = [
         "correct": "B",
         "explanation": "The usual cause of biased AI is biased historical training data, which the model learns and then reproduces.",
     },
+]
+
+
+# ── Closing cinematic (epilogue) — resolves the opening's "the Atlas has faded"
+# arc after the player earns Atlas Sage. Presentation only; never scored. ──
+EPILOGUE_LINES = [
+    "The realms are restored. Foundations, data, and learning machines — all mapped.",
+    "You crossed every trial, and the Atlas is whole again.",
+    "You are no longer an explorer. You are an Atlas Sage.",
 ]

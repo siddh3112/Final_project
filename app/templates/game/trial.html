@@ -7,7 +7,7 @@
 {% set show_npc = current_user.condition == 'game' %}
 {% set is_terminal = loc.interaction == 'terminal' %}
 
-<div class="location-page" style="--accent: {{ '#00ff41' if is_terminal else loc.accent }};">
+<div class="location-page trial-page" style="--accent: {{ '#00ff41' if is_terminal else loc.accent }};">
 
   <nav class="loc-topbar">
     <a href="{{ url_for('game.location', key=loc.key) }}" class="back-link">

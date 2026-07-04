@@ -32,17 +32,24 @@
     return s;
   }
 
+  function findVoiceByName(name) {
+    if (!name || !supported) return null;
+    var voices = window.speechSynthesis.getVoices() || [];
+    for (var i = 0; i < voices.length; i++) if (voices[i].name === name) return voices[i];
+    return null;
+  }
+
   function pickVoice() {
     if (!supported) return null;
     var voices = window.speechSynthesis.getVoices() || [];
     if (!voices.length) return null;
-    // honour a saved user choice if it still exists
-    try {
-      var saved = localStorage.getItem("atlas_voice");
-      if (saved) {
-        for (var k = 0; k < voices.length; k++) if (voices[k].name === saved) { chosenVoice = voices[k]; return chosenVoice; }
-      }
-    } catch (e) {}
+    // 1) honour the user's explicit choice from Settings (session pref) if it exists
+    var want = (window.ATLAS_PREFS && window.ATLAS_PREFS.voice_name) || "";
+    if (want) {
+      var picked = findVoiceByName(want);
+      if (picked) { chosenVoice = picked; return chosenVoice; }
+    }
+    // 2) Automatic: the best-scoring English voice available
     var best = null, bestScore = -Infinity;
     for (var i = 0; i < voices.length; i++) {
       var sc = scoreVoice(voices[i]);
@@ -143,7 +150,33 @@
     return b;
   }
 
-  window.AtlasVoice = { speak: speak, stop: stop, toggle: toggle, button: makeButton, supported: supported };
+  // Change the active voice immediately (no reload) — used by the Settings
+  // voice picker. Mirrors the choice into ATLAS_PREFS so pickVoice honours it.
+  function setVoiceName(name) {
+    if (window.ATLAS_PREFS) window.ATLAS_PREFS.voice_name = name || "";
+    chosenVoice = null;
+    pickVoice();
+  }
+
+  // Speak a short fixed sample in a specific voice (by name), for the Settings
+  // "Preview" button. Returns false if voice is off/unsupported so the UI can
+  // show a hint. Respects the master voice toggle.
+  var PREVIEW_LINE = "Greetings, explorer. I am Professor Atlas.";
+  function preview(voiceName) {
+    if (!supported || !voiceEnabled()) return false;
+    stop(); // cancel anything already speaking
+    var u = new SpeechSynthesisUtterance(PREVIEW_LINE);
+    u.rate = 0.95; u.pitch = 1.0; u.volume = 1.0;
+    var v = findVoiceByName(voiceName) || chosenVoice || pickVoice();
+    if (v) { u.voice = v; u.lang = v.lang; }
+    try { window.speechSynthesis.speak(u); } catch (e) { return false; }
+    return true;
+  }
+
+  window.AtlasVoice = {
+    speak: speak, stop: stop, toggle: toggle, button: makeButton, supported: supported,
+    setVoiceName: setVoiceName, preview: preview, speaking: isSpeaking,
+  };
 
   // Safety net: stop speech if the page is hidden/unloaded.
   window.addEventListener("pagehide", stop);

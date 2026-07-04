@@ -225,6 +225,15 @@
       o.start(now); o.stop(now + 0.64);
     } catch (e) {}
   }
+  // ── Concept Card acquired: bright ascending three-note sparkle ──
+  function reward() {
+    if (!audible()) return;
+    try {
+      tone(659.25, 0, 0.12, "sine", 0.18);
+      tone(880.0, 0.09, 0.14, "sine", 0.17);
+      tone(1174.66, 0.2, 0.3, "sine", 0.15);
+    } catch (e) {}
+  }
 
   // ── First user gesture: browsers block audio until then ──
   function kick() {
@@ -311,6 +320,7 @@
     wrong: wrong,
     atlasChime: atlasChime,
     coreCharge: coreCharge,
+    reward: reward,
     coreBurst: coreBurst,
     celebrate: celebrate,
   };

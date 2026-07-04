@@ -1,0 +1,42 @@
+{# Closing cinematic overlay. Included on the results page and the standalone
+   /eval/epilogue replay. Presentation only. Expects: epilogue_lines, epi_auto,
+   epi_standalone. #}
+<div class="epi" id="epilogue" hidden
+     data-auto="{{ '1' if epi_auto else '0' }}"
+     data-standalone="{{ '1' if epi_standalone else '0' }}">
+
+  <button class="epi-skip" id="epi-skip" type="button">Skip <i class="bi bi-chevron-double-right"></i></button>
+
+  <div class="epi-inner">
+    <!-- The realm, RESTORED — the payoff to the opening's faded map -->
+    <svg class="epi-realms" viewBox="0 0 100 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <polyline class="epi-path" points="16,40 44,30 78,26 86,10" pathLength="1" vector-effect="non-scaling-stroke" />
+      <circle class="epi-zone" cx="16" cy="40" r="2.6" style="--zc:#d4a84b" />
+      <circle class="epi-zone" cx="44" cy="30" r="2.6" style="--zc:#3fd0e0" />
+      <circle class="epi-zone" cx="78" cy="26" r="2.6" style="--zc:#3ab8d8" />
+      <circle class="epi-final" cx="86" cy="10" r="3.4" />
+    </svg>
+
+    <!-- The Atlas glyph draws itself in gold (mirror of the opening) -->
+    <svg class="epi-glyph" viewBox="0 0 24 24" aria-hidden="true">
+      <g transform="rotate(-38 12 14)">
+        <rect x="4.5" y="12" width="11.5" height="4.3" rx="2.1" pathLength="1"/>
+        <rect x="15.2" y="11.2" width="2.7" height="5.9" rx="1.1" pathLength="1"/>
+        <rect x="2.6" y="12.7" width="2.1" height="3" rx="1" pathLength="1"/>
+      </g>
+      <path d="M8.3 21.2 L12 15.4 L15.7 21.2 Z" pathLength="1"/>
+      <rect x="11.1" y="16.8" width="1.8" height="4.4" rx="0.7" pathLength="1"/>
+      <path d="M16 2.6 l0.8 2 2 0.8 -2 0.8 -0.8 2 -0.8 -2 -2 -0.8 2 -0.8 z" pathLength="1"/>
+      <circle cx="20.2" cy="7.4" r="1" pathLength="1"/>
+      <circle cx="11.6" cy="6.2" r="0.85" pathLength="1"/>
+    </svg>
+
+    <div class="epi-lines narrative" id="epi-lines"></div>
+
+    <div class="epi-cta" id="epi-cta" hidden>
+      <a href="{{ url_for('eval.certificate') }}" class="epi-btn epi-btn-primary">Claim your Certificate <i class="bi bi-award ms-1"></i></a>
+      <a href="{{ url_for('game.hub') }}" class="epi-btn epi-btn-ghost">Return to Map</a>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="epi-lines-data">{{ epilogue_lines | tojson }}</script>

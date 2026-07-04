@@ -8,8 +8,23 @@
 {% block body %}
 <div class="ascent" id="ascent" data-total="{{ total }}">
 
+  <!-- ── Atmosphere: night sky, radial glow, summit city silhouette ── -->
+  <canvas class="ascent-sky" id="ascent-sky" aria-hidden="true"></canvas>
+  <div class="ascent-glow" aria-hidden="true"></div>
+  <svg class="ascent-city" viewBox="0 0 1440 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path d="M0,220 L0,150 L52,150 L52,120 L104,120 L104,158 L150,158 L150,150 L150,150
+             L196,150 L196,96 L238,96 L238,140 L300,140 L300,128 L356,128 L356,160 L430,160
+             L430,104 L470,104 L470,150 L560,150 L560,72 L604,72 L604,58 L636,58
+             Q660,6 684,58 L684,72 L684,150 L742,150 L742,120 L800,120 L800,158 L864,158
+             L864,88 L910,88 L910,146 L992,146 L992,132 L1046,132 L1046,160 L1120,160
+             L1120,100 L1162,100 L1162,150 L1250,150 L1250,124 L1306,124 L1306,158 L1380,158
+             L1380,140 L1440,140 L1440,220 Z" />
+    <circle cx="660" cy="40" r="7" class="ascent-city-beacon" />
+  </svg>
+
   <!-- Progress rail: one node per question, fills gold as answered -->
   <div class="ascent-rail" id="ascent-rail" aria-hidden="true">
+    <span class="ascent-rail-label">The Ascent</span>
     {% for i in range(total) %}<span class="rail-node"></span>{% endfor %}
   </div>
 
@@ -29,6 +44,7 @@
           <li><i class="bi bi-arrow-left-right"></i> <span>You can move <b>Back</b> and <b>Forward</b> and change your answers before submitting.</span></li>
           <li><i class="bi bi-eye-slash"></i> <span>Nothing is revealed until you submit — this is your <b>final assessment</b>.</span></li>
           <li><i class="bi bi-slash-circle"></i> <span>Professor Atlas is <b>not available</b> during the assessment.</span></li>
+          <li><i class="bi bi-trophy"></i> <span>Score at least <b>{{ pass_mark }} of {{ total }}</b> to pass and earn your certificate.</span></li>
           <li><i class="bi bi-check2-circle"></i> <span>Answer all 10, then press <b>Submit</b> to see your results and rank.</span></li>
         </ul>
         <button type="button" class="ascent-begin" data-advance>Begin the Ascent <i class="bi bi-arrow-up-right ms-1"></i></button>
@@ -52,18 +68,20 @@
     {% for q in ch.questions %}
     {% set ns.gidx = ns.gidx + 1 %}
     <section class="ascent-q" data-step="question" data-key="{{ q.key }}" data-chapter="{{ ch.num }}" data-gidx="{{ ns.gidx }}" hidden>
-      <div class="q-top">
-        <span class="q-chip">CH {{ romans[ch.num] }} · {{ ch.title }}</span>
-        <span class="q-count">Q <b>{{ ns.gidx }}</b> / {{ total }}</span>
-      </div>
-      <p class="ascent-stem">{{ q.question }}</p>
-      <div class="ascent-options">
-        {% for letter, text in q|shuffle_options %}
-        <button type="button" class="ascent-opt" data-letter="{{ letter }}">
-          <span class="opt-marker" aria-hidden="true"></span>
-          <span class="opt-text">{{ text }}</span>
-        </button>
-        {% endfor %}
+      <div class="q-panel">
+        <div class="q-top">
+          <span class="q-chip">CH {{ romans[ch.num] }} · {{ ch.title }}</span>
+          <span class="q-count">Q <b>{{ ns.gidx }}</b> / {{ total }}</span>
+        </div>
+        <p class="ascent-stem">{{ q.question }}</p>
+        <div class="ascent-options">
+          {% for letter, text in q|shuffle_options %}
+          <button type="button" class="ascent-opt" data-letter="{{ letter }}">
+            <span class="opt-marker" aria-hidden="true"></span>
+            <span class="opt-text">{{ text }}</span>
+          </button>
+          {% endfor %}
+        </div>
       </div>
       <input type="hidden" name="{{ q.key }}" value="" />
     </section>
@@ -83,5 +101,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/ascent-sky.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ascent.js') }}"></script>
 {% endblock %}

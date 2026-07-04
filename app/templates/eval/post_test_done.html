@@ -8,7 +8,7 @@
      data-score="{{ score }}" data-total="{{ total }}"
      data-xp="{{ xp_gained }}" data-xp-per="{{ xp_per_correct }}"
      data-rank="{{ stats.rank }}" data-level="{{ stats.level }}" data-total-xp="{{ stats.xp }}"
-     data-pb="{{ 1 if is_personal_best else 0 }}">
+     data-pb="{{ 1 if is_personal_best else 0 }}" data-passed="{{ 1 if passed else 0 }}">
 
   <!-- Phase 1 — calculating -->
   <div class="rv-calc" id="rv-calc">
@@ -18,12 +18,22 @@
 
   <!-- Phase 2/3 — the reveal -->
   <div class="rv-stage" id="rv-stage" hidden>
-    <div class="rv-kicker">THE FINAL ASCENT — COMPLETE</div>
+    <div class="rv-kicker">{% if passed %}THE FINAL ASCENT — CONQUERED{% else %}THE FINAL ASCENT{% endif %}</div>
 
-    <div class="rv-score">
+    <div class="rv-score {{ 'is-fail' if not passed }}">
       <span class="rv-score-num" id="rv-score-num">0</span>
       <span class="rv-score-den">/ {{ total }}</span>
     </div>
+
+    {% if not passed %}
+    <!-- Did not reach the pass mark — encourage a retake (attempt is still recorded) -->
+    <div class="rv-fail" id="rv-fail" hidden>
+      <div class="rv-fail-icon"><i class="bi bi-arrow-repeat"></i></div>
+      <div class="rv-fail-title">Not passed — yet</div>
+      <p class="rv-fail-sub">You need at least <b>{{ pass_mark }} of {{ total }}</b> correct to conquer the Final Ascent and earn your certificate. Review your answers, then climb again.</p>
+      <a href="{{ url_for('eval.post_test', retake=1) }}" class="rv-retake-btn">Retake the Final Ascent <i class="bi bi-arrow-up-right ms-1"></i></a>
+    </div>
+    {% endif %}
 
     <!-- Atlas Sage rank unlock -->
     <div class="rv-sage" id="rv-sage" hidden>
@@ -46,7 +56,9 @@
       </div>
     </div>
 
-    <!-- Personal-best celebration (silent — visual particles only) -->
+    <!-- Personal-best celebration (silent — visual particles only). Not shown on
+         re-entry (a re-view isn't a new run). -->
+    {% if not is_review %}
     <div class="rv-pb {{ 'is-best' if is_personal_best }}" id="rv-pb" hidden>
       {% if is_personal_best %}
       <div class="rv-pb-particles" id="rv-pb-particles" aria-hidden="true"></div>
@@ -56,44 +68,29 @@
       <div class="rv-pb-normal">This run <b>{{ combined_score }}</b> &middot; your best is <b>{{ personal_best }}</b></div>
       {% endif %}
     </div>
+    {% endif %}
 
-    <button class="rv-review-btn" id="rv-review-btn" type="button" hidden>
-      View your review <i class="bi bi-chevron-down ms-1"></i>
-    </button>
-  </div>
-
-  <!-- Phase 4 — per-question review (learning payoff, after grading) -->
-  <div class="rv-review" id="rv-review" hidden>
-    <h2 class="rv-review-head">Your Review</h2>
-    <p class="rv-review-sub">The answers are in and your score is locked. Here is what each question was really testing.</p>
-
-    {% for r in review %}
-    <div class="rv-item {{ 'ok' if r.is_correct else 'no' }}">
-      <div class="rv-item-top">
-        <span class="rv-item-badge">{{ 'CORRECT' if r.is_correct else 'REVIEW' }}</span>
-        <span class="rv-item-q"><span class="rv-item-n">{{ loop.index }}</span>{{ r.question }}</span>
-      </div>
-      <div class="rv-item-answers">
-        {% for letter, text in r.options.items() %}
-        <div class="rv-opt {% if letter == r.correct %}is-correct{% endif %} {% if letter == r.selected and letter != r.correct %}is-wrong{% endif %}">
-          <span class="rv-opt-text">{{ text }}</span>
-          {% if letter == r.correct %}<i class="bi bi-check-lg rv-mark"></i>{% elif letter == r.selected %}<i class="bi bi-x-lg rv-mark"></i>{% endif %}
-          {% if letter == r.selected %}<span class="rv-your">your answer</span>{% endif %}
-        </div>
-        {% endfor %}
-      </div>
-      <div class="rv-explain"><i class="bi bi-lightbulb me-2"></i>{{ r.explanation }}</div>
-    </div>
-    {% endfor %}
-
-    <div class="text-center mt-4">
+    <!-- Actions — revealed at the end of the reveal sequence. The full
+         per-question review lives on its own page (eval.review). -->
+    <div class="rv-actions rv-actions-results" id="rv-actions" hidden>
       <a href="{{ url_for('game.hub') }}" class="btn-continue rv-return">Return to the Map <i class="bi bi-arrow-right ms-1"></i></a>
+      <a href="{{ url_for('eval.review') }}" class="rv-replay-ending"><i class="bi bi-card-list me-1"></i>View your review</a>
+      {% if passed %}
+      <a href="{{ url_for('eval.certificate') }}" class="rv-replay-ending"><i class="bi bi-download me-1"></i>Download Certificate</a>
+      <button type="button" class="rv-replay-ending" id="rv-replay-ending"><i class="bi bi-film me-1"></i>Replay ending</button>
+      {% endif %}
+      {% if is_review %}
+      <a href="{{ url_for('eval.post_test', retake=1) }}" class="rv-replay-ending"><i class="bi bi-arrow-repeat me-1"></i>Retake the Final Assessment</a>
+      {% endif %}
     </div>
   </div>
 
 </div>
+
+{% if passed %}{% include "eval/_epilogue.html" %}{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/ascent.js') }}"></script>
+{% if passed %}<script src="{{ url_for('static', filename='js/epilogue.js') }}"></script>{% endif %}
 {% endblock %}

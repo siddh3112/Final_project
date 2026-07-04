@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}The Atlas is Whole — Atlas Quest{% endblock %}
+{% block body_class %}ascent-body ascent-results-body{% endblock %}
+
+{% block body %}
+<div class="epi-standalone-bg" aria-hidden="true"></div>
+{% include "eval/_epilogue.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/epilogue.js') }}"></script>
+{% endblock %}

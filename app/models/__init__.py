@@ -1,5 +1,5 @@
 """
-Database models for Atlas Quest — 7 tables.
+Database models for Atlas Quest — 10 tables.
 
 The single SQLAlchemy instance `db` lives here and is initialised in
 app/__init__.py via db.init_app(app). SQLite auto-creates at
@@ -24,6 +24,10 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     condition = db.Column(db.String(20), nullable=False, default="game")  # game | control
     post_test_done = db.Column(db.Boolean, nullable=False, default=False)
+    # Whether this user has been shown the opening instructions (cinematic +
+    # how-to-play) — tracked per USER so each participant sees them once,
+    # independent of browser/session state. Presentation only.
+    seen_intro = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
@@ -86,6 +90,9 @@ class KnowledgeTest(db.Model):
 
 class LocationProgress(db.Model):
     __tablename__ = "location_progress"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "location", name="ux_progress_user_location"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
@@ -100,11 +107,54 @@ class Achievement(db.Model):
     """One row per achievement a user has earned (research/engagement data)."""
 
     __tablename__ = "achievements"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "achievement_key", name="ux_achievement_user_key"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     achievement_key = db.Column(db.String(40), nullable=False)
     earned_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class BookRead(db.Model):
+    """One row per content volume (Library book) a user has studied.
+
+    Per-user reading progress so the Knowledge Core / Concept Deck survive
+    navigation and logins. Presentation/progress convenience only — never
+    scored and not a research measure.
+    """
+
+    __tablename__ = "book_reads"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "location", "book_id", name="ux_book_read"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    location = db.Column(db.String(40), nullable=False)
+    book_id = db.Column(db.String(60), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Reflection(db.Model):
+    """One learner reflection per Trial-pass prompt (generative learning).
+
+    New qualitative research data, additive only. A reflection is ungraded and
+    never affects scoring, progression, XP, or any existing measure. `skipped`
+    rows (empty response) are kept so the skip-rate itself is analysable.
+    """
+
+    __tablename__ = "reflections"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    location = db.Column(db.String(40), nullable=False)
+    prompt_key = db.Column(db.String(60), nullable=False)
+    prompt_text = db.Column(db.Text, nullable=False)
+    response_text = db.Column(db.Text, nullable=True)
+    skipped = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class RunHistory(db.Model):

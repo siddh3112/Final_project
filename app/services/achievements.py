@@ -7,6 +7,8 @@ any newly-qualifying achievements and returns the keys that were just earned
 (so the hub can celebrate them with a popup).
 """
 
+from sqlalchemy.exc import IntegrityError
+
 from ..models import Achievement, LocationProgress, db
 
 # Display order + popup/tooltip copy. (Single source of truth for badges.)
@@ -57,7 +59,13 @@ def grant_new(user):
             db.session.add(Achievement(user_id=user.id, achievement_key=k))
             new.append(k)
     if new:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # A concurrent request granted the same key first (unique index).
+            # Roll back; that other request reports/celebrates the new keys.
+            db.session.rollback()
+            new = []
     return new
 
 

@@ -28,6 +28,18 @@
 
   <header class="hub-header text-center">
     <h1 class="hub-title">Atlas Quest</h1>
+    {# Narrative state line — presentation only, derived from journey fields #}
+    <p class="hub-story narrative">
+      {%- if stats.journey_complete -%}
+        The Atlas is whole again, Sage.
+      {%- elif stats.passed_count >= 3 -%}
+        One trial remains. The Final Ascent awaits.
+      {%- elif stats.passed_count >= 1 -%}
+        The Atlas stirs &mdash; {{ stats.passed_count }} of 3 realms restored.
+      {%- else -%}
+        The Atlas lies faded. Begin in the Library.
+      {%- endif -%}
+    </p>
     <button class="howto-btn" id="howto-btn" type="button"><span class="atlas-glyph" aria-hidden="true"></span> How to Play</button>
   </header>
 
@@ -58,17 +70,41 @@
   <div class="map-stage">
 
     <!-- Travel routes (drawn in 0-100 space, stretched to fit the stage) -->
+    {% set lib = markers['library'] %}
+    {% set lab = markers['ai_lab'] %}
+    {% set obs = markers['observatory'] %}
     <svg class="map-routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      {% set lib = markers['library'] %}
-      {% set lab = markers['ai_lab'] %}
-      {% set obs = markers['observatory'] %}
       <line x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}"
-            class="route {{ 'lit' if pmap['ai_lab'].unlocked }}" vector-effect="non-scaling-stroke" />
+            class="route {{ 'lit' if pmap['ai_lab'].unlocked }}{{ ' dim' if pmap['library'].passed }}" vector-effect="non-scaling-stroke" />
       <line x1="{{ lab.x }}" y1="{{ lab.y }}" x2="{{ obs.x }}" y2="{{ obs.y }}"
-            class="route {{ 'lit' if pmap['observatory'].unlocked }}" vector-effect="non-scaling-stroke" />
+            class="route {{ 'lit' if pmap['observatory'].unlocked }}{{ ' dim' if pmap['ai_lab'].passed }}" vector-effect="non-scaling-stroke" />
       <line x1="{{ obs.x }}" y1="{{ obs.y }}" x2="{{ final_xy.x }}" y2="{{ final_xy.y }}"
-            class="route {{ 'lit' if (show_post_test or post_test_done) }}" vector-effect="non-scaling-stroke" />
+            class="route {{ 'lit' if (show_post_test or post_test_done) }}{{ ' dim' if pmap['observatory'].passed }}" vector-effect="non-scaling-stroke" />
     </svg>
+
+    <!-- Golden progress paths: a segment lights from each PASSED pin to the next.
+         Draw-in animates once (seen-flag), then stays static. Presentation only. -->
+    <svg class="map-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      {% if pmap['library'].passed %}
+      <line class="path-gold" data-path="library"
+            x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}" vector-effect="non-scaling-stroke" />
+      {% endif %}
+      {% if pmap['ai_lab'].passed %}
+      <line class="path-gold" data-path="ai_lab"
+            x1="{{ lab.x }}" y1="{{ lab.y }}" x2="{{ obs.x }}" y2="{{ obs.y }}" vector-effect="non-scaling-stroke" />
+      {% endif %}
+      {% if pmap['observatory'].passed %}
+      <line class="path-gold" data-path="observatory"
+            x1="{{ obs.x }}" y1="{{ obs.y }}" x2="{{ final_xy.x }}" y2="{{ final_xy.y }}" vector-effect="non-scaling-stroke" />
+      {% endif %}
+    </svg>
+
+    <!-- Completed zones: soft accent glow (+ sparse particles via canvas) -->
+    {% for key in order %}{% if pmap[key].passed %}
+    <div class="zone-glow" data-zone="{{ key }}" data-x="{{ markers[key].x }}" data-y="{{ markers[key].y }}" data-accent="{{ locations[key].accent }}" aria-hidden="true"></div>
+    {% endif %}{% endfor %}
+    <canvas class="map-live" id="map-live" aria-hidden="true"></canvas>
+
 
     <!-- Location pins -->
     {% for key in order %}
@@ -162,6 +198,48 @@
         <span class="set-label">Professor Atlas voice<small>Read taught text aloud</small></span>
         <span class="set-switch"><input type="checkbox" id="set-voice" {{ 'checked' if prefs.voice }} /><span class="set-slider"></span></span>
       </label>
+      <div class="set-row set-row-stack" id="set-voicepick-row">
+        <span class="set-label">Voice<small>Which voice reads text aloud (from your browser)</small></span>
+        <div class="set-voicepick">
+          <select id="set-voice-select" class="set-select" aria-label="Read-aloud voice">
+            <option value="">Automatic (best available)</option>
+          </select>
+          <button type="button" id="set-voice-preview" class="set-mini-btn" aria-label="Preview voice">
+            <i class="bi bi-play-fill"></i> Preview
+          </button>
+        </div>
+        <small class="set-voice-hint" id="set-voice-hint" hidden>Turn on “Professor Atlas voice” above to preview.</small>
+      </div>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">Theme</h3>
+      <div class="theme-picker" id="theme-picker" role="radiogroup" aria-label="Colour theme">
+        <button type="button" class="theme-swatch" data-theme="midnight" role="radio" aria-checked="false">
+          <span class="theme-dots">
+            <span class="theme-dot" style="background:#16122b"></span>
+            <span class="theme-dot" style="background:#f0c96b"></span>
+            <span class="theme-dot" style="background:#ece8ff"></span>
+          </span>
+          <span class="theme-name">Midnight Gold</span>
+        </button>
+        <button type="button" class="theme-swatch" data-theme="parchment" role="radio" aria-checked="false">
+          <span class="theme-dots">
+            <span class="theme-dot" style="background:#241a12"></span>
+            <span class="theme-dot" style="background:#d9a441"></span>
+            <span class="theme-dot" style="background:#f0e6d2"></span>
+          </span>
+          <span class="theme-name">Ancient Parchment</span>
+        </button>
+        <button type="button" class="theme-swatch" data-theme="ocean" role="radio" aria-checked="false">
+          <span class="theme-dots">
+            <span class="theme-dot" style="background:#0b1e33"></span>
+            <span class="theme-dot" style="background:#46b6c4"></span>
+            <span class="theme-dot" style="background:#dbeaf2"></span>
+          </span>
+          <span class="theme-name">Deep Ocean</span>
+        </button>
+      </div>
     </section>
 
     <section class="set-section">
@@ -179,24 +257,10 @@
     <section class="set-section">
       <h3 class="set-h">Game</h3>
       <button class="set-btn" id="set-replay" type="button"><i class="bi bi-arrow-repeat me-2"></i>Replay How-to-Play</button>
-    </section>
-
-    <section class="set-section">
-      <h3 class="set-h">Progress</h3>
-      <div class="set-progress">
-        {% for key in order %}
-        {% set st = pmap[key] %}
-        <div class="set-prog-row">
-          <span class="set-prog-name">{{ locations[key].icon }} {{ locations[key].name }}</span>
-          <span class="set-prog-mark {{ 'done' if st.passed }}">{{ '✓' if st.passed else '▢' }}</span>
-        </div>
-        {% endfor %}
-        <div class="set-prog-row">
-          <span class="set-prog-name">🎓 Final Assessment</span>
-          <span class="set-prog-mark {{ 'done' if post_test_done }}">{{ '✓' if post_test_done else '▢' }}</span>
-        </div>
-        <div class="set-prog-meta">Rank <b>{{ stats.rank }}</b> &middot; Level <b>{{ stats.level }}</b> &middot; {{ stats.xp }} XP</div>
-      </div>
+      <button class="set-btn" id="set-replay-intro" type="button"><i class="bi bi-film me-2"></i>Replay intro</button>
+      {% if stats.journey_complete %}
+      <a class="set-btn" href="{{ url_for('eval.epilogue') }}"><i class="bi bi-flag-fill me-2"></i>Replay ending</a>
+      {% endif %}
     </section>
 
     <section class="set-section">
@@ -208,11 +272,6 @@
       <div class="set-account"><i class="bi bi-person-fill me-2"></i>Signed in as <b>{{ current_user.username }}</b></div>
       <a href="{{ url_for('auth.logout') }}" class="set-btn set-btn-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</a>
       {% endif %}
-    </section>
-
-    <section class="set-section">
-      <h3 class="set-h">About</h3>
-      <p class="set-about">Atlas Quest — MSc project, Siddhant Pande, King's College London. Learning content adapted from IBM SkillsBuild: Introduction to Artificial Intelligence.</p>
     </section>
 
   </div>
@@ -248,7 +307,7 @@
         <span class="lb-pos">#{{ loop.index }}</span>
         <div class="lb-run-main">
           <div class="lb-run-top">
-            <span class="lb-combined">{{ r.combined_score }}</span>
+            <span class="lb-combined">{{ r.display_score }}</span>
             <span class="lb-post">{{ r.post_test_score }}/{{ r.post_test_max }}</span>
             {% if loop.first %}<span class="lb-pb-tag">PERSONAL BEST</span>{% endif %}
           </div>
@@ -271,8 +330,33 @@
   </div>
 </aside>
 
+<!-- ══════════ Opening cinematic (first visit; always skippable) ══════════ -->
+<div class="cine" id="hub-cinematic" hidden data-seen="{{ '0' if show_intro else '1' }}">
+  <button class="cine-skip" id="cine-skip" type="button">Skip <i class="bi bi-chevron-double-right"></i></button>
+  <div class="cine-inner">
+    <svg class="cine-glyph" viewBox="0 0 24 24" aria-hidden="true">
+      <g transform="rotate(-38 12 14)">
+        <rect x="4.5" y="12" width="11.5" height="4.3" rx="2.1"/>
+        <rect x="15.2" y="11.2" width="2.7" height="5.9" rx="1.1"/>
+        <rect x="2.6" y="12.7" width="2.1" height="3" rx="1"/>
+      </g>
+      <path d="M8.3 21.2 L12 15.4 L15.7 21.2 Z"/>
+      <rect x="11.1" y="16.8" width="1.8" height="4.4" rx="0.7"/>
+      <path d="M16 2.6 l0.8 2 2 0.8 -2 0.8 -0.8 2 -0.8 -2 -2 -0.8 2 -0.8 z"/>
+      <circle cx="20.2" cy="7.4" r="1"/>
+      <circle cx="11.6" cy="6.2" r="0.85"/>
+    </svg>
+    <div class="cine-lines narrative" id="cine-lines"></div>
+    <button class="cine-begin" id="cine-begin" type="button" hidden>Begin your Quest <i class="bi bi-arrow-right ms-1"></i></button>
+  </div>
+</div>
+<script type="application/json" id="cine-lines-data">{{ cine_lines | tojson }}</script>
+
+<!-- Living-map state (read-only snapshot; drives one-time reveals) -->
+<script type="application/json" id="hub-state">{{ hub_state | tojson }}</script>
+
 <!-- ── Professor Atlas: focused game tutorial (dims the map while he speaks) ── -->
-<div class="hub-onboard-overlay" id="hub-onboard" hidden>
+<div class="hub-onboard-overlay" id="hub-onboard" hidden data-autoshow="{{ '1' if show_intro else '0' }}">
   <div class="hub-onboard-card">
     <div class="hub-onboard-portrait"><span class="atlas-glyph" aria-hidden="true"></span></div>
     <div class="atlas-name">Professor Atlas</div>
@@ -294,7 +378,10 @@
 {% endblock %}
 
 {% block scripts %}
+{# hub-cinematic must load BEFORE hub-onboard so the tutorial can defer to it #}
+<script src="{{ url_for('static', filename='js/hub-cinematic.js') }}"></script>
 <script src="{{ url_for('static', filename='js/hub-onboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hub-livemap.js') }}"></script>
 <script src="{{ url_for('static', filename='js/achievements.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>

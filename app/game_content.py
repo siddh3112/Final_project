@@ -155,6 +155,14 @@ LIBRARY_BOOKS = [
     },
 ]
 
+# Opening cinematic (hub, first visit, always skippable). Short narrative frame
+# in the GAME_INTRO_STEPS voice — presentation only.
+CINEMATIC_LINES = [
+    "The Atlas of Knowledge has faded.",
+    "Three realms hold its lost pages.",
+    "Restore them all… and earn the rank of Atlas Sage.",
+]
+
 # Professor Atlas's overall-game tutorial, shown as a focused overlay on the hub.
 GAME_INTRO_STEPS = [
     "Greetings, traveller. I am Professor Atlas — and this is Atlas Quest, your journey through the world of Artificial Intelligence.",
@@ -699,3 +707,92 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
     total = len(quiz)
     passed = score >= PASS_THRESHOLD
     return results, score, total, passed
+
+
+# ══════════════════════════════════════════════════════════════════════
+#  LEARNING LOOP — hook questions (guess-first priming) + reflections
+#  Presentation/qualitative-data layer only. Hooks are NEVER logged, graded,
+#  or gating. Reflections save to the additive `reflections` table and never
+#  affect scoring, progression, XP, or any existing research measure.
+# ══════════════════════════════════════════════════════════════════════
+
+# Guess-first "hook" per lesson chunk, in chunk order for each location:
+#   library     -> aligns to LIBRARY_BOOKS (5)
+#   ai_lab      -> aligns to the 4 terminal sector cards
+#   observatory -> aligns to the 5 constellation stars
+# Each: {"question": str, "options": [2-3 short strings] (omit/empty = freeform
+# tap-to-reveal), "payoff": one-line bridge shown after the guess}.
+# Hooks must never reveal a Trial answer — they prime curiosity, nothing more.
+HOOKS = {
+    "library": [
+        {"question": "Before you open this tome — what do you think makes a machine “intelligent”?",
+         "options": ["Raw speed", "Learning from data & predicting", "A huge memory"],
+         "payoff": "Hold that thought — one of these is the real heart of it. Let's read on."},
+        {"question": "If an AI screens loans but a human makes the final call — who is really in charge?",
+         "options": ["The AI", "The human", "Neither"],
+         "payoff": "Keep your guess in mind — this balance of power has a name."},
+        {"question": "At its core, AI really does just two things. Care to guess what they are?",
+         "options": ["Store & delete", "Analyse & predict", "Type & print"],
+         "payoff": "Interesting — let's see if the two acts match what you pictured."},
+        {"question": "Which of these do you think is powered by AI prediction?",
+         "options": ["Spotting bank fraud", "Reading road signs", "Both — and more"],
+         "payoff": "Hold that thought — the reach might surprise you."},
+        {"question": "A program plays chess brilliantly but can do nothing else. What would you call that kind of AI?",
+         "options": ["Narrow", "General", "Super"],
+         "payoff": "Note your instinct — the three levels are about to come into focus."},
+    ],
+    "ai_lab": [
+        {"question": "Before computers, how did people make sense of huge piles of numbers?",
+         "options": ["By hand, in tables", "They simply couldn't", "With pocket calculators"],
+         "payoff": "Hold that thought — the story starts slower than you'd think."},
+        {"question": "What first let a single machine do many different jobs?",
+         "options": ["More metal", "Programs (instructions)", "More electricity"],
+         "payoff": "Keep that in mind as we power up the 1940s."},
+        {"question": "Guess the year the term “artificial intelligence” was first coined.",
+         "options": ["1956", "1985", "2007"],
+         "payoff": "Hold that thought — it's older than most people expect."},
+        {"question": "Guess: what fraction of a company's data do you think ever actually gets analysed?",
+         "options": ["Almost all of it", "About half", "Only a small slice"],
+         "payoff": "Keep your guess — then let's sort some data and find out."},
+    ],
+    "observatory": [
+        {"question": "A calculator always says 7×8=56. A weather AI says “70% chance of rain.” What's the key difference?",
+         "options": ["One is certain, one gives odds", "One is just faster", "No real difference"],
+         "payoff": "Hold that thought — certainty vs. confidence is the whole idea."},
+        {"question": "To teach an AI to spot spam, what would you give it first?",
+         "options": ["Thousands of labelled examples", "Nothing — let it guess", "A written rulebook"],
+         "payoff": "Keep that in mind as we trace this star."},
+        {"question": "Could a machine group similar customers together with NO labels telling it the groups?",
+         "options": ["Yes — it finds patterns itself", "No, impossible", "Only if a human helps"],
+         "payoff": "Hold that thought — pattern-finding without answers is next."},
+        {"question": "How do you think a machine could learn chess with NO teacher and NO answer key?",
+         "options": ["Reward good moves, penalise bad", "It simply can't", "Memorise every game ever played"],
+         "payoff": "Keep your guess — trial, reward and consequence await."},
+        {"question": "Which kind of AI actually exists and runs real businesses today?",
+         "options": ["Narrow & Broad AI", "General AI", "Super AI"],
+         "payoff": "Hold that thought — let's map the big picture."},
+    ],
+}
+
+
+def get_hooks(location_key):
+    """Hook list for a location (chunk order), or [] if none."""
+    return HOOKS.get(location_key, [])
+
+
+# One post-Trial reflection prompt per location (generative learning). Saved to
+# the reflections table when answered or skipped; ungraded, never gates.
+REFLECTION_PROMPTS = {
+    "library": {
+        "key": "narrow_vs_general",
+        "text": "In one sentence: what's the difference between narrow AI and general AI?",
+    },
+    "ai_lab": {
+        "key": "why_data_hard",
+        "text": "In one sentence: why is most of the world's data hard for computers to use?",
+    },
+    "observatory": {
+        "key": "rl_no_answer_key",
+        "text": "In one sentence: how does reinforcement learning learn without an answer key?",
+    },
+}

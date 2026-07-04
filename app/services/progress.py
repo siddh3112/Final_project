@@ -8,12 +8,14 @@ The post-test unlocks only when all three locations are passed.
 
 from datetime import datetime
 
+from sqlalchemy.exc import IntegrityError
+
 from ..game_content import LOCATION_ORDER
 from ..models import GameSession, LocationProgress, db
 
-# TESTING: open every location regardless of progress. Set back to False to
-# restore the normal "pass the previous location to unlock the next" chain.
-UNLOCK_ALL = True
+# Normal gated progression: each location unlocks only when the previous one is
+# passed. Set True to open every location regardless of progress (testing).
+UNLOCK_ALL = False
 
 
 def get_or_create_progress(user, location):
@@ -29,7 +31,13 @@ def get_or_create_progress(user, location):
             unlocked_at=datetime.utcnow() if unlocked else None,
         )
         db.session.add(lp)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # A concurrent request created the row first (unique index) —
+            # roll back and use the existing one.
+            db.session.rollback()
+            lp = LocationProgress.query.filter_by(user_id=user.id, location=location).first()
     return lp
 
 

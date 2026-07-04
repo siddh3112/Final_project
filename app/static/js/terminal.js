@@ -9,6 +9,7 @@
   const page = document.querySelector(".terminal-page");
   if (!page) return;
   const location = page.dataset.location || "";
+  const labPassed = page.dataset.passed === "1";   // Trial already conquered
 
   // ───────────────────────── AUDIO ─────────────────────────
   // Start muted if the hub "Master sound" preference is off (the local mute
@@ -134,6 +135,21 @@
     if (sw && !sw.classList.contains("on")) { sw.classList.add("on"); switchFlip(); }
   }
 
+  // Persist a cleared sector (per user) so exploration survives navigation —
+  // mirrors the Library's persistRead. Presentation/progress only; the sorting
+  // game + graded quiz always run fresh, so Trial grading is never touched.
+  function persistSector(n) {
+    if (!location) return;
+    try {
+      fetch("/location/" + encodeURIComponent(location) + "/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item: "sector-" + n }),
+        keepalive: true,
+      });
+    } catch (e) {}
+  }
+
   // ───────────────── ASCII Atlas face ─────────────────
   const FACE_NORMAL = " .--.\n|o_o |\n|:_/ |";
   const FACE_HAPPY = " .--.\n|^_^ |\n|:_/ |";
@@ -213,7 +229,29 @@
   let cardIdx = 0;
   const crtRoll = document.getElementById("crt-roll");
 
+  // Guess-first hooks (per sector, chunk order). Shown once each, never logged.
+  let TERM_HOOKS = [];
+  try { TERM_HOOKS = JSON.parse(document.getElementById("term-hooks").textContent) || []; } catch (e) { TERM_HOOKS = []; }
+  const hooksShown = new Set();
+
+  function showCardHook(card, hook) {
+    const host = document.createElement("div");
+    host.className = "lh-hook-host term-hook-host";
+    (document.getElementById("crt-screen") || screenContent || card).appendChild(host);
+    window.AtlasHook.mount(host, hook, {
+      accent: "#8ab4d4",   // AI Lab interior accent (matches the CRT scene, not the brighter hub pin)
+      onContinue: function () { if (host.parentNode) host.parentNode.removeChild(host); typeCard(card); },
+    });
+  }
+
   function typeCard(card) {
+    // A quick guess-first beat before this sector's content is revealed.
+    const hk = TERM_HOOKS[cardIdx];
+    if (hk && !hooksShown.has(cardIdx) && window.AtlasHook) {
+      hooksShown.add(cardIdx);
+      showCardHook(card, hk);
+      return;
+    }
     if (card.dataset.machine === "1") { initMachine(card); return; }
     const head = card.querySelector(".term-head");
     const bodyEl = card.querySelector(".term-text");
@@ -276,6 +314,7 @@
     if (cont) cont.addEventListener("click", function () {
       if (this.disabled) return;
       flipSwitch(cardIdx);           // completing a card lights its sector
+      persistSector(cardIdx);        // remember it per-user (survives navigation)
       if (cardIdx === cards.length - 1) { reboot(); }
       else { rollToCard(card, cardIdx + 1); }
     });
@@ -557,8 +596,82 @@
     muteBtn.setAttribute("aria-label", muted ? "Sound off" : "Sound on");
   });
 
+  // ── Silent restore of cleared-sector exploration (mirrors the Library).
+  //    Skips the power-on + briefing intro and resumes at the first uncleared
+  //    sector with the earlier switches already lit — no replay. The sorting
+  //    card (which feeds the graded Q3) and the quiz always run fresh, so the
+  //    resume is capped at the sorting card and Trial grading is untouched. ──
+  function restoreExploration() {
+    let ids = [];
+    try { ids = JSON.parse(document.getElementById("term-explored").textContent) || []; } catch (e) {}
+    let cleared = 0;
+    for (let i = 0; i < cards.length; i++) { if (ids.indexOf("sector-" + i) !== -1) cleared++; }
+    if (cleared <= 0) return false;
+    const resumeIdx = Math.min(cleared, cards.length - 1); // never skip the sorting card / Trial
+
+    if (powerOn) powerOn.hidden = true;
+    if (screenContent) screenContent.hidden = false;
+    const brief = document.getElementById("term-briefing"); if (brief) brief.hidden = true;
+    const stage = document.getElementById("term-stage"); if (stage) stage.style.display = "";
+    if (powerLed) powerLed.classList.add("on");
+    scheduleFlicker();
+
+    for (let s = 0; s < resumeIdx; s++) {
+      const sw = document.querySelector('.toggle-switch[data-sector="' + s + '"]');
+      if (sw) sw.classList.add("on");   // light it silently (no flip sound)
+      hooksShown.add(s);                // never replay a cleared sector's guess-first hook
+    }
+    cards.forEach(function (c) { c.classList.remove("active"); });
+    cardIdx = resumeIdx;
+    const card = cards[resumeIdx];
+    card.classList.add("active");
+    typeCard(card);                     // reveal the first uncleared sector
+    return true;
+  }
+
+  // ── Already-mastered view: shown when the Trial is passed, so re-entry lands
+  //    on a clear "completed" state instead of being dropped back into the
+  //    sorting mission every time. Presentation only — no scoring/flow change. ──
+  function showMastered() {
+    if (powerOn) powerOn.hidden = true;
+    if (screenContent) screenContent.hidden = false;
+    const brief = document.getElementById("term-briefing"); if (brief) brief.hidden = true;
+    const stage = document.getElementById("term-stage"); if (stage) stage.style.display = "none";
+    if (powerLed) powerLed.classList.add("on");
+    scheduleFlicker();
+    for (let i = 0; i < cards.length; i++) {           // all sectors verified
+      const sw = document.querySelector('.toggle-switch[data-sector="' + i + '"]');
+      if (sw) sw.classList.add("on");
+    }
+    const m = document.getElementById("term-mastered"); if (m) m.hidden = false;
+  }
+
+  // "Re-run diagnostic": leave the mastered view and re-attempt the Trial. Jumps
+  // straight to the sorting card (sectors already read) so the graded Q3 mechanic
+  // runs fresh — grading/logging unchanged.
+  function rerunDiagnostic() {
+    const m = document.getElementById("term-mastered"); if (m) m.hidden = true;
+    const stage = document.getElementById("term-stage"); if (stage) stage.style.display = "";
+    const sortIdx = cards.length - 1;
+    for (let i = 0; i < sortIdx; i++) {
+      const sw = document.querySelector('.toggle-switch[data-sector="' + i + '"]');
+      if (sw) sw.classList.add("on");
+      hooksShown.add(i);                               // don't replay cleared sectors' hooks
+    }
+    machineReady = false;                              // let the sorting game re-initialise
+    cards.forEach(function (c) { c.classList.remove("active"); });
+    cardIdx = sortIdx;
+    cards[sortIdx].classList.add("active");
+    typeCard(cards[sortIdx]);
+  }
+  const rerunBtn = document.getElementById("term-rerun");
+  if (rerunBtn) rerunBtn.addEventListener("click", rerunDiagnostic);
+
   // ───────────────── BOOT ─────────────────
   atlasFace(false);
-  if (cards.length) runPowerOn();
+  if (cards.length) {
+    if (labPassed) showMastered();                     // Trial done → completed view
+    else if (!restoreExploration()) runPowerOn();      // partial → resume; fresh → full intro
+  }
   window.addEventListener("pagehide", stopHum);
 })();

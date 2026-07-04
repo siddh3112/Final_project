@@ -12,6 +12,11 @@
   const canvas = document.getElementById("sky-canvas");
   const ctx = canvas.getContext("2d");
 
+  // Reduce-motion: canvas FX can't be calmed by CSS, so gate them here.
+  // Constellation mechanics (stars, lines, clicks, checks) stay fully working.
+  const REDUCE = !!((window.AtlasPrefs && window.AtlasPrefs.effective && window.AtlasPrefs.effective("reduce_motion")) ||
+    (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches));
+
   // ONE constellation of 5 stars that builds star-by-star (in order).
   const CONSTELLATION_STARS = [
     { x: 20, y: 65 },   // Star 1 — lower left
@@ -56,6 +61,11 @@
       options: ["General AI", "Broad AI", "None of them exist yet"], correct: 1 },
   ];
   function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // Guess-first hooks (chunk order), shown before each star's concept. Never logged.
+  let OBS_HOOKS = [];
+  try { OBS_HOOKS = JSON.parse(document.getElementById("obs-hooks").textContent) || []; } catch (e) { OBS_HOOKS = []; }
+  const obsHooksShown = new Set();
 
   const INTRO_SLIDES = [
     "The Observatory holds a single hidden constellation — the architecture of machine learning, traced star by star. Each star is one concept that lets machines learn, predict, and improve without being reprogrammed.",
@@ -238,6 +248,7 @@
   window.addEventListener("mousemove", function (e) {
     const r = canvas.getBoundingClientRect();
     mx = e.clientX - r.left; my = e.clientY - r.top; haveMouse = true;
+    if (REDUCE) return; // no cursor stardust under reduce-motion
     // cursor stardust (throttled)
     const now = performance.now();
     if (mx >= 0 && my >= 0 && mx <= W && my <= H && now - lastTrail > 28 && trail.length < TRAIL_MAX) {
@@ -296,8 +307,8 @@
   }
 
   function drawLayer(stars, factor, now) {
-    const ox = haveMouse ? -(mx - W / 2) * factor : 0;
-    const oy = haveMouse ? -(my - H / 2) * factor : 0;
+    const ox = (haveMouse && !REDUCE) ? -(mx - W / 2) * factor : 0;  // no parallax under reduce-motion
+    const oy = (haveMouse && !REDUCE) ? -(my - H / 2) * factor : 0;
     ctx.save(); ctx.translate(ox, oy);
     for (const s of stars) {
       const tw = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(now / 1000 * s.sp + s.ph));
@@ -332,6 +343,7 @@
     soundMeteor();
   }
   function drawMeteors(now) {
+    if (REDUCE) return; // no shooting stars under reduce-motion
     if (now > nextMeteor) { spawnMeteor(now); nextMeteor = now + 8000 + Math.random() * 14000; }
     for (let i = meteors.length - 1; i >= 0; i--) {
       const m = meteors[i]; const p = (now - m.t0) / 600;
@@ -435,10 +447,15 @@
 
   function drawFX(now) {
     for (let i = fx.length - 1; i >= 0; i--) {
-      const e = fx[i]; const p = (now - e.t0) / e.dur;
+      const e = fx[i];
+      // A RAF timestamp can be a hair earlier than the performance.now() an fx
+      // was queued with, making p slightly negative → a negative arc() radius
+      // that throws and kills the loop. Floor it at 0.
+      let p = (now - e.t0) / e.dur;
       if (p >= 1) { fx.splice(i, 1); continue; }
+      if (p < 0) p = 0;
       if (e.type === "shock") {
-        ctx.beginPath(); ctx.arc(e.x, e.y, e.maxR * p, 0, 6.2832);
+        ctx.beginPath(); ctx.arc(e.x, e.y, Math.max(0, e.maxR * p), 0, 6.2832);
         ctx.strokeStyle = hexA(e.color, (1 - p) * 0.8); ctx.lineWidth = e.width * (1 - p); ctx.stroke();
       } else if (e.type === "parts") {
         for (const pt of e.parts) {
@@ -488,18 +505,21 @@
     // warmth + brighten easing
     setWarmTarget(); warm += (warmTarget - warm) * 0.04;
     if (brightenBoost > 0) brightenBoost *= 0.97;
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = skyGradient(); ctx.fillRect(0, 0, W, H);
-    if (nebulaAnim) { drawNebula(nebulae[0], now); drawNebula(nebulae[1], now); }
-    else { drawNebula(nebulae[0], 0); drawNebula(nebulae[1], 0); }
-    drawMilky();
-    drawLayer(LAYER_BG, 0.008, now);
-    drawLayer(LAYER_MID, 0.02, now);
-    drawLayer(LAYER_FG, 0.04, now);
-    drawMeteors(now);
-    drawConstellation(now);
-    drawFX(now);
-    drawTrail(now);
+    // Never let one bad draw call halt the animation loop.
+    try {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = skyGradient(); ctx.fillRect(0, 0, W, H);
+      if (nebulaAnim && !REDUCE) { drawNebula(nebulae[0], now); drawNebula(nebulae[1], now); }
+      else { drawNebula(nebulae[0], 0); drawNebula(nebulae[1], 0); }
+      drawMilky();
+      drawLayer(LAYER_BG, 0.008, now);
+      drawLayer(LAYER_MID, 0.02, now);
+      drawLayer(LAYER_FG, 0.04, now);
+      drawMeteors(now);
+      drawConstellation(now);
+      drawFX(now);
+      drawTrail(now);
+    } catch (err) { /* skip this frame; keep the sky alive */ }
     requestAnimationFrame(frame);
   }
 
@@ -556,11 +576,26 @@
     setTimeout(function () { starAnim = null; }, 1000);
   }
 
+  // Persist a discovered star (per user) so the constellation survives
+  // navigation — mirrors the Library's persistRead. Presentation/progress only;
+  // never scoring, Trial grading, or research data.
+  function persistStar(i) {
+    try {
+      fetch("/location/" + encodeURIComponent(location) + "/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item: "star-" + i }),
+        keepalive: true,
+      });
+    } catch (e) {}
+  }
+
   // Step B — passing the check completes the star: line draws, finale fires.
   function passCheck(i) {
     const concept = CONCEPTS[i];
     const color = colorFor(concept.type);
     discoveredCount = i + 1;
+    persistStar(i);                 // remember it per-user (survives navigation)
     // reach forward: a line grows from this star to the next one as it appears
     if (i + 1 < CONSTELLATION_STARS.length) lineAnims.push({ a: i, b: i + 1, t0: performance.now(), done: false });
     if (countEl) countEl.textContent = discoveredCount;
@@ -606,7 +641,12 @@
   const closeBtn = document.getElementById("obs-panel-close");
   // Read-aloud button in the concept panel (reads the concept text only).
   const ttsBtn = window.AtlasVoice && window.AtlasVoice.button("#3ab8d8");
-  if (ttsBtn) { ttsBtn.classList.add("tts-corner"); document.getElementById("obs-panel-inner").appendChild(ttsBtn); }
+  if (ttsBtn) {
+    // Read-aloud lives inline on the concept page (reads the concept) — not
+    // floating over the header, and never on the quick-check page.
+    ttsBtn.classList.add("obs-read-btn");
+    (document.getElementById("obs-read-slot") || document.getElementById("obs-panel-inner")).appendChild(ttsBtn);
+  }
   function stopVoice() { if (window.AtlasVoice) window.AtlasVoice.stop(); }
   const checkQEl = document.getElementById("obs-check-q");
   const checkOptsEl = document.getElementById("obs-check-opts");
@@ -682,10 +722,65 @@
 
     panel.hidden = false; panel.classList.remove("show"); void panel.offsetWidth; panel.classList.add("show");
     miniMax = i + 1; miniOpen = true; cancelAnimationFrame(miniRAF); miniAngle = 0; drawMini();
+
+    // Tidy the mute control into the card header while the panel is open
+    // (same button, same handler/state — just relocated for the reading view).
+    const _tools = document.getElementById("obs-card-tools");
+    if (muteBtn && _tools) { muteBtn.classList.add("in-card"); _tools.appendChild(muteBtn); }
+
+    // Two-page card: concept first, quick-check on the NEXT page. Reset to page 1.
+    const conceptPage = document.getElementById("obs-page-concept");
+    const checkPage = document.getElementById("obs-page-check");
+    const toCheckBtn = document.getElementById("obs-to-check");
+    const contentEl = document.getElementById("obs-content");
+    if (contentEl) contentEl.style.display = "";
+    if (conceptPage) conceptPage.hidden = false;
+    if (checkPage) checkPage.hidden = true;
+    const readRow = document.getElementById("obs-read-row");
+    if (readRow) readRow.style.display = "";
+    if (toCheckBtn) {
+      toCheckBtn.style.display = "";
+      toCheckBtn.onclick = function () {
+        stopVoice(); // stop any read-aloud when leaving the concept
+        if (conceptPage) conceptPage.hidden = true;
+        if (checkPage) {
+          checkPage.hidden = false;
+          checkPage.classList.remove("obs-page-in"); void checkPage.offsetWidth;
+          if (!REDUCE) checkPage.classList.add("obs-page-in");
+        }
+      };
+    }
+
+    // Guess-first hook beat: hide the concept + its controls until the learner
+    // makes a quick guess, then reveal. Nothing recorded.
+    const hk = OBS_HOOKS[i];
+    if (hk && !obsHooksShown.has(i) && window.AtlasHook) {
+      obsHooksShown.add(i);
+      if (contentEl) contentEl.style.display = "none";
+      if (toCheckBtn) toCheckBtn.style.display = "none";
+      if (readRow) readRow.style.display = "none";
+      const host = document.createElement("div");
+      host.className = "lh-hook-host obs-hook-host";
+      contentEl.parentNode.insertBefore(host, contentEl);
+      window.AtlasHook.mount(host, hk, {
+        accent: "#3ab8d8",
+        onContinue: function () {
+          if (host.parentNode) host.parentNode.removeChild(host);
+          if (contentEl) contentEl.style.display = "";
+          if (toCheckBtn) toCheckBtn.style.display = "";
+          if (readRow) readRow.style.display = "";
+        },
+      });
+    }
   }
   function closePanel() {
     if (!checkPassed) return; // gated — must pass the check before leaving
     stopVoice(); // leaving the concept — stop read-aloud
+    // Return the mute control to the sky (fixed top-right).
+    if (muteBtn && muteBtn.classList.contains("in-card")) {
+      muteBtn.classList.remove("in-card");
+      if (root) root.appendChild(muteBtn);
+    }
     panel.classList.remove("show"); panel.hidden = true; miniOpen = false; cancelAnimationFrame(miniRAF);
     ready = true; // the next star now becomes clickable and starts pulsing
     if (pendingUnlock) { pendingUnlock = false; ready = false; setTimeout(runUnlock, 300); }
@@ -717,9 +812,36 @@
     setTimeout(function () { if (btn) { btn.hidden = false; btn.classList.add("show"); } }, 5600);
   }
 
+  // ── Silent restore of discovered stars (mirrors the Library). Re-lights the
+  //    already-discovered stars + their constellation lines and sets CONCEPT
+  //    x/5, WITHOUT replaying the cinematic intro or any discovery animation. ──
+  function restoreExploration() {
+    let ids = [];
+    try { ids = JSON.parse(document.getElementById("obs-explored").textContent) || []; } catch (e) {}
+    const N = CONSTELLATION_STARS.length;
+    let n = 0;
+    for (let i = 0; i < N; i++) { if (ids.indexOf("star-" + i) !== -1) n++; }
+    if (n <= 0) return false;
+    discoveredCount = Math.min(n, N);   // the draw loop redraws the lines from this
+    introActive = false;                // no cinematic
+    ready = discoveredCount < N;        // the next star (if any) pulses / is clickable
+    if (countEl) countEl.textContent = discoveredCount;
+    if (progFill) progFill.style.width = (discoveredCount / N * 100) + "%";
+    const hint = document.getElementById("sky-hint"); if (hint) hint.style.display = "none";
+    if (discoveredCount >= N) {
+      // Whole constellation already mapped — restore the unlocked Trial end
+      // state silently (no unlock cinematic / overlay replay).
+      if (trialGate) trialGate.hidden = true;
+      if (trialReady) trialReady.hidden = false;
+    }
+    return true;
+  }
+
   // ───────────────────────── CINEMATIC INTRO ─────────────────────────
   (function cinematic() {
     const cine = document.getElementById("obs-cinematic");
+    // Returning with progress: skip the intro and restore the constellation.
+    if (restoreExploration()) { if (cine) cine.style.display = "none"; return; }
     if (!cine) { introActive = false; return; }
     const lines = [1, 2, 3, 4].map((n) => document.getElementById("obs-cine-" + n));
     const prompt = document.getElementById("obs-cine-prompt");

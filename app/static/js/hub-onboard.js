@@ -30,7 +30,6 @@
   const next = document.getElementById("hub-onboard-next");
   const skip = document.getElementById("hub-onboard-skip");
   const howto = document.getElementById("howto-btn");
-  const KEY = "atlasquest_seen_intro";
 
   let i = 0;
   let typing = false;
@@ -79,9 +78,6 @@
     clearInterval(timer);
     overlay.classList.add("closing");
     document.body.style.overflow = "";
-    try {
-      localStorage.setItem(KEY, "1");
-    } catch (e) {}
     setTimeout(function () {
       overlay.hidden = true;
       overlay.classList.remove("closing");
@@ -107,9 +103,15 @@
   skip.addEventListener("click", close);
   if (howto) howto.addEventListener("click", show);
 
-  let seen = false;
-  try {
-    seen = localStorage.getItem(KEY) === "1";
-  } catch (e) {}
-  if (!seen) show();
+  // Auto-show once per USER (server decides via data-autoshow, from the
+  // user's seen_intro flag) — not per browser, so shared machines work and
+  // stale localStorage/session state can't suppress it.
+  if (overlay.dataset.autoshow === "1") {
+    // If the opening cinematic is about to play, let it finish first.
+    if (window.ATLAS_CINEMATIC_PENDING) {
+      document.addEventListener("atlas:cinematic-done", show, { once: true });
+    } else {
+      show();
+    }
+  }
 })();

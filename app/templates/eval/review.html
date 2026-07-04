@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Your Review — The Final Ascent{% endblock %}
+{% block body_class %}ascent-body ascent-results-body{% endblock %}
+
+{% block body %}
+<div class="ascent-results review-page">
+
+  <div class="rv-review in" id="rv-review">
+    <div class="rv-review-scorechip {{ 'is-pass' if passed else 'is-fail' }}">
+      <span class="rv-chip-score">{{ score }} / {{ total }}</span>
+      <span class="rv-chip-label">{% if passed %}Passed{% else %}{{ pass_mark }} of {{ total }} needed to pass{% endif %}</span>
+    </div>
+
+    <h2 class="rv-review-head">Your Review</h2>
+    <p class="rv-review-sub">Here is what each question was really testing.</p>
+
+    <div class="text-center rv-actions">
+      <a href="{{ url_for('game.hub') }}" class="btn-continue rv-return">Return to the Map <i class="bi bi-arrow-right ms-1"></i></a>
+      {% if not passed %}
+      <a href="{{ url_for('eval.post_test', retake=1) }}" class="rv-replay-ending"><i class="bi bi-arrow-repeat me-1"></i>Retake the Final Ascent</a>
+      {% endif %}
+    </div>
+
+    {% for r in review %}
+    <div class="rv-item {{ 'ok' if r.is_correct else 'no' }}">
+      <div class="rv-item-top">
+        <span class="rv-item-badge">{{ 'CORRECT' if r.is_correct else 'REVIEW' }}</span>
+        <span class="rv-item-q"><span class="rv-item-n">{{ loop.index }}</span>{{ r.question }}</span>
+      </div>
+      <div class="rv-item-answers">
+        {% for letter, text in r.options.items() %}
+        <div class="rv-opt {% if letter == r.correct %}is-correct{% endif %} {% if letter == r.selected and letter != r.correct %}is-wrong{% endif %}">
+          <span class="rv-opt-text">{{ text }}</span>
+          {% if letter == r.correct %}<i class="bi bi-check-lg rv-mark"></i>{% elif letter == r.selected %}<i class="bi bi-x-lg rv-mark"></i>{% endif %}
+          {% if letter == r.selected %}<span class="rv-your">your answer</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="rv-explain"><i class="bi bi-lightbulb me-2"></i>{{ r.explanation }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

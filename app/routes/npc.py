@@ -3,7 +3,7 @@ import time
 from flask import Blueprint, abort, current_app, jsonify, request
 from flask_login import current_user, login_required
 
-from ..game_content import QUIZZES
+from ..game_content import LOCATION_ORDER, QUIZZES
 from ..models import NpcInteraction, QuizAttempt, db
 from ..services.npc_service import get_response
 from ..services.progress import get_or_create_open_session
@@ -23,6 +23,10 @@ def chat():
     location = (data.get("location") or "").strip()
     if not message:
         return jsonify({"error": "empty message"}), 400
+    # Only real locations may be logged against (protects game_sessions /
+    # npc_interactions research data from junk location strings).
+    if location not in LOCATION_ORDER:
+        return jsonify({"error": "invalid location"}), 400
 
     # ── Adaptive context: recent mistakes (STEMS ONLY) + recent dialogue ──
     recent_mistakes = _recent_mistake_stems(current_user.id, location)

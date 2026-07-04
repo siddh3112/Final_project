@@ -204,8 +204,8 @@
     var seal = document.getElementById("rv-seal");
     var pb = document.getElementById("rv-pb");
     var isPB = root.getAttribute("data-pb") === "1";
-    var reviewBtn = document.getElementById("rv-review-btn");
-    var review = document.getElementById("rv-review");
+    var passed = root.getAttribute("data-passed") === "1";
+    var actions = document.getElementById("rv-actions");
 
     // Frame-based count-up: caps the number of ticks so a large XP total
     // (e.g. 0 → 300) finishes in ~0.7s, while a small score (0 → 10) still
@@ -246,10 +246,12 @@
       if (isPB) particles("rv-pb-particles");  // visual only (page is silent)
     }
 
-    function revealReview() {
-      if (!review || !review.hidden) return;
-      review.hidden = false;
-      if (!reduce) { review.classList.add("in"); review.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    // Reveal the action row (Return / View your review / certificate). The full
+    // per-question review is a separate page, opened via "View your review".
+    // On a passing run, signal the epilogue that the sequence is complete.
+    function finish(withEpilogue) {
+      if (actions) actions.hidden = false;
+      if (withEpilogue) document.dispatchEvent(new Event("ascent:reveal-done"));
     }
 
     function runSage() {
@@ -258,17 +260,22 @@
       countTo(xpNum, xp, function () {
         seal.hidden = false;
         setTimeout(showPB, reduce ? 100 : 700);
-        if (reviewBtn) reviewBtn.hidden = false;
-        setTimeout(revealReview, reduce ? 200 : 1400);
+        setTimeout(function () { finish(true); }, reduce ? 220 : 1500);
       });
+    }
+
+    // Below the pass mark: skip the Atlas Sage celebration; show the retake
+    // prompt (already in the DOM) then the action row.
+    function runFail() {
+      var fail = document.getElementById("rv-fail");
+      if (fail) fail.hidden = false;
+      setTimeout(function () { finish(false); }, reduce ? 200 : 900);
     }
 
     function runScore() {
       stage.hidden = false;
-      countTo(scoreNum, score, runSage);
+      countTo(scoreNum, score, passed ? runSage : runFail);
     }
-
-    if (reviewBtn) reviewBtn.addEventListener("click", revealReview);
 
     setTimeout(function () {
       if (calc) calc.hidden = true;

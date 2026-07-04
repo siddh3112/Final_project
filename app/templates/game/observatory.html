@@ -8,6 +8,11 @@
 
 <div class="observatory" id="observatory" data-location="{{ loc.key }}" style="--accent: {{ loc.accent }};">
 
+<!-- Guess-first hook per star (never logged/graded) -->
+<script type="application/json" id="obs-hooks">{{ hooks | default([]) | tojson }}</script>
+<!-- Discovered-star exploration progress (per user); restored silently on load -->
+<script type="application/json" id="obs-explored">{{ explored | default([]) | tojson }}</script>
+
   <nav class="loc-topbar">
     <a href="{{ url_for('game.hub') }}" class="back-link">
       <i class="bi bi-map me-1"></i> Return to Map
@@ -47,19 +52,41 @@
     <div class="obs-panel-backdrop" data-panel-close></div>
     <div class="obs-panel-inner" id="obs-panel-inner">
       <div class="obs-panel-stars" id="obs-panel-stars" aria-hidden="true"></div>
-      <div class="obs-stamp" id="obs-stamp">MAPPED ✓</div>
-      <canvas class="obs-mini" id="obs-mini" width="240" height="160"></canvas>
-      <div class="obs-panel-era" id="obs-era"></div>
-      <h2 class="obs-panel-heading" id="obs-heading"></h2>
-      <p class="obs-panel-content" id="obs-content"></p>
 
-      <!-- Inline check question (gate before the star locks in) -->
-      <div class="obs-check" id="obs-check">
-        <div class="obs-check-divider"></div>
-        <div class="obs-check-label">QUICK CHECK</div>
-        <p class="obs-check-q" id="obs-check-q"></p>
-        <div class="obs-check-opts" id="obs-check-opts"></div>
-        <div class="obs-check-fb" id="obs-check-fb" hidden></div>
+      <!-- Celestial header band -->
+      <header class="obs-card-head">
+        <div class="obs-card-titles">
+          <div class="obs-panel-era" id="obs-era"></div>
+          <h2 class="obs-panel-heading" id="obs-heading"></h2>
+        </div>
+        <div class="obs-card-tools" id="obs-card-tools">
+          <span class="obs-stamp" id="obs-stamp">MAPPED ✓</span>
+          <!-- #obs-mute is relocated here by JS while the panel is open -->
+        </div>
+      </header>
+      <div class="obs-flourish" aria-hidden="true"><span class="obs-flourish-rule"></span><span class="obs-flourish-star">✦</span><span class="obs-flourish-rule"></span></div>
+
+      <div class="obs-card-body" id="obs-card-body">
+        <!-- Page 1 — the concept -->
+        <div class="obs-page obs-page-concept" id="obs-page-concept">
+          <div class="obs-read-row" id="obs-read-row">
+            <span class="obs-read-label">Read aloud</span>
+            <span id="obs-read-slot"><!-- read-aloud button injected here --></span>
+          </div>
+          <canvas class="obs-mini" id="obs-mini" width="240" height="160"></canvas>
+          <p class="obs-panel-content" id="obs-content"></p>
+          <button type="button" class="obs-next-btn" id="obs-to-check">Quick Check <span aria-hidden="true">→</span></button>
+        </div>
+
+        <!-- Page 2 — the quick check (gate before the star locks in) -->
+        <div class="obs-page obs-page-check" id="obs-page-check" hidden>
+          <div class="obs-check" id="obs-check">
+            <div class="obs-check-label">QUICK CHECK</div>
+            <p class="obs-check-q" id="obs-check-q"></p>
+            <div class="obs-check-opts" id="obs-check-opts"></div>
+            <div class="obs-check-fb" id="obs-check-fb" hidden></div>
+          </div>
+        </div>
       </div>
 
       <button class="obs-panel-close" id="obs-panel-close" data-panel-close hidden>RETURN TO SKY</button>
@@ -120,6 +147,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/hooks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/observatory.js') }}"></script>
 {% if current_user.condition == 'game' %}
 <script src="{{ url_for('static', filename='js/npc.js') }}"></script>

@@ -80,6 +80,101 @@
     }
   });
 
+  // ── AUDIO: voice picker (populated at runtime from the browser's voices) ──
+  var vSelect = document.getElementById("set-voice-select");
+  var vPreview = document.getElementById("set-voice-preview");
+  var vpRow = document.getElementById("set-voicepick-row");
+  var vHint = document.getElementById("set-voice-hint");
+  if (!ttsOk && vpRow) vpRow.style.display = "none";
+
+  function friendly(v) { return v.name + (v.lang ? " (" + v.lang + ")" : ""); }
+  function byName(a, b) { return (a.name || "").localeCompare(b.name || ""); }
+
+  // macOS/browsers ship several novelty/robotic voices (Grandpa, Grandma,
+  // Zarvox, Bubbles, …). Hide them so the picker only lists real, usable
+  // voices — mirrors the BAD_NAMES filter tts.js uses for the "Automatic" pick.
+  var NOVELTY = /compact|eloquence|fred|albert|zarvox|trinoids|whisper|bells|bad news|boing|bubbles|cellos|deranged|good news|jester|organ|superstar|wobble|bahh|grandma|grandpa|reed|rocko|sandy|shelley/i;
+
+  function populateVoices() {
+    if (!ttsOk || !vSelect || !window.speechSynthesis) return;
+    var voices = window.speechSynthesis.getVoices() || [];
+    if (!voices.length) return;          // wait for the 'voiceschanged' event
+    var current = (window.ATLAS_PREFS && window.ATLAS_PREFS.voice_name) || "";
+    while (vSelect.options.length > 1) vSelect.remove(1);  // keep only "Automatic"
+    // English voices only, excluding novelty/robotic ones.
+    var en = voices.filter(function (v) {
+      return (v.lang || "").toLowerCase().indexOf("en") === 0 && !NOVELTY.test(v.name || "");
+    });
+    en.sort(byName);
+    en.forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v.name; o.textContent = friendly(v); vSelect.appendChild(o);
+    });
+    // pre-select the saved voice; fall back to "Automatic" if it's gone
+    vSelect.value = current;
+    if (vSelect.value !== current) vSelect.value = "";
+  }
+
+  if (ttsOk && vSelect) {
+    populateVoices();
+    try { window.speechSynthesis.addEventListener("voiceschanged", populateVoices); } catch (e) {}
+
+    vSelect.addEventListener("change", function () {
+      var name = vSelect.value;
+      if (P && P.setValue) P.setValue("voice_name", name);   // persist like other prefs
+      window.AtlasVoice.setVoiceName(name);                  // take effect immediately
+    });
+
+    if (vPreview) vPreview.addEventListener("click", function () {
+      if (window.AtlasVoice.speaking && window.AtlasVoice.speaking()) {
+        window.AtlasVoice.stop();                            // click again = cancel
+        return;
+      }
+      if (!P || !P.voiceOn()) {                              // master voice off → hint
+        if (vHint) { vHint.hidden = false; clearTimeout(vPreview._t);
+          vPreview._t = setTimeout(function () { vHint.hidden = true; }, 2800); }
+        return;
+      }
+      if (vHint) vHint.hidden = true;
+      window.AtlasVoice.preview(vSelect.value);
+    });
+  }
+
+  // ── THEME: 3 swatch cards reskin the shared frame live (persisted pref) ──
+  var themePicker = document.getElementById("theme-picker");
+  if (themePicker) {
+    var THEMES = ["midnight", "parchment", "ocean"];
+    var swatches = themePicker.querySelectorAll(".theme-swatch");
+    var root = document.documentElement;
+
+    function markSelected(name) {
+      swatches.forEach(function (s) {
+        var on = s.getAttribute("data-theme") === name;
+        s.classList.toggle("selected", on);
+        s.setAttribute("aria-checked", on ? "true" : "false");
+      });
+    }
+    function applyTheme(name) {
+      THEMES.forEach(function (t) { root.classList.remove("theme-" + t); });
+      root.classList.add("theme-" + name);
+    }
+
+    var currentTheme = (window.ATLAS_PREFS && window.ATLAS_PREFS.theme) || "midnight";
+    if (THEMES.indexOf(currentTheme) === -1) currentTheme = "midnight";
+    markSelected(currentTheme);
+
+    swatches.forEach(function (s) {
+      s.addEventListener("click", function () {
+        var name = s.getAttribute("data-theme");
+        if (THEMES.indexOf(name) === -1) return;
+        applyTheme(name);          // live, no reload
+        markSelected(name);
+        if (P && P.setValue) P.setValue("theme", name);   // persist like other prefs
+        chime();
+      });
+    });
+  }
+
   // ── ACCESSIBILITY: reduce motion ──
   var motion = document.getElementById("set-motion");
   var motionNote = document.getElementById("set-motion-note");
@@ -106,5 +201,14 @@
     close();
     var howto = document.getElementById("howto-btn");
     if (howto) setTimeout(function () { howto.click(); }, 320);
+  });
+
+  // ── GAME: replay the opening cinematic ──
+  var replayIntro = document.getElementById("set-replay-intro");
+  if (replayIntro) replayIntro.addEventListener("click", function () {
+    close();
+    setTimeout(function () {
+      if (window.AtlasCinematic) window.AtlasCinematic.play();
+    }, 320);
   });
 })();

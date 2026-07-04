@@ -12,6 +12,26 @@
     <div class="celebration-emblem">🏆</div>
     <h1 class="celebration-title">Location Complete!</h1>
     <p class="celebration-sub">{{ loc.name }} mastered — {{ score }} / {{ total }}</p>
+
+    {% if reflection_prompt %}
+    <!-- Post-Trial reflection (ungraded, skippable; saved as qualitative data).
+         Accent matches this level's INTERIOR scheme (AI Lab uses its #8ab4d4
+         CRT blue-grey, not the brighter #3fd0e0 hub pin). -->
+    {% set reflect_accent = '#8ab4d4' if loc.key == 'ai_lab' else loc.accent %}
+    <div class="reflect-card" id="reflect-card" data-key="{{ loc.key }}"
+         style="--reflect-accent: {{ reflect_accent }};" hidden>
+      <div class="reflect-kicker"><i class="bi bi-feather me-1"></i>Seal a thought in the Atlas</div>
+      <p class="reflect-prompt narrative">{{ reflection_prompt.text }}</p>
+      <input type="text" class="reflect-input" id="reflect-input" maxlength="280"
+             placeholder="One sentence, in your own words…" autocomplete="off" />
+      <div class="reflect-actions">
+        <button type="button" class="reflect-submit" id="reflect-submit">Seal it in the Atlas</button>
+        <button type="button" class="reflect-skip" id="reflect-skip">Skip</button>
+      </div>
+      <div class="reflect-done" id="reflect-done" hidden><i class="bi bi-check-circle-fill me-1"></i>Sealed. Well reflected, explorer.</div>
+    </div>
+    {% endif %}
+
     <a href="{{ url_for('game.hub') }}" class="btn-quest btn-quest-final">
       Return to the Map <i class="bi bi-arrow-right ms-1"></i>
     </a>
@@ -20,7 +40,7 @@
 </div>
 {% endif %}
 
-<div class="location-page">
+<div class="location-page results-page">
 
   <nav class="loc-topbar">
     <a href="{{ url_for('game.hub') }}" class="back-link">
@@ -114,5 +134,8 @@
 {% block scripts %}
 {% if passed %}
 <script src="{{ url_for('static', filename='js/celebration.js') }}"></script>
+{% if reflection_prompt %}
+<script src="{{ url_for('static', filename='js/reflection.js') }}"></script>
+{% endif %}
 {% endif %}
 {% endblock %}

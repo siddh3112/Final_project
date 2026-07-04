@@ -28,18 +28,29 @@ def shuffle_options(q):
         items[i], items[j] = items[j], items[i]
     return items
 
-# ── Login is disabled for now so we can jump straight into the game while
-# rebuilding the GUI. Set this back to False to restore real login/register. ──
-AUTH_DISABLED = True
+# ── Real login/register is ON. Flip to True to bypass auth with a shared
+# "guest" auto-login while rebuilding the GUI. ──
+AUTH_DISABLED = False
 
 
-def create_app():
+def create_app(config=None):
+    """Application factory.
+
+    `config` is an optional dict of Flask config overrides applied LAST — so
+    tests can run against a throwaway DB with Ollama off, e.g.
+    create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+                "OLLAMA_ENABLED": False}). With no argument the defaults below are
+    used unchanged (identical to the original behaviour).
+    """
     app = Flask(__name__, static_folder="static", template_folder="templates")
 
     app.jinja_env.filters["shuffle_options"] = shuffle_options
 
-    app.config["SECRET_KEY"] = "atlas-quest-dev-secret"
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///atlas_quest.db"
+    # Overridable via environment for any non-local deployment (default unchanged).
+    app.config["SECRET_KEY"] = os.environ.get("ATLAS_SECRET_KEY", "atlas-quest-dev-secret")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+        "ATLAS_DB_URI", "sqlite:///atlas_quest.db"
+    )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Professor Atlas LLM (Granite via Ollama). Flip OLLAMA_ENABLED to True once
@@ -49,6 +60,10 @@ def create_app():
     app.config["OLLAMA_BASE_URL"] = "http://localhost:11434"
     app.config["OLLAMA_MODEL"] = "granite3.3:8b"
     app.config["OLLAMA_TIMEOUT"] = 30
+
+    # Test / deployment overrides win over every default above.
+    if config:
+        app.config.update(config)
 
     # SQLite lives in the instance folder: instance/atlas_quest.db
     os.makedirs(app.instance_path, exist_ok=True)
@@ -81,6 +96,17 @@ def create_app():
     app.register_blueprint(npc_bp)
     app.register_blueprint(eval_bp)
 
+    # Lightweight CSRF mitigation: browsers label cross-site requests with
+    # Sec-Fetch-Site — reject state-changing requests that arrive cross-site.
+    # Same-origin fetches/forms and non-browser clients (no header) pass.
+    @app.before_request
+    def _reject_cross_site_writes():
+        if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+            sfs = request.headers.get("Sec-Fetch-Site")
+            if sfs and sfs not in ("same-origin", "same-site", "none"):
+                from flask import abort
+                abort(403)
+
     # While AUTH_DISABLED, transparently sign in a single shared "guest" user so
     # all the per-user logic (progress, sessions, quiz attempts) keeps working
     # without any login screen.
@@ -110,11 +136,13 @@ def create_app():
 
 def _ensure_sqlite_columns():
     """Lightweight guarded migrations for SQLite (create_all won't ALTER existing
-    tables). Adds any missing nullable columns without touching existing data."""
+    tables). Adds missing nullable columns and integrity indexes without
+    touching existing data. Never blocks boot."""
     from sqlalchemy import text
 
     wanted = {
         "knowledge_tests": [("time_spent_seconds", "INTEGER")],
+        "users": [("seen_intro", "INTEGER")],
     }
     conn = db.session.connection()
     for table, cols in wanted.items():
@@ -123,3 +151,31 @@ def _ensure_sqlite_columns():
             if name not in existing:
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {coltype}"))
     db.session.commit()
+
+    # Uniqueness for research-data integrity. SQLite can't ALTER ADD CONSTRAINT,
+    # but a unique INDEX enforces the same guarantee on existing tables. Any
+    # pre-existing duplicates are merged first (keep the strongest/earliest row).
+    hardening = [
+        # location_progress: keep passed > best_score > earliest per (user, location)
+        """DELETE FROM location_progress WHERE id NOT IN (
+             SELECT id FROM (
+               SELECT id, ROW_NUMBER() OVER (
+                 PARTITION BY user_id, location
+                 ORDER BY passed DESC, best_score DESC, id ASC) AS rn
+               FROM location_progress)
+             WHERE rn = 1)""",
+        # achievements: keep the earliest earned per (user, key)
+        """DELETE FROM achievements WHERE id NOT IN (
+             SELECT MIN(id) FROM achievements GROUP BY user_id, achievement_key)""",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_user_location"
+        " ON location_progress(user_id, location)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ux_achievement_user_key"
+        " ON achievements(user_id, achievement_key)",
+    ]
+    for sql in hardening:
+        try:
+            conn = db.session.connection()
+            conn.execute(text(sql))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()  # hardening must never block boot

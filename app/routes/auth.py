@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from ..models import User, db
@@ -10,6 +10,15 @@ VALID_CONDITIONS = {"game", "control"}
 
 def _clean_condition(value):
     return value if value in VALID_CONDITIONS else "game"
+
+
+def _reset_presentation_session():
+    """Drop per-browser session state so a freshly authenticated user starts
+    clean: their own one-time map reveals (fog recede / path draw / pin ignite)
+    and their own reading progress, not the previous user's. Never touches
+    progress tables or research data."""
+    session.pop("seen", None)
+    session.pop("read_books", None)
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -43,6 +52,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         login_user(user)
+        _reset_presentation_session()
         return redirect(url_for("game.hub"))
 
     return render_template("auth/register.html", condition=condition)
@@ -61,6 +71,7 @@ def login():
         ).first()
         if user and user.check_password(password):
             login_user(user)
+            _reset_presentation_session()
             return redirect(url_for("game.hub"))
         flash("Invalid username or password.", "danger")
 

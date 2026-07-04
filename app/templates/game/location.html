@@ -212,10 +212,14 @@
 
       <!-- Book data for the reader -->
       <script type="application/json" id="library-books">{{ books | tojson }}</script>
+      <!-- Volumes this user has already studied (per-user session) -->
+      <script type="application/json" id="library-read">{{ read_books | default([]) | tojson }}</script>
+      <!-- Guess-first hook per book (never logged/graded) -->
+      <script type="application/json" id="library-hooks">{{ hooks | default([]) | tojson }}</script>
     </section>
 
     <!-- ══════════ Multi-page interactive book reader ══════════ -->
-    <div class="book-reader" id="book-reader" hidden>
+    <div class="book-reader" id="book-reader" hidden data-loc="{{ loc.key }}">
       <div class="book-reader-backdrop" data-close></div>
       <div class="book-tome" id="book-tome" role="dialog" aria-modal="true">
         <button class="book-reader-close" data-close aria-label="Close">&times;</button>
@@ -304,6 +308,7 @@
 
 {% block scripts %}
 {% if loc.interaction | default('paged') == 'bookshelf' %}
+<script src="{{ url_for('static', filename='js/hooks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/library-ambience.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bookshelf.js') }}"></script>
 {% else %}

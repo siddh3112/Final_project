@@ -52,5 +52,14 @@
       document.dispatchEvent(new CustomEvent("atlas:prefchange", { detail: { key: key, value: value } }));
       return value;
     },
+    // Like set(), but keeps the raw value (for string prefs such as voice_name).
+    setValue: function (key, value) {
+      prefs[key] = value;
+      var update = {};
+      update[key] = value;
+      save(update);
+      document.dispatchEvent(new CustomEvent("atlas:prefchange", { detail: { key: key, value: value } }));
+      return value;
+    },
   };
 })();

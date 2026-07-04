@@ -1,0 +1,3 @@
+# Dev/test-only dependencies (not needed to run the app).
+pytest>=7.0
+# playwright>=1.40   # optional: enable for the E2E smoke tests

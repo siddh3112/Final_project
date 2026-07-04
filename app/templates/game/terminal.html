@@ -10,7 +10,12 @@
 
 <div class="crt-dim" id="crt-dim" aria-hidden="true"></div>
 
-<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}">
+<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}" data-passed="{{ '1' if lab_passed else '0' }}">
+
+<!-- Guess-first hook per sector (never logged/graded) -->
+<script type="application/json" id="term-hooks">{{ hooks | default([]) | tojson }}</script>
+<!-- Cleared-sector exploration progress (per user); restored silently on load -->
+<script type="application/json" id="term-explored">{{ explored | default([]) | tojson }}</script>
 
   <nav class="loc-topbar">
     <a href="{{ url_for('game.hub') }}" class="back-link term-link"><i class="bi bi-chevron-left"></i> RETURN_TO_MAP</a>
@@ -42,6 +47,18 @@
       <!-- CRT transition layers -->
       <div class="crt-roll" id="crt-roll" aria-hidden="true"></div>
       <div class="crt-colorflash" id="crt-colorflash" aria-hidden="true"></div>
+
+      <!-- ── Mastered state (Trial already passed): a completed view centred in
+           the whole screen. Direct child of .crt-screen so it fills the CRT. ── -->
+      <section class="term-mastered" id="term-mastered" hidden>
+        <div class="tm-glyph">✓</div>
+        <div class="tm-head">&gt; SECTOR AI_LAB — ALL SYSTEMS VERIFIED</div>
+        <p class="tm-sub">Diagnostic complete. Every data sector is cleared — you have mastered the AI Lab.</p>
+        <div class="tm-actions">
+          <a href="{{ url_for('game.hub') }}" class="term-mastered-btn tm-primary"><i class="bi bi-chevron-left me-1"></i> RETURN_TO_MAP</a>
+          <button type="button" class="term-mastered-btn" id="term-rerun">RE-RUN DIAGNOSTIC <i class="bi bi-arrow-repeat ms-1"></i></button>
+        </div>
+      </section>
 
       <!-- Screen content (revealed after power-on) -->
       <div class="screen-content" id="screen-content" hidden>
@@ -234,6 +251,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/hooks.js') }}"></script>
 <script src="{{ url_for('static', filename='js/terminal.js') }}"></script>
 {% if current_user.condition == 'game' %}
 <script src="{{ url_for('static', filename='js/npc.js') }}"></script>

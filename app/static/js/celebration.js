@@ -19,10 +19,12 @@
     }
   }
 
-  // ── Short triumphant fanfare via Web Audio (best-effort; no asset) ──
+  // ── Short triumphant fanfare via Web Audio (best-effort; no asset).
+  //    Respects the master sound preference (same guard as achievements.js). ──
   try {
+    const soundOff = window.ATLAS_PREFS && window.ATLAS_PREFS.sound === false;
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (Ctx) {
+    if (Ctx && !soundOff) {
       const ac = new Ctx();
       const start = function () {
         const now = ac.currentTime;
