@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block body_class %}timeline-body theme-chronicle{% endblock %}
+
+{% block body %}
+{% set show_npc = current_user.condition == 'game' %}
+
+<div class="chronicle" id="chronicle" data-location="{{ loc.key }}" style="--accent: {{ loc.accent }};">
+
+  <!-- Data for timeline.js: the 6 era-beats, guess-first hooks, restored progress -->
+  <script type="application/json" id="timeline-beats">{{ loc.beats | tojson }}</script>
+  <script type="application/json" id="timeline-hooks">{{ hooks | default([]) | tojson }}</script>
+  <script type="application/json" id="timeline-explored">{{ explored | default([]) | tojson }}</script>
+
+  <!-- ── Aged-archive backdrop: warm sepia → deep bronze, drifting dust motes,
+       a faint old clock-face watermark, vignette. NOT a star sky. The cool layer
+       fades in era-to-era (via --era-progress) so travelling forward in time
+       feels cooler/brighter toward "The Thaw". ── -->
+  <div class="tl-backdrop" aria-hidden="true">
+    <div class="tl-backdrop-cool"></div>
+    <div class="tl-watermark">
+      <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
+        <circle cx="100" cy="100" r="92" class="tlw-ring" />
+        <circle cx="100" cy="100" r="80" class="tlw-ring tlw-ring-2" />
+        {% for i in range(12) %}
+        <line class="tlw-tick" x1="100" y1="14" x2="100" y2="26" transform="rotate({{ i * 30 }} 100 100)" />
+        {% endfor %}
+        <line class="tlw-hand" x1="100" y1="100" x2="100" y2="42" />
+        <line class="tlw-hand tlw-hand-min" x1="100" y1="100" x2="146" y2="100" />
+        <circle cx="100" cy="100" r="4" class="tlw-hub" />
+      </svg>
+    </div>
+    <canvas class="tl-sky" id="tl-sky"></canvas>
+    <div class="tl-vignette"></div>
+  </div>
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <button class="tl-mute" id="tl-mute" type="button" aria-label="Sound on" title="Sound on / off">🔊</button>
+
+  <header class="tl-header">
+    <h1 class="tl-title">{{ loc.name }}</h1>
+    <p class="tl-tagline">{{ loc.tagline }}</p>
+    <div class="tl-counter">ERA <span id="tl-count">0</span> / {{ loc.beats|length }} LIT</div>
+    <div class="tl-progress"><div class="tl-progress-fill" id="tl-progress-fill"></div></div>
+  </header>
+
+  <!-- ── The timeline: a horizontal era-line with one node per beat ── -->
+  <div class="tl-stage" id="tl-stage">
+    <div class="tl-rail" aria-hidden="true">
+      <div class="tl-rail-fill" id="tl-rail-fill"></div>
+      <div class="tl-traveller" id="tl-traveller" aria-hidden="true"><span>⏳</span></div>
+    </div>
+    <div class="tl-nodes" id="tl-nodes">
+      {% for beat in loc.beats %}
+      {% set pct = (loop.index0 / (loc.beats|length - 1) * 100) if loc.beats|length > 1 else 0 %}
+      <button class="tl-node" type="button" data-index="{{ loop.index0 }}"
+              style="left: {{ pct|round(3) }}%;" aria-label="{{ beat.title }}">
+        <span class="tl-node-dot"><i class="bi bi-lock-fill tl-node-lock"></i><i class="bi bi-check-lg tl-node-tick"></i></span>
+        <span class="tl-node-label">
+          <span class="tl-node-era">{{ beat.era }}</span>
+          <span class="tl-node-name">{{ beat.title }}</span>
+        </span>
+      </button>
+      {% endfor %}
+    </div>
+    <p class="tl-hint" id="tl-hint">Travel the timeline — click the glowing era to study it. Each you complete lights the next.</p>
+  </div>
+
+  <!-- ── Learn panel (opens for the active era) ── -->
+  <div class="tl-panel" id="tl-panel" hidden>
+    <div class="tl-panel-backdrop" data-panel-close></div>
+    <div class="tl-panel-inner" id="tl-panel-inner">
+      <span class="tl-page-punch" aria-hidden="true"></span>
+      <header class="tl-panel-head">
+        <span class="tl-page-seal" aria-hidden="true">✶</span>
+        <div class="tl-panel-heading">
+          <div class="tl-panel-era" id="tl-era"></div>
+          <h2 class="tl-panel-title" id="tl-panel-title"></h2>
+        </div>
+        <span class="tl-stamp" id="tl-stamp">RECORDED ✓</span>
+      </header>
+      <div class="tl-flourish" aria-hidden="true"><span></span><span class="tl-flourish-mark">❧</span><span></span></div>
+
+      <div class="tl-panel-body">
+        <!-- Page 1 — the era's story -->
+        <div class="tl-page tl-page-read" id="tl-page-read">
+          <div class="tl-read-row"><span class="tl-read-label">Read aloud</span><span id="tl-read-slot"></span></div>
+          <p class="tl-panel-text" id="tl-text"></p>
+          <button type="button" class="tl-next-btn" id="tl-to-check">Quick Check <span aria-hidden="true">→</span></button>
+        </div>
+        <!-- Page 2 — the quick-check (ungraded gate) -->
+        <div class="tl-page tl-page-check" id="tl-page-check" hidden>
+          <div class="tl-check-label">QUICK CHECK</div>
+          <p class="tl-check-q" id="tl-check-q"></p>
+          <div class="tl-check-opts" id="tl-check-opts"></div>
+          <div class="tl-check-fb" id="tl-check-fb" hidden></div>
+        </div>
+      </div>
+
+      <button class="tl-panel-close" id="tl-panel-close" data-panel-close hidden>RETURN TO TIMELINE</button>
+    </div>
+  </div>
+
+  <!-- ── The Trial (locked until all eras are lit) ── -->
+  <section class="tl-trial">
+    <div class="tl-trial-gate" id="tl-trial-gate">
+      <i class="bi bi-lock-fill"></i>
+      <span>Light all {{ loc.beats|length }} eras of the timeline to unlock <strong>The Trial</strong></span>
+    </div>
+    <div class="tl-trial-ready" id="tl-trial-ready" hidden>
+      <div class="tl-trial-ready-icon"><i class="bi bi-unlock-fill"></i></div>
+      <h3 class="tl-trial-ready-title">The Chronicle is Complete</h3>
+      <a href="{{ url_for('game.trial', key=loc.key) }}" class="btn-quest btn-quest-final">
+        Enter the Trial <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </section>
+
+  {% if show_npc %}
+  <!-- ── Professor Atlas — floating tutor (bottom-right) ── -->
+  <div class="atlas-widget" id="atlas-widget" data-location="{{ loc.key }}">
+    <div class="atlas-chat" id="atlas-chat" hidden>
+      <div class="atlas-chat-head">
+        <span class="atlas-chat-title"><span class="atlas-glyph" aria-hidden="true"></span> Professor Atlas</span>
+        <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="atlas-chat-log" id="atlas-log">
+        <div class="atlas-msg atlas-msg-bot">
+          Ask me about anything in {{ loc.name }}, explorer — though I shall never hand you a Trial answer outright.
+        </div>
+      </div>
+      <form class="atlas-chat-form" id="atlas-form">
+        <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="Ask Professor Atlas…" autocomplete="off" />
+        <button type="submit" class="atlas-chat-send" id="atlas-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
+      </form>
+    </div>
+    <button class="atlas-launcher" id="atlas-launcher" aria-label="Ask Professor Atlas" title="Ask Professor Atlas">
+      <span class="atlas-launcher-icon"><span class="atlas-glyph" aria-hidden="true"></span></span>
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chronicle-sky.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hooks.js') }}"></script>
+<script src="{{ url_for('static', filename='js/timeline.js') }}"></script>
+{% if current_user.condition == 'game' %}
+<script src="{{ url_for('static', filename='js/npc.js') }}"></script>
+{% endif %}
+{% endblock %}

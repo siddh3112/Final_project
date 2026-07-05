@@ -19,9 +19,11 @@ from app.game_content import (
     get_questions_by_keys,
 )
 from app.eval_content import POST_TEST, POST_TEST_PASS
+from app.game_content import LOCATION_ORDER
 
-# The three learning locations, in unlock order (matches app.game_content.LOCATION_ORDER).
-ALL_LOCATIONS = ("library", "ai_lab", "observatory")
+# The learning locations, in unlock order. Imported from the app so the post-test
+# gate ("all locations passed") stays in sync as locations are added/removed.
+ALL_LOCATIONS = tuple(LOCATION_ORDER)
 
 SUBMIT = "/eval/post-test/submit"
 POST_TEST_GET = "/eval/post-test"

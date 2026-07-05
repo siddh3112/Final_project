@@ -11,6 +11,7 @@
 #}
 {% set markers = {
   'library':     {'x': 19, 'y': 25},
+  'chronicle':   {'x': 30, 'y': 38},
   'ai_lab':      {'x': 43, 'y': 47},
   'observatory': {'x': 82, 'y': 24}
 } %}
@@ -71,29 +72,44 @@
 
     <!-- Travel routes (drawn in 0-100 space, stretched to fit the stage) -->
     {% set lib = markers['library'] %}
+    {% set chr = markers['chronicle'] %}
     {% set lab = markers['ai_lab'] %}
     {% set obs = markers['observatory'] %}
+    {# A journey segment counts as 'walked' (shown in gold) once its SOURCE pin
+       is passed OR any LATER pin is passed — you must have traversed it to reach
+       a later completed stop. This keeps the gold trail continuous even for
+       out-of-order / legacy saves (e.g. a location inserted mid-journey). #}
+    {% set seg_lib = pmap['library'].passed or pmap['chronicle'].passed or pmap['ai_lab'].passed or pmap['observatory'].passed %}
+    {% set seg_chr = pmap['chronicle'].passed or pmap['ai_lab'].passed or pmap['observatory'].passed %}
+    {% set seg_lab = pmap['ai_lab'].passed or pmap['observatory'].passed %}
+    {% set seg_obs = pmap['observatory'].passed or post_test_done %}
     <svg class="map-routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <line x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}"
-            class="route {{ 'lit' if pmap['ai_lab'].unlocked }}{{ ' dim' if pmap['library'].passed }}" vector-effect="non-scaling-stroke" />
+      <line x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ chr.x }}" y2="{{ chr.y }}"
+            class="route {{ 'lit' if pmap['chronicle'].unlocked }}{{ ' dim' if seg_lib }}" vector-effect="non-scaling-stroke" />
+      <line x1="{{ chr.x }}" y1="{{ chr.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}"
+            class="route {{ 'lit' if pmap['ai_lab'].unlocked }}{{ ' dim' if seg_chr }}" vector-effect="non-scaling-stroke" />
       <line x1="{{ lab.x }}" y1="{{ lab.y }}" x2="{{ obs.x }}" y2="{{ obs.y }}"
-            class="route {{ 'lit' if pmap['observatory'].unlocked }}{{ ' dim' if pmap['ai_lab'].passed }}" vector-effect="non-scaling-stroke" />
+            class="route {{ 'lit' if pmap['observatory'].unlocked }}{{ ' dim' if seg_lab }}" vector-effect="non-scaling-stroke" />
       <line x1="{{ obs.x }}" y1="{{ obs.y }}" x2="{{ final_xy.x }}" y2="{{ final_xy.y }}"
-            class="route {{ 'lit' if (show_post_test or post_test_done) }}{{ ' dim' if pmap['observatory'].passed }}" vector-effect="non-scaling-stroke" />
+            class="route {{ 'lit' if (show_post_test or post_test_done) }}{{ ' dim' if seg_obs }}" vector-effect="non-scaling-stroke" />
     </svg>
 
     <!-- Golden progress paths: a segment lights from each PASSED pin to the next.
          Draw-in animates once (seen-flag), then stays static. Presentation only. -->
     <svg class="map-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      {% if pmap['library'].passed %}
+      {% if seg_lib %}
       <line class="path-gold" data-path="library"
-            x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}" vector-effect="non-scaling-stroke" />
+            x1="{{ lib.x }}" y1="{{ lib.y }}" x2="{{ chr.x }}" y2="{{ chr.y }}" vector-effect="non-scaling-stroke" />
       {% endif %}
-      {% if pmap['ai_lab'].passed %}
+      {% if seg_chr %}
+      <line class="path-gold" data-path="chronicle"
+            x1="{{ chr.x }}" y1="{{ chr.y }}" x2="{{ lab.x }}" y2="{{ lab.y }}" vector-effect="non-scaling-stroke" />
+      {% endif %}
+      {% if seg_lab %}
       <line class="path-gold" data-path="ai_lab"
             x1="{{ lab.x }}" y1="{{ lab.y }}" x2="{{ obs.x }}" y2="{{ obs.y }}" vector-effect="non-scaling-stroke" />
       {% endif %}
-      {% if pmap['observatory'].passed %}
+      {% if seg_obs %}
       <line class="path-gold" data-path="observatory"
             x1="{{ obs.x }}" y1="{{ obs.y }}" x2="{{ final_xy.x }}" y2="{{ final_xy.y }}" vector-effect="non-scaling-stroke" />
       {% endif %}

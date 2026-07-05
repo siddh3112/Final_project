@@ -23,9 +23,12 @@ from sqlalchemy.pool import StaticPool
 from app import create_app
 from app.models import BookRead, KnowledgeTest, LocationProgress, User, db
 from app.eval_content import POST_TEST
+from app.game_content import LOCATION_ORDER
 
-# ── The three learning locations, in unlock order ──
-ALL_LOCATIONS = ("library", "ai_lab", "observatory")
+# ── The learning locations, in unlock order ──
+# Sourced from the app so the post-test gate ("all locations passed") stays in
+# sync as locations are added/removed (e.g. the Chronicle).
+ALL_LOCATIONS = tuple(LOCATION_ORDER)
 
 
 @pytest.fixture

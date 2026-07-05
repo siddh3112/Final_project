@@ -1,0 +1,61 @@
+{# ══════════════════════════════════════════════════════════════════
+   Shared Trial CORE — the ONE graded question flow, reused by every
+   location skin (Library / Chronicle / Observatory). This markup is the
+   contract quiz.js binds to; the surrounding realm decoration lives in
+   trial.html. Do NOT change the structure/ids/data-attrs here without
+   updating quiz.js — grading is server-side in submit_quiz and is not
+   touched by any skin.
+
+   Skins pass in (via the including template's context):
+     intro_line   — the realm's framing sentence (must keep "3 of 4")
+     intro_hint   — the "ask Atlas" nudge (game condition only)
+     atlas_label  — the per-realm hint-button label
+   ══════════════════════════════════════════════════════════════════ #}
+<p class="quiz-intro text-center">{{ intro_line|safe }}{% if show_npc %} {{ intro_hint }}{% endif %}</p>
+
+<form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
+      class="quiz-form" id="quiz-form" data-location="{{ loc.key }}">
+  <input type="hidden" name="consulted" id="consulted" value="" />
+  <input type="hidden" name="shown_keys" value="{{ shown_keys|join(',') }}" />
+
+  <div class="quiz-progress">
+    <span class="quiz-counter">Question <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
+    <div class="quiz-bar"><div class="quiz-bar-fill" id="q-fill"></div></div>
+  </div>
+
+  <div class="quiz-questions" id="quiz-questions">
+    {% for q in quiz %}
+    <div class="quiz-question {{ 'active' if loop.first }}" data-qindex="{{ loop.index0 }}"
+         data-correct="{{ q.correct }}" data-qkey="{{ q.key }}" data-question="{{ q.question }}"
+         data-hint="{{ q.hint | default('') }}"
+         data-fbok="{{ q.feedback_correct | default('') }}"
+         data-fbno="{{ q.feedback_wrong | default('') }}">
+      <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
+      <div class="q-options">
+        {% for letter, text in q|shuffle_options %}
+        <label class="q-option">
+          <input type="radio" name="{{ q.key }}" value="{{ letter }}" />
+          <span class="q-option-letter">{{ letter }}</span>
+          <span class="q-option-text">{{ text }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      {% if show_npc %}
+      <div class="hint-row">
+        <button type="button" class="hint-btn"><span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> {{ atlas_label }}</button>
+      </div>
+      <div class="hint-box" hidden>
+        <span class="hint-avatar"><span class="atlas-glyph" aria-hidden="true"></span></span>
+        <p class="hint-text"></p>
+      </div>
+      {% endif %}
+
+      <div class="q-feedback" hidden>
+        <p class="q-feedback-text"></p>
+        <button type="button" class="q-next-btn">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</form>

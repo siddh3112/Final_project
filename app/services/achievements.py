@@ -16,6 +16,9 @@ ACHIEVEMENTS = [
     {"key": "first_steps", "name": "First Steps", "icon": "👟",
      "desc": "You completed your first location. The journey begins.",
      "how": "Complete the Library"},
+    {"key": "chronicler", "name": "Chronicler", "icon": "⏳",
+     "desc": "You walked the timeline of thinking machines — from tabulation to the thaw.",
+     "how": "Complete the Chronicle"},
     {"key": "field_researcher", "name": "Field Researcher", "icon": "🛰️",
      "desc": "You mastered the AI Lab. The eras of computing are yours.",
      "how": "Complete the AI Lab"},
@@ -28,7 +31,7 @@ ACHIEVEMENTS = [
 ]
 ACH_BY_KEY = {a["key"]: a for a in ACHIEVEMENTS}
 
-_LOCATION_BADGE = {"library": "first_steps", "ai_lab": "field_researcher", "observatory": "stargazer"}
+_LOCATION_BADGE = {"library": "first_steps", "chronicle": "chronicler", "ai_lab": "field_researcher", "observatory": "stargazer"}
 
 
 def _qualifying(user):

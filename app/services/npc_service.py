@@ -68,6 +68,47 @@ KEYWORDS = {
             "labelled examples."
         ),
     },
+    "chronicle": {
+        "tabulation": (
+            "The Era of Tabulation was about sorting raw data into structured tables so "
+            "patterns could surface — the leap beyond mere counting. How is organising "
+            "data different from a machine that learns from it?"
+        ),
+        "eras": (
+            "There are three eras of computing: Tabulation (sorting data), Programming "
+            "(instructions, like ENIAC and Apollo), and AI (machines that learn). Can you "
+            "place them in order and say what each one added?"
+        ),
+        "eniac": (
+            "ENIAC was a 1940s programmable computer that computed artillery tables. Yet "
+            "even fast programmable machines drowned in data. Why couldn't programs alone "
+            "keep up?"
+        ),
+        "dartmouth": (
+            "In 1956 at Dartmouth College, McCarthy and Minsky coined the term artificial "
+            "intelligence, claiming intelligence could be described precisely enough to "
+            "simulate. Why was naming the field such a turning point?"
+        ),
+        "winter": (
+            "An AI Winter is a period when funding and interest collapsed. The first came "
+            "from two limits — too little calculating power and too little storage. What "
+            "do you think it takes to end a winter?"
+        ),
+        "expert systems": (
+            "Expert systems were 1980s rule-based programs on million-dollar mainframes. "
+            "They boomed, then cheaper personal computers overtook them and the market "
+            "collapsed. What does that tell you about betting everything on costly hardware?"
+        ),
+        "deep blue": (
+            "Deep Blue was IBM's chess machine that beat the world champion in 1997, "
+            "searching some 200 million positions a second. What did that prove about how "
+            "far processing power had come?"
+        ),
+        "watson": (
+            "Watson was IBM's system that won Jeopardy! in 2011. How might answering open "
+            "trivia differ from the closed rules of chess?"
+        ),
+    },
     "ai_lab": {
         "computer vision": (
             "Computer vision lets machines interpret images and video — detecting "
@@ -221,6 +262,25 @@ Vision recognition — AI helps doctors identify serious diseases based on unusu
 
 How is AI Evolving:
 Three levels of AI exist. Narrow AI performs one specific task. Broad AI handles multiple domains — most enterprises use Broad AI today. General AI would have human-level general intelligence but will not come online until sometime in the future. Both Narrow AI and Broad AI are available right now.
+""",
+    "chronicle": """
+The Era of Tabulation:
+For centuries people struggled to read meaning in large amounts of data. The first breakthrough was sorting, not thinking: tabulating machines organised raw data into structured tables so patterns could surface. This was the leap beyond mere counting — from a heap of figures to a sum that revealed insight.
+
+The Era of Programming:
+In the 1940s came machines that could follow many instructions, called programs. ENIAC, built at the University of Pennsylvania, computed wartime artillery firing tables and ran an early thermonuclear feasibility study. Programmable computers later guided astronauts to the Moon and were reprogrammed during Apollo 13 to bring the crew home safely. But the world began generating more data than any program could process — the dark-data problem — outgrowing even the fastest supercomputer.
+
+The Dawn of AI — Dartmouth 1956:
+In the summer of 1956, John McCarthy and Marvin Minsky gathered researchers at Dartmouth College and coined the term artificial intelligence. They claimed every feature of intelligence could be described precisely enough for a machine to simulate it. Early programs proved geometry theorems, conversed in simple English, and solved algebra word problems.
+
+The First Winter:
+In the early 1970s, two limits froze progress: limited calculating power (machines were too slow) and limited information storage (they could not hold enough to reason about the real world). Promises went unmet, and funding collapsed. This was the first AI Winter.
+
+Expert Systems and the Second Winter:
+In the 1980s, expert systems — rule-based programs capturing a specialist's knowledge — boomed on mainframes costing up to a million dollars. But by the late 1980s cheaper personal computers from Apple and IBM overtook them, the market collapsed, and more than 300 AI companies went bankrupt. This was the second AI Winter.
+
+The Thaw:
+By the mid-1990s, processing power finally caught up with ambition. In 1997 IBM's Deep Blue, searching about 200 million chess positions per second, defeated the reigning world chess champion. In 2005 a Stanford robot drove 131 miles of desert road on its own. In 2011 IBM's Watson beat the champions of Jeopardy!. The two Winters had ended.
 """,
     "ai_lab": """
 The Era of Tabulation:

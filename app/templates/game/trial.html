@@ -1,13 +1,59 @@
 {% extends "base.html" %}
 
 {% block title %}The Trial — {{ loc.name }}{% endblock %}
-{% block body_class %}loc-body theme-{{ loc.theme }}{% if loc.interaction == 'terminal' %} trial-terminal{% endif %}{% endblock %}
+{% block body_class %}loc-body theme-{{ loc.theme }} trial-skin-body trial-skin-body-{{ loc.key }}{% endblock %}
 
 {% block body %}
 {% set show_npc = current_user.condition == 'game' %}
-{% set is_terminal = loc.interaction == 'terminal' %}
 
-<div class="location-page trial-page" style="--accent: {{ '#00ff41' if is_terminal else loc.accent }};">
+{#  Per-realm framing text. The graded flow underneath is identical for every
+    skin (see _trial_core.html + quiz.js); only this presentation differs.  #}
+{% set skin = {
+  'library':     {'icon': '📖', 'kicker': 'The Examination',      'title': 'The Examination',      'tagline': 'Prove what the tomes have taught you',
+                  'atlas_label': 'Consult Professor Atlas',
+                  'intro_line': 'Inscribe your answers, scholar — answer at least <strong>3 of 4</strong> correctly to pass the Examination.',
+                  'intro_hint': 'Unsure of a passage? Consult Professor Atlas.'},
+  'chronicle':   {'icon': '⏳', 'kicker': 'The Reckoning of Ages', 'title': 'The Reckoning of Ages', 'tagline': 'Consult the records and seal each entry',
+                  'atlas_label': 'Consult the Records-keeper',
+                  'intro_line': 'Consult the records, keeper — seal at least <strong>3 of 4</strong> entries correctly to pass the Reckoning.',
+                  'intro_hint': 'Uncertain of an age? Consult the Records-keeper Atlas.'},
+  'observatory': {'icon': '🔭', 'kicker': 'Reading the Sky',       'title': 'Reading the Sky',       'tagline': 'Chart the constellation of what you have learned',
+                  'atlas_label': 'Ask the Star-reader',
+                  'intro_line': 'Read the sky, navigator — chart at least <strong>3 of 4</strong> correctly to pass.',
+                  'intro_hint': 'Lost among the stars? Ask the Star-reader Atlas.'},
+} %}
+{% set s = skin.get(loc.key, {'icon': '⚔️', 'kicker': 'The Trial', 'title': 'The Trial', 'tagline': loc.name ~ ' — ' ~ loc.topic,
+                              'atlas_label': 'Ask Professor Atlas for a hint',
+                              'intro_line': 'Choose wisely, explorer — score at least <strong>3 of 4</strong> to pass.',
+                              'intro_hint': 'Stuck? Ask Professor Atlas for a hint.'}) %}
+{% set atlas_label = s.atlas_label %}
+{% set intro_line  = s.intro_line %}
+{% set intro_hint  = s.intro_hint %}
+
+<div class="location-page trial-page trial-{{ loc.key }} trial-skin trial-skin-{{ loc.key }}"
+     data-skin="{{ loc.key }}" style="--accent: {{ loc.accent }};">
+
+  <!-- ── Realm backdrop (per skin; presentation only) ── -->
+  <div class="trial-backdrop" aria-hidden="true">
+    {% if loc.key == 'library' %}
+      <div class="tskin-lib-dust"></div>
+    {% elif loc.key == 'chronicle' %}
+      <div class="trial-watermark">
+        <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
+          <circle cx="100" cy="100" r="92" class="tlw-ring" />
+          <circle cx="100" cy="100" r="80" class="tlw-ring tlw-ring-2" />
+          {% for i in range(12) %}
+          <line class="tlw-tick" x1="100" y1="14" x2="100" y2="26" transform="rotate({{ i * 30 }} 100 100)" />
+          {% endfor %}
+          <line class="tlw-hand" x1="100" y1="100" x2="100" y2="42" />
+          <line class="tlw-hand tlw-hand-min" x1="100" y1="100" x2="146" y2="100" />
+          <circle cx="100" cy="100" r="4" class="tlw-hub" />
+        </svg>
+      </div>
+    {% elif loc.key == 'observatory' %}
+      <div class="tskin-obs-sky"></div>
+    {% endif %}
+  </div>
 
   <nav class="loc-topbar">
     <a href="{{ url_for('game.location', key=loc.key) }}" class="back-link">
@@ -15,73 +61,69 @@
     </a>
   </nav>
 
-  <div class="container loc-container pb-5">
+  <div class="container loc-container trial-shell">
 
-    <header class="text-center loc-hero loc-hero-compact">
-      <div class="loc-hero-icon">⚔️</div>
-      <h1 class="loc-name">The Trial</h1>
-      <p class="loc-tagline">{{ loc.name }} — {{ loc.topic }}</p>
+    <header class="text-center trial-skin-hero">
+      <div class="trial-skin-kicker">{{ s.kicker }}</div>
+      <h1 class="trial-skin-title"><span class="trial-skin-icon" aria-hidden="true">{{ s.icon }}</span> {{ s.title }}</h1>
+      <p class="trial-skin-tagline">{{ s.tagline }}</p>
+
+      <!-- ── Per-realm progress MOTIF (driven by trial-skin.js; charts as you
+           answer). The plain "Question x/4" counter stays inside the core. ── -->
+      {% if loc.key == 'library' %}
+      <div class="tskin-motif tskin-motif-lib" id="tskin-motif" aria-hidden="true">
+        {% set roman = ['I', 'II', 'III', 'IV', 'V', 'VI'] %}
+        {% for i in range(quiz|length) %}
+        <span class="tskin-folio" data-i="{{ i }}"><span class="tskin-folio-num">{{ roman[i] }}</span></span>
+        {% endfor %}
+      </div>
+      {% elif loc.key == 'chronicle' %}
+      <div class="tskin-motif tskin-motif-chr" id="tskin-motif" aria-hidden="true" data-total="{{ quiz|length }}">
+        <svg class="tskin-clock" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" class="tskin-clock-ring" />
+          {% for i in range(12) %}
+          <line class="tskin-clock-tick" x1="60" y1="10" x2="60" y2="18" transform="rotate({{ i * 30 }} 60 60)" />
+          {% endfor %}
+          <path class="tskin-clock-arc" id="tskin-clock-arc" d="M60 60 L60 12 A48 48 0 0 1 60 12 Z" />
+          <line class="tskin-clock-hand" id="tskin-clock-hand" x1="60" y1="60" x2="60" y2="20" />
+          <circle cx="60" cy="60" r="4.5" class="tskin-clock-hub" />
+        </svg>
+      </div>
+      {% elif loc.key == 'observatory' %}
+      <div class="tskin-motif tskin-motif-obs" id="tskin-motif" aria-hidden="true">
+        <svg class="tskin-constel" viewBox="0 0 320 60" preserveAspectRatio="xMidYMid meet">
+          {% set n = quiz|length %}
+          {% for i in range(n) %}
+          {% set cx = 30 + i * (260 / (n - 1 if n > 1 else 1)) %}
+          {% set cy = 30 + (14 if i % 2 else -8) %}
+          {% if not loop.first %}
+          {% set px = 30 + (i - 1) * (260 / (n - 1 if n > 1 else 1)) %}
+          {% set py = 30 + (14 if (i - 1) % 2 else -8) %}
+          <line class="tskin-link" data-i="{{ i }}" x1="{{ px }}" y1="{{ py }}" x2="{{ cx }}" y2="{{ cy }}" />
+          {% endif %}
+          {% endfor %}
+          {% for i in range(n) %}
+          {% set cx = 30 + i * (260 / (n - 1 if n > 1 else 1)) %}
+          {% set cy = 30 + (14 if i % 2 else -8) %}
+          <circle class="tskin-star" data-i="{{ i }}" cx="{{ cx }}" cy="{{ cy }}" r="4.5" />
+          {% endfor %}
+        </svg>
+      </div>
+      {% endif %}
     </header>
 
     <section class="trial-stage">
-      <div class="trial-content">
-        <p class="quiz-intro text-center">
-          Choose wisely, explorer. Score at least <strong>3 of 4</strong> to pass.{% if show_npc %} Stuck? Ask Professor Atlas for a hint.{% endif %}
-        </p>
-
-        <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
-              class="quiz-form" id="quiz-form" data-location="{{ loc.key }}">
-          <input type="hidden" name="consulted" id="consulted" value="" />
-          <input type="hidden" name="shown_keys" value="{{ shown_keys|join(',') }}" />
-
-          <div class="quiz-progress">
-            <span class="quiz-counter">Question <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
-            <div class="quiz-bar"><div class="quiz-bar-fill" id="q-fill"></div></div>
-          </div>
-
-          <div class="quiz-questions" id="quiz-questions">
-            {% for q in quiz %}
-            <div class="quiz-question {{ 'active' if loop.first }}" data-qindex="{{ loop.index0 }}"
-                 data-correct="{{ q.correct }}" data-qkey="{{ q.key }}" data-question="{{ q.question }}"
-                 data-hint="{{ q.hint | default('') }}"
-                 data-fbok="{{ q.feedback_correct | default('') }}"
-                 data-fbno="{{ q.feedback_wrong | default('') }}">
-              <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
-              <div class="q-options">
-                {% for letter, text in q|shuffle_options %}
-                <label class="q-option">
-                  <input type="radio" name="{{ q.key }}" value="{{ letter }}" />
-                  <span class="q-option-letter">{{ letter }}</span>
-                  <span class="q-option-text">{{ text }}</span>
-                </label>
-                {% endfor %}
-              </div>
-
-              {% if show_npc %}
-              <div class="hint-row">
-                <button type="button" class="hint-btn"><span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> Ask Professor Atlas for a hint</button>
-              </div>
-              <div class="hint-box" hidden>
-                <span class="hint-avatar"><span class="atlas-glyph" aria-hidden="true"></span></span>
-                <p class="hint-text"></p>
-              </div>
-              {% endif %}
-
-              <div class="q-feedback" hidden>
-                <p class="q-feedback-text"></p>
-                <button type="button" class="q-next-btn">Continue <i class="bi bi-arrow-right ms-1"></i></button>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </form>
+      <div class="trial-content trial-card">
+        {% include "game/_trial_core.html" %}
       </div>
     </section>
 
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script src="{{ url_for('static', filename='js/trial-skin.js') }}"></script>
 {% endblock %}

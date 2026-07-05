@@ -84,6 +84,8 @@ def explore_valid_ids(loc):
         return {"sector-%d" % i for i in range(len(loc.get("learn_cards", [])))}
     if interaction == "constellation":
         return {"star-%d" % i for i in range(5)}
+    if interaction == "timeline":
+        return {"beat-%d" % i for i in range(len(loc.get("beats", [])))}
     return set()
 
 
@@ -149,7 +151,7 @@ def hub():
 
 
 # Maps each location-completion badge to its location key.
-_BADGE_LOCATION = {"first_steps": "library", "field_researcher": "ai_lab", "stargazer": "observatory"}
+_BADGE_LOCATION = {"first_steps": "library", "chronicler": "chronicle", "field_researcher": "ai_lab", "stargazer": "observatory"}
 
 
 def _badge_detail(user, pmap, stats):
@@ -248,6 +250,12 @@ def location(key):
     if interaction == "constellation":
         return render_template(
             "game/observatory.html", loc=loc, quiz=quiz, hooks=hooks,
+            explored=library_read_ids(key),
+        )
+
+    if interaction == "timeline":
+        return render_template(
+            "game/timeline.html", loc=loc, quiz=quiz, hooks=hooks,
             explored=library_read_ids(key),
         )
 

@@ -10,7 +10,7 @@ Pass threshold is hardcoded at 3/4 — see PASS_THRESHOLD.
 PASS_THRESHOLD = 3  # must score at least 3 out of 4 to pass a location
 
 # Order matters: this defines the unlock chain (each unlocks the next).
-LOCATION_ORDER = ["library", "ai_lab", "observatory"]
+LOCATION_ORDER = ["library", "chronicle", "ai_lab", "observatory"]
 
 # ── Interactive Library books ──
 # Each book is a multi-page lesson (intro → concept → example) ending in a
@@ -223,6 +223,105 @@ LOCATIONS = {
         ]
     },
 
+    "chronicle": {
+        "key": "chronicle",
+        "name": "The Chronicle",
+        "icon": "⏳",
+        "tagline": "Where the story of thinking machines is kept",
+        "topic": "The Three Eras of Computing & the AI Winters",
+        "description": "A long hall of clocks, star-charts and dust-jacketed ledgers, where a single luminous timeline runs from wall to wall. Here the history of AI is recorded — three great eras, two long winters, and the milestones that thawed them. Travel the timeline era by era, and watch how humanity arrived at the age of intelligent machines.",
+        "order": 2,
+        "stub": False,
+        "accent": "#c1824a",
+        "theme": "timeline",
+        "interaction": "timeline",
+        "guide_intro": "Every discovery has a history, explorer — and AI's is the richest of all. Walk the timeline with me: from machines that merely sorted, to the two long winters, to the day a machine outplayed the world's finest mind.",
+        "atlas_steps": [
+            "Welcome to the Chronicle, explorer. I am Professor Atlas. Before us stretches the timeline of thinking machines — six eras, each a lantern waiting to be lit.",
+            "Travel left to right through time. Click the glowing era to study its story; answer its quick-check and the era lights, drawing the timeline forward to the next.",
+            "Light all six eras to unlock the Trial — four questions, score 3 of 4 to journey on. Tap the owl if you need me. Now… let us begin at the beginning.",
+        ],
+        # The 6 timeline era-beats (taught content + an ungraded quick-check each).
+        # Facts checked against the IBM course: Dartmouth 1956 (McCarthy & Minsky),
+        # ENIAC (1940s), two AI Winters, Deep Blue 1997, Stanford robot 2005,
+        # Watson 2011. Passed via JSON to timeline.js.
+        "beats": [
+            {
+                "title": "The Era of Tabulation",
+                "era": "ANTIQUITY – 1930s",
+                "text": "For centuries, people drowned in numbers they could not read. The first breakthrough was not a thinking machine but a sorting one — tabulating machines that organised raw data into structured tables so patterns could finally surface. This was the leap beyond mere counting: from a heap of figures to a sum that revealed insight. Data had begun to speak, if only in a whisper.",
+                "keywords": ["tabulation", "sorting", "structured data", "tables", "counting"],
+                "check": {
+                    "q": "What was the key idea of the Era of Tabulation?",
+                    "options": ["Machines that could think for themselves", "Sorting raw data into structured tables to reveal insight", "Predicting the future from probabilities"],
+                    "correct": 1,
+                },
+            },
+            {
+                "title": "The Era of Programming",
+                "era": "1940s – 1950s",
+                "text": "In the 1940s came machines that could follow many instructions — programs. ENIAC, built at the University of Pennsylvania, computed wartime artillery firing tables and ran an early thermonuclear feasibility study. Programmable computers later guided astronauts to the Moon, and were reprogrammed mid-crisis to bring Apollo 13 safely home. Yet the world soon generated more data than any program could ever process — the dark-data problem was born, and it would outgrow even the fastest supercomputer.",
+                "keywords": ["programming", "eniac", "apollo", "programs", "dark data"],
+                "check": {
+                    "q": "Why couldn't programmable computers keep up in the end?",
+                    "options": ["They were simply too expensive to build", "The world generated more data than any program could process", "No one knew how to write programs"],
+                    "correct": 1,
+                },
+            },
+            {
+                "title": "The Dawn of AI — Dartmouth, 1956",
+                "era": "1956",
+                "text": "In the summer of 1956, John McCarthy and Marvin Minsky gathered researchers at Dartmouth College and coined a new term: artificial intelligence. Their bold claim was that every feature of intelligence could be described so precisely that a machine could be made to simulate it. Early programs delivered on the promise — proving geometry theorems, conversing in simple English, and solving algebra word problems. Optimism soared.",
+                "keywords": ["dartmouth", "mccarthy", "minsky", "1956", "coined"],
+                "check": {
+                    "q": "What is the 1956 Dartmouth gathering remembered for?",
+                    "options": ["Building the first computer", "Coining the term 'artificial intelligence'", "Deep Blue's victory at chess"],
+                    "correct": 1,
+                },
+            },
+            {
+                "title": "The First Winter",
+                "era": "EARLY 1970s",
+                "text": "Optimism met hard walls. Two limits froze progress: limited calculating power — the machines were simply too slow — and limited information storage — they could not hold enough to reason about the real world. Grand promises went unmet, sponsors lost patience, and funding collapsed. The first AI Winter had begun.",
+                "keywords": ["first winter", "calculating power", "storage", "funding", "limits"],
+                "check": {
+                    "q": "Which two limits caused the First Winter of AI?",
+                    "options": ["Bad programmers and simple bad luck", "Limited calculating power and limited information storage", "Too much data and too little electricity"],
+                    "correct": 1,
+                },
+            },
+            {
+                "title": "Expert Systems & the Second Winter",
+                "era": "1980s",
+                "text": "AI thawed in the 1980s with expert systems — rule-based programs that captured a specialist's knowledge, running on mainframes that could cost a million dollars. For a time they boomed. But by the late 1980s, cheaper personal computers from Apple and IBM outpaced those costly machines, the expert-system market collapsed, and more than 300 AI companies went bankrupt. The second Winter set in.",
+                "keywords": ["expert systems", "mainframes", "second winter", "bankrupt", "personal computers"],
+                "check": {
+                    "q": "What ended the expert-systems boom in the late 1980s?",
+                    "options": ["A new law banned them", "Cheaper personal computers overtook costly mainframes", "The systems simply ran out of rules"],
+                    "correct": 1,
+                },
+            },
+            {
+                "title": "The Thaw",
+                "era": "1997 – TODAY",
+                "text": "By the mid-1990s, processing power finally caught up with ambition. In 1997, IBM's Deep Blue — searching some 200 million chess positions per second — defeated the reigning world chess champion. In 2005, a Stanford robot drove 131 miles of unrehearsed desert road on its own. In 2011, IBM's Watson beat the champions of Jeopardy! The two Winters had ended, and AI has proven itself across fields ever since.",
+                "keywords": ["thaw", "deep blue", "1997", "stanford", "watson", "2011"],
+                "check": {
+                    "q": "Which IBM system defeated the world chess champion in 1997?",
+                    "options": ["Watson", "ENIAC", "Deep Blue"],
+                    "correct": 2,
+                },
+            },
+        ],
+        "learning_objectives": [
+            "Name the three eras of computing in order (Tabulation, Programming, AI)",
+            "Explain the significance of the 1956 Dartmouth gathering",
+            "Identify the two causes of the First AI Winter",
+            "Explain what caused the boom and bust of expert systems",
+            "Recall the milestones that ended the AI Winters (Deep Blue, Watson)",
+        ],
+    },
+
     "ai_lab": {
         "key": "ai_lab",
         "name": "The AI Lab",
@@ -386,6 +485,99 @@ QUIZZES = {
             "feedback_wrong": "Spam filters, face unlock and recommendations are all narrow AI — each does one job well. A system that could learn any new task the way a person does would be general AI, which doesn't exist.",
             "explanation": "Correct — that describes general AI, which doesn't exist yet. The other three are all narrow AI.",
             "hint": "Three of these each do one fixed job. The odd one out describes a human-like, learn-anything machine."
+        }
+    ],
+
+    "chronicle": [
+        {
+            "key": "ch_s1",
+            "question": "A museum shows an old machine that took stacks of raw figures and arranged them into neat tables so clerks could finally spot trends. Which era does it belong to?",
+            "options": {
+                "A": "The Era of Programming",
+                "B": "The Era of Tabulation",
+                "C": "The Era of AI",
+                "D": "The Era of Machine Learning"
+            },
+            "correct": "B",
+            "feedback_correct": "Correct — tabulation was about sorting raw data into structure to reveal insight, long before machines could 'think'.",
+            "feedback_wrong": "Sorting raw data into structured tables to reveal insight is the hallmark of the Era of Tabulation — it came before programmable computers and before AI.",
+            "explanation": "The Era of Tabulation organised data into tables so patterns could surface — the leap beyond mere counting.",
+            "hint": "This era only organised data — it did not run programs or learn."
+        },
+        {
+            "key": "ch_s2",
+            "question": "What is the correct chronological order of the three eras of computing?",
+            "options": {
+                "A": "Programming → Tabulation → AI",
+                "B": "AI → Programming → Tabulation",
+                "C": "Tabulation → Programming → AI",
+                "D": "Tabulation → AI → Programming"
+            },
+            "correct": "C",
+            "feedback_correct": "Correct — first we sorted data (Tabulation), then we ran instructions (Programming), then machines began to learn (AI).",
+            "feedback_wrong": "The order runs Tabulation → Programming → AI: sort the data, then program instructions, then build machines that learn.",
+            "explanation": "Tabulation (sorting) came first, then Programming (ENIAC, Apollo), then the Era of AI (Dartmouth 1956 onward).",
+            "hint": "Start with the simplest capability (sorting) and end with the most advanced (learning)."
+        },
+        {
+            "key": "ch_s3",
+            "question": "In 1956, a summer gathering at Dartmouth College led by John McCarthy and Marvin Minsky is famous for which milestone?",
+            "options": {
+                "A": "Building ENIAC",
+                "B": "Coining the term 'artificial intelligence'",
+                "C": "Deep Blue's chess victory",
+                "D": "The start of the First Winter"
+            },
+            "correct": "B",
+            "feedback_correct": "Correct — Dartmouth 1956 is where the term 'artificial intelligence' was coined.",
+            "feedback_wrong": "ENIAC was the 1940s; Deep Blue was 1997. The 1956 Dartmouth gathering is where the term 'artificial intelligence' itself was coined.",
+            "explanation": "McCarthy and Minsky's Dartmouth workshop (1956) named the field and claimed intelligence could be described precisely enough for a machine to simulate it.",
+            "hint": "This milestone gave the whole field its name."
+        },
+        {
+            "key": "ch_s4",
+            "question": "Grand promises went unmet and funding dried up in the early 1970s. What TWO limits were the main causes of this First AI Winter?",
+            "options": {
+                "A": "Limited calculating power and limited information storage",
+                "B": "Too many programmers and too few computers",
+                "C": "A shortage of data and a shortage of electricity",
+                "D": "Government bans and public fear"
+            },
+            "correct": "A",
+            "feedback_correct": "Correct — machines were too slow (limited calculating power) and could not hold enough (limited storage).",
+            "feedback_wrong": "The First Winter came from two hard technical limits: limited calculating power (too slow) and limited information storage (too little memory to reason about the world).",
+            "explanation": "Early AI hit two walls — not enough compute and not enough storage — so promises went unmet and funding collapsed.",
+            "hint": "Both limits are about the machines themselves — speed and memory."
+        },
+        {
+            "key": "ch_s5",
+            "question": "After the expert-systems boom collapsed, what finally brought AI out of the Second Winter in the mid-1990s?",
+            "options": {
+                "A": "A brand-new programming language",
+                "B": "Processing power finally becoming fast enough",
+                "C": "Expert systems suddenly getting cheaper",
+                "D": "A single government grant"
+            },
+            "correct": "B",
+            "feedback_correct": "Correct — by the mid-1990s, processing power finally caught up with ambition, and the thaw began.",
+            "feedback_wrong": "The thaw came because processing power finally became fast enough for AI's ambitions — soon after, Deep Blue won at chess.",
+            "explanation": "The Second Winter ended when hardware caught up: fast enough processing made the old ambitions achievable (Deep Blue, 1997).",
+            "hint": "Think about what the machines had been lacking all along — raw speed."
+        },
+        {
+            "key": "ch_s6",
+            "question": "Which IBM system, searching around 200 million positions per second, defeated the reigning world chess champion in 1997?",
+            "options": {
+                "A": "Watson",
+                "B": "ENIAC",
+                "C": "Deep Blue",
+                "D": "Apollo"
+            },
+            "correct": "C",
+            "feedback_correct": "Correct — Deep Blue beat the world chess champion in 1997. (Watson won Jeopardy! in 2011.)",
+            "feedback_wrong": "Watson won Jeopardy! in 2011 and ENIAC was a 1940s calculator. The chess victory of 1997 belonged to IBM's Deep Blue.",
+            "explanation": "Deep Blue's 1997 chess win was a landmark of the thaw; Watson's Jeopardy! win followed in 2011.",
+            "hint": "It played chess, not Jeopardy!."
         }
     ],
 
@@ -741,6 +933,26 @@ HOOKS = {
          "options": ["Narrow", "General", "Super"],
          "payoff": "Note your instinct — the three levels are about to come into focus."},
     ],
+    "chronicle": [
+        {"question": "Before any 'thinking' machine, what was the first useful thing machines did with data?",
+         "options": ["Sorted it into tables", "Predicted the future", "Wrote their own programs"],
+         "payoff": "Hold that thought — the story begins with sorting, not thinking."},
+        {"question": "What first let a single 1940s machine do many different jobs?",
+         "options": ["Programs (instructions)", "More metal", "Sheer luck"],
+         "payoff": "Keep that in mind as we power up ENIAC."},
+        {"question": "Guess the year the term “artificial intelligence” was first coined.",
+         "options": ["1956", "1985", "2010"],
+         "payoff": "Hold that thought — it's older than most people expect."},
+        {"question": "Early AI stalled hard in the 1970s. What do you think held it back?",
+         "options": ["Slow machines & tiny memory", "Too many rules", "No electricity"],
+         "payoff": "Keep your guess — the First Winter is closing in."},
+        {"question": "Million-dollar 'expert' machines boomed in the 1980s. What toppled them?",
+         "options": ["Cheap personal computers", "A new law", "Public boredom"],
+         "payoff": "Hold that thought — the second thaw and freeze are near."},
+        {"question": "In 1997 a machine first beat the reigning world champion at which game?",
+         "options": ["Chess", "Go", "Poker"],
+         "payoff": "Keep your guess — the Winters are about to end."},
+    ],
     "ai_lab": [
         {"question": "Before computers, how did people make sense of huge piles of numbers?",
          "options": ["By hand, in tables", "They simply couldn't", "With pocket calculators"],
@@ -786,6 +998,10 @@ REFLECTION_PROMPTS = {
     "library": {
         "key": "narrow_vs_general",
         "text": "In one sentence: what's the difference between narrow AI and general AI?",
+    },
+    "chronicle": {
+        "key": "why_winters",
+        "text": "In one sentence: why did the AI Winters happen, and what finally ended them?",
     },
     "ai_lab": {
         "key": "why_data_hard",
