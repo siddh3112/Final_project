@@ -1,5 +1,5 @@
 """
-Database models for Atlas Quest — 10 tables.
+Database models for Atlas Quest — 11 tables.
 
 The single SQLAlchemy instance `db` lives here and is initialised in
 app/__init__.py via db.init_app(app). SQLite auto-creates at
@@ -73,6 +73,32 @@ class QuizAttempt(db.Model):
     attempt_number = db.Column(db.Integer, nullable=False, default=1)
     npc_consulted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class TrialAttempt(db.Model):
+    """Durable, SERVER-AUTHORITATIVE record of one Trial attempt.
+
+    The server chooses the TRIAL_COUNT unique question keys and stores them here
+    (never the browser); the page carries only this row's opaque `token`. Grading
+    reads the stored keys + the recorded first-committed answers, so a forged /
+    duplicated / mismatched key list from the client cannot influence the result,
+    and an attempt is graded at most once (status 'open' -> 'submitted').
+
+    This is NOT the same as `quiz_attempts`, which remains the per-question
+    research log (one row per graded question, unchanged)."""
+    __tablename__ = "trial_attempts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(64), unique=True, nullable=False, index=True)  # opaque server attempt id
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    location = db.Column(db.String(40), nullable=False)
+    question_keys = db.Column(db.Text, nullable=False)               # JSON list of the 4 server-chosen unique keys
+    answers_json = db.Column(db.Text, nullable=False, default="{}")  # JSON {qkey: first-committed letter}
+    status = db.Column(db.String(16), nullable=False, default="open")  # open | submitted | expired
+    score = db.Column(db.Integer, nullable=True)
+    passed = db.Column(db.Boolean, nullable=True)
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    submitted_at = db.Column(db.DateTime, nullable=True)
 
 
 class KnowledgeTest(db.Model):

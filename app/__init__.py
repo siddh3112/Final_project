@@ -145,6 +145,19 @@ def _ensure_sqlite_columns():
         "users": [("seen_intro", "INTEGER")],
     }
     conn = db.session.connection()
+
+    # Reconcile a STALE `trial_attempts` table left by an earlier, reverted
+    # design (different columns; create_all never ALTERs an existing table). It
+    # holds NO research data — that's quiz_attempts; a trial_attempts row is
+    # transient server-authoritative grading-flow state — so if the current
+    # TrialAttempt columns (e.g. `token`) are absent, drop the empty stale table
+    # and let create_all rebuild it to match the model. Guarded; no-op once correct.
+    ta_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(trial_attempts)"))}
+    if ta_cols and "token" not in ta_cols:
+        conn.execute(text("DROP TABLE trial_attempts"))
+        db.session.commit()
+        db.create_all()  # recreate trial_attempts with the current schema
+
     for table, cols in wanted.items():
         existing = {row[1] for row in conn.execute(text(f"PRAGMA table_info({table})"))}
         for name, coltype in cols:

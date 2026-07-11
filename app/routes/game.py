@@ -1,3 +1,4 @@
+import json
 import secrets
 from datetime import datetime
 
@@ -29,6 +30,7 @@ from ..models import (
     NpcInteraction,
     QuizAttempt,
     Reflection,
+    TrialAttempt,
     db,
 )
 from ..services.achievements import (
@@ -317,38 +319,60 @@ def mark_progress(key):
 TRIAL_TTL_SECONDS = 2 * 60 * 60
 
 
+def _attempt_keys(att):
+    try:
+        return json.loads(att.question_keys) or []
+    except (TypeError, ValueError):
+        return []
+
+
+def _attempt_answers(att):
+    try:
+        return json.loads(att.answers_json) or {}
+    except (TypeError, ValueError):
+        return {}
+
+
 def _start_trial_attempt(key):
-    """Begin a Trial attempt SERVER-side. The server chooses the TRIAL_COUNT
-    unique question keys and stores them in the (signed) session under a fresh
-    random attempt id + start time. The browser is given ONLY the attempt id —
-    never a trusted list of which questions to grade. Returns (attempt_id, quiz
-    dicts to render).  Old `shown_<key>` fallbacks are intentionally gone."""
+    """Begin a Trial attempt SERVER-side and DURABLY. The server chooses the
+    TRIAL_COUNT unique question keys and stores them in a `TrialAttempt` DB row
+    (status 'open') under a fresh random opaque token. The browser is given ONLY
+    that token — never a trusted list of which questions to grade, and never the
+    answer key. Returns (token, quiz dicts to render)."""
     keys = list(dict.fromkeys(select_trial_questions(key)))[:TRIAL_COUNT]
-    aid = secrets.token_urlsafe(12)
-    session[f"trial_{key}"] = {
-        "aid": aid,
-        "keys": keys,
-        "started": datetime.utcnow().timestamp(),
-        "graded": False,
-        "answers": {},          # qkey -> FIRST committed letter (locked server-side)
-    }
-    session.modified = True
-    return aid, get_questions_by_keys(key, keys)
+    token = secrets.token_urlsafe(16)
+    att = TrialAttempt(
+        token=token,
+        user_id=current_user.id,
+        location=key,
+        question_keys=json.dumps(keys),
+        answers_json="{}",
+        status="open",
+        started_at=datetime.utcnow(),
+    )
+    db.session.add(att)
+    db.session.commit()
+    return token, get_questions_by_keys(key, keys)
 
 
-def _load_trial_attempt(key, aid):
-    """Return (attempt, None) for a valid, ungraded, unexpired attempt whose id
-    matches `aid` and whose stored key-set is exactly TRIAL_COUNT unique known
-    keys; otherwise (None, reason). Never trusts anything the browser says about
-    WHICH questions were shown."""
-    att = session.get(f"trial_{key}")
-    if not att or att.get("aid") != aid:
+def _load_trial_attempt(key, token):
+    """Return (TrialAttempt, None) for a valid 'open', unexpired attempt that
+    belongs to THIS user + location and whose stored key-set is exactly
+    TRIAL_COUNT unique known keys; otherwise (None, reason). Loads the durable DB
+    row by its opaque token — never trusts anything the browser says about WHICH
+    questions were shown."""
+    if not token:
         return None, "invalid"
-    if att.get("graded"):
-        return None, "already-graded"
-    if datetime.utcnow().timestamp() - att.get("started", 0) > TRIAL_TTL_SECONDS:
+    att = TrialAttempt.query.filter_by(token=token).first()
+    if att is None or att.user_id != current_user.id or att.location != key:
+        return None, "invalid"
+    if att.status != "open":
+        return None, att.status  # 'submitted' (replay) or 'expired'
+    if (datetime.utcnow() - (att.started_at or datetime.utcnow())).total_seconds() > TRIAL_TTL_SECONDS:
+        att.status = "expired"
+        db.session.commit()
         return None, "expired"
-    keys = att.get("keys") or []
+    keys = _attempt_keys(att)
     bank = {q["key"] for q in QUIZZES.get(key, [])}
     if len(keys) != TRIAL_COUNT or len(set(keys)) != TRIAL_COUNT or not set(keys) <= bank:
         return None, "corrupt"
@@ -374,7 +398,7 @@ def commit_answer(key):
     data = request.get_json(silent=True) or {}
     att, err = _load_trial_attempt(key, data.get("attempt_id", ""))
     qkey = data.get("qkey", "")
-    if att is None or qkey not in att["keys"]:
+    if att is None or qkey not in _attempt_keys(att):
         return jsonify({"error": err or "invalid"}), 400
     q = get_questions_by_keys(key, [qkey])
     if not q:
@@ -383,11 +407,11 @@ def commit_answer(key):
     letter = data.get("letter", "")
     if letter not in q["options"]:
         return jsonify({"error": "bad-option"}), 400
-    answers = att.setdefault("answers", {})
+    answers = _attempt_answers(att)
     if qkey not in answers:                     # record only the FIRST commit
         answers[qkey] = letter
-        session[f"trial_{key}"] = att
-        session.modified = True
+        att.answers_json = json.dumps(answers)
+        db.session.commit()
     committed = answers[qkey]
     is_correct = committed == q["correct"]
     feedback = (q.get("feedback_correct") if is_correct else q.get("feedback_wrong")) or q.get("explanation", "")
@@ -437,18 +461,17 @@ def submit_quiz(key):
     )
     att, err = _load_trial_attempt(key, request.form.get("attempt_id", ""))
     if att is None:
-        session.pop(f"trial_{key}", None)
         flash("That Trial attempt has expired or was already submitted — here is a fresh Trial.", "warning")
         return redirect(fresh)
 
-    stored_keys = att["keys"]
+    stored_keys = _attempt_keys(att)
     quiz = get_questions_by_keys(key, stored_keys)
 
     # The FIRST answer committed per question (recorded server-side via
     # /answer) is authoritative; fall back to a validated form value only for a
     # question that was never committed (e.g. JavaScript disabled). Anything that
     # isn't one of THAT question's option letters is treated as unanswered.
-    recorded = att.get("answers", {})
+    recorded = _attempt_answers(att)
     submitted = {}
     for q in quiz:
         val = recorded.get(q["key"])
@@ -458,10 +481,12 @@ def submit_quiz(key):
         submitted[q["key"]] = val
     results, score, total, passed = grade_quiz(key, submitted, shown_keys=stored_keys)
 
-    # One grading per attempt id — mark it consumed so a replayed POST is refused.
-    att["graded"] = True
-    session[f"trial_{key}"] = att
-    session.modified = True
+    # One grading per attempt (durable) — flip 'open' -> 'submitted' so a replayed
+    # POST is refused, and record the outcome on the attempt row.
+    att.status = "submitted"
+    att.score = score
+    att.passed = passed
+    att.submitted_at = datetime.utcnow()
 
     lp = get_or_create_progress(current_user, key)
     attempt_number = lp.attempts_count + 1

@@ -142,6 +142,16 @@ def login(client):
         with client.session_transaction() as sess:
             sess["_user_id"] = str(user.id)
             sess["_fresh"] = True
+        # The test's app context is long-lived, so Flask-Login caches the loaded
+        # user on g._login_user and would otherwise LEAK the previous user across
+        # requests within one test (in production every HTTP request gets a fresh
+        # context). Clear it so switching users actually takes effect — otherwise
+        # a cross-user test would falsely see the first user on later requests.
+        try:
+            from flask import g
+            g.pop("_login_user", None)
+        except Exception:
+            pass
     return _login
 
 

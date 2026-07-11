@@ -8,8 +8,13 @@ keys, mismatched ids, and replays are all rejected. Verifies behaviour; never
 relaxes gating, scoring, or logging to pass.
 """
 
+import json
+import re
+
+import pytest
+
 from app.models import (
-    LocationProgress, QuizAttempt, GameSession, Achievement, db,
+    LocationProgress, QuizAttempt, GameSession, Achievement, TrialAttempt, db,
 )
 from app.game_content import LOCATIONS, QUIZZES, TRIAL_COUNT, get_questions_by_keys
 
@@ -19,16 +24,20 @@ def _fresh():
 
 
 def _start(client, loc):
-    """GET the Trial so the SERVER creates + stores this attempt; return
-    (attempt_id, stored_keys, question dicts). The browser never chooses the set."""
+    """GET the Trial so the SERVER creates + stores a durable TrialAttempt DB
+    row; return (token, stored_keys, question dicts). The page carries only the
+    opaque token; the keys are read back from the DB (never a browser cookie)."""
     if LOCATIONS[loc]["interaction"] == "terminal":
-        client.get(f"/location/{loc}")
+        html = client.get(f"/location/{loc}").get_data(as_text=True)
     else:
-        client.get(f"/location/{loc}/trial")
-    with client.session_transaction() as s:
-        att = s.get(f"trial_{loc}")
-    assert att, f"server did not create a trial attempt for {loc}"
-    return att["aid"], att["keys"], get_questions_by_keys(loc, att["keys"])
+        html = client.get(f"/location/{loc}/trial").get_data(as_text=True)
+    m = re.search(r'name="attempt_id" value="([^"]+)"', html)
+    assert m, f"server did not render an attempt token for {loc}"
+    token = m.group(1)
+    att = TrialAttempt.query.filter_by(token=token).first()
+    assert att is not None and att.status == "open", "start must create an open DB attempt"
+    keys = json.loads(att.question_keys)
+    return token, keys, get_questions_by_keys(loc, keys)
 
 
 def _answer_data(qs, n_correct):
@@ -219,6 +228,93 @@ def test_commit_endpoint_rejects_unknown_question(client, user_factory, login):
     other = next(q["key"] for q in QUIZZES["library"] if q["key"] not in keys)
     r = client.post("/location/library/answer", json={"attempt_id": aid, "qkey": other, "letter": "A"})
     assert r.status_code == 400, "an off-attempt question is rejected"
+
+
+# ══════════ Durable server-authoritative TrialAttempt (DB, not cookie) ══════════
+
+def test_trial_attempt_is_a_durable_db_row(client, user_factory, login):
+    """Starting a Trial creates a durable TrialAttempt row — status 'open', with
+    exactly 4 unique server-chosen keys and no recorded answers yet — NOT a cookie."""
+    u = user_factory()
+    login(u)
+    token, keys, qs = _start(client, "library")
+    att = TrialAttempt.query.filter_by(token=token).first()
+    assert att is not None and att.user_id == u.id and att.location == "library"
+    assert att.status == "open" and att.submitted_at is None
+    stored = json.loads(att.question_keys)
+    assert len(stored) == TRIAL_COUNT and len(set(stored)) == TRIAL_COUNT
+    assert json.loads(att.answers_json) == {}
+
+
+def test_submit_records_outcome_on_attempt_row(client, user_factory, login):
+    """Grading flips the attempt to 'submitted' and stamps score/passed/submitted_at."""
+    u = user_factory()
+    login(u)
+    token, keys, qs = _start(client, "library")
+    data = {"attempt_id": token}
+    data.update(_answer_data(qs, 4))
+    client.post("/location/library/submit", data=data)
+    _fresh()
+    att = TrialAttempt.query.filter_by(token=token).first()
+    assert att.status == "submitted" and att.score == 4 and att.passed is True
+    assert att.submitted_at is not None
+
+
+def test_three_of_four_passes_and_logs_four_rows(client, user_factory, login):
+    """A normal 3/4 correct submission against the stored set PASSES (threshold
+    3/4 unchanged) and logs exactly 4 QuizAttempt rows."""
+    u = user_factory()
+    login(u)
+    token, keys, qs = _start(client, "library")
+    data = {"attempt_id": token}
+    data.update(_answer_data(qs, 3))   # exactly 3 correct
+    r = client.post("/location/library/submit", data=data)
+    assert r.status_code == 200
+    _fresh()
+    lp = LocationProgress.query.filter_by(user_id=u.id, location="library").first()
+    assert lp.passed is True and lp.best_score == 3
+    assert QuizAttempt.query.filter_by(user_id=u.id, location="library").count() == TRIAL_COUNT
+    att = TrialAttempt.query.filter_by(token=token).first()
+    assert att.status == "submitted" and att.score == 3 and att.passed is True
+
+
+def test_attempt_of_another_user_is_rejected(client, user_factory, login):
+    """A token that belongs to a DIFFERENT user cannot be graded (ownership check)."""
+    owner = user_factory()
+    login(owner)
+    token, keys, qs = _start(client, "library")
+    other = user_factory()
+    login(other)                        # switch client to a second user
+    data = {"attempt_id": token}
+    data.update(_answer_data(qs, 4))
+    r = client.post("/location/library/submit", data=data)
+    assert r.status_code == 302, "another user's attempt must be rejected"
+    _fresh()
+    assert TrialAttempt.query.filter_by(token=token).first().status == "open", "not consumed"
+    assert QuizAttempt.query.filter_by(user_id=other.id, location="library").count() == 0
+
+
+@pytest.mark.parametrize("bad", ["fewer", "more", "duplicate"])
+def test_malformed_stored_keyset_is_rejected(client, user_factory, login, bad):
+    """If the stored key-set isn't exactly 4 UNIQUE known keys (fewer, more, or a
+    smuggled duplicate), grading refuses rather than scoring one answer N times."""
+    u = user_factory()
+    login(u)
+    token, keys, qs = _start(client, "library")
+    bank = [q["key"] for q in QUIZZES["library"]]
+    if bad == "fewer":
+        forged = keys[:3]
+    elif bad == "more":
+        forged = list(dict.fromkeys(bank))[:5]     # library bank has 5 unique keys
+    else:
+        forged = [keys[0]] * 4                      # 4 entries, 1 unique
+    att = TrialAttempt.query.filter_by(token=token).first()
+    att.question_keys = json.dumps(forged)
+    db.session.commit()
+    r = client.post("/location/library/submit", data={"attempt_id": token})
+    assert r.status_code == 302, f"a {bad} stored key-set must be rejected"
+    _fresh()
+    assert QuizAttempt.query.filter_by(user_id=u.id, location="library").count() == 0
 
 
 # ── the hub renders for an authenticated user ───────────────────────────
