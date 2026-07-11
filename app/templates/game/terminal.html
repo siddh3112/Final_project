@@ -162,9 +162,10 @@
 
         <!-- ── Quiz: ticker-tape assessment ── -->
         <section class="term-quiz" id="term-quiz" hidden>
-          <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post" id="terminal-quiz" data-location="{{ loc.key }}">
+          <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post" id="terminal-quiz" data-location="{{ loc.key }}" data-attempt="{{ attempt_id }}">
             <input type="hidden" name="consulted" id="consulted" value="" />
-            <input type="hidden" name="shown_keys" value="{{ shown_keys|join(',') }}" />
+            <!-- Server-authoritative attempt id (never a trusted shown-keys list). -->
+            <input type="hidden" name="attempt_id" value="{{ attempt_id }}" />
             <!-- Q3 answer comes from the sorting machine on the previous card -->
             <input type="hidden" name="lab_q3" id="q3-answer" value="" />
 
@@ -175,11 +176,8 @@
 
             <div class="ticker-stage" id="ticker-stage">
               {% for q in quiz %}{% if q.key != 'lab_q3' %}
-              <div class="ticker-q" data-qkey="{{ q.key }}" data-correct="{{ q.correct }}"
-                   data-question="{{ q.question }}" data-hint="{{ q.hint | default('') }}"
-                   data-explain="{{ q.explanation }}"
-                   data-fbok="{{ q.feedback_correct | default('') }}"
-                   data-fbno="{{ q.feedback_wrong | default('') }}">
+              <div class="ticker-q" data-qkey="{{ q.key }}"
+                   data-question="{{ q.question }}" data-hint="{{ q.hint | default('') }}">
                 <input type="hidden" name="{{ q.key }}" class="q-answer" value="" />
                 <div class="ticker-tape"><span class="tape-text" data-text="{{ q.question }}"></span></div>
                 <div class="console-options">

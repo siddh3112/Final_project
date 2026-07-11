@@ -42,6 +42,7 @@
   var checkQ = document.getElementById("tl-check-q");
   var checkOpts = document.getElementById("tl-check-opts");
   var checkFb = document.getElementById("tl-check-fb");
+  var backBtn = document.getElementById("tl-back-read");
   var stamp = document.getElementById("tl-stamp");
   var closeBtn = document.getElementById("tl-panel-close");
 
@@ -85,9 +86,12 @@
     if (traveller) traveller.style.left = (lit >= TOTAL ? 100 : pctFor(lit)) + "%";
     nodes.forEach(function (n, i) {
       n.classList.remove("lit", "ready", "locked");
-      if (i < lit) n.classList.add("lit");
-      else if (i === lit) n.classList.add("ready");
-      else n.classList.add("locked");
+      // A completed era stays clickable for read-only review (see the node click
+      // handler + showPanel's i < lit "recorded" state); the title makes that
+      // re-read affordance discoverable.
+      if (i < lit) { n.classList.add("lit"); n.title = "Re-read this era"; }
+      else if (i === lit) { n.classList.add("ready"); n.title = "Study this era"; }
+      else { n.classList.add("locked"); n.title = "Locked — complete the earlier eras first"; }
     });
     if (hintEl) hintEl.style.opacity = lit > 0 ? "0" : "";   // only shown before the first era
   }
@@ -136,8 +140,11 @@
     showPanel(i);
   }
 
+  var hideTimer = null;
+
   function showPanel(i) {
     var beat = BEATS[i];
+    if (window.AtlasVoice) window.AtlasVoice.stop();   // never carry a previous page's read-aloud in
     if (eraEl) eraEl.textContent = beat.era || "";
     if (panelTitle) panelTitle.textContent = beat.title || "";
     if (textEl) textEl.textContent = beat.text || "";
@@ -154,15 +161,20 @@
         window.AtlasVoice.toggle(beat.text || "", root.style.getPropertyValue("--accent") || "#c1824a", readBtn);
       };
     }
+    clearTimeout(hideTimer);   // cancel a pending close so reopening always sticks
     panel.hidden = false;
     requestAnimationFrame(function () { panel.classList.add("show"); });
   }
 
   function toCheck() {
     var beat = BEATS[activeIndex]; if (!beat || !beat.check) return;
+    if (window.AtlasVoice) window.AtlasVoice.stop();   // leaving the passage — stop read-aloud
     if (pageRead) pageRead.hidden = true;
     if (pageCheck) pageCheck.hidden = false;
+    if (backBtn) backBtn.hidden = false;
+    if (checkPassed) return;   // returning to an already-passed check — keep its recorded state
     if (checkQ) checkQ.textContent = beat.check.q || "";
+    if (checkFb) { checkFb.hidden = true; checkFb.textContent = ""; }
     if (checkOpts) {
       checkOpts.innerHTML = "";
       (beat.check.options || []).forEach(function (opt, k) {
@@ -173,6 +185,12 @@
         checkOpts.appendChild(b);
       });
     }
+  }
+
+  // Back from the quick-check to the passage — read-only page flip, no reset.
+  function backToRead() {
+    if (pageCheck) pageCheck.hidden = true;
+    if (pageRead) pageRead.hidden = false;
   }
 
   function answer(k, btn) {
@@ -207,7 +225,8 @@
     if (!checkPassed) return;   // must pass this era's check before leaving
     if (window.AtlasVoice) window.AtlasVoice.stop();
     panel.classList.remove("show");
-    setTimeout(function () { panel.hidden = true; }, 260);
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () { panel.hidden = true; }, 260);
     activeIndex = -1;
   }
 
@@ -220,6 +239,7 @@
     });
   });
   if (toCheckBtn) toCheckBtn.addEventListener("click", toCheck);
+  if (backBtn) backBtn.addEventListener("click", backToRead);
   panel.querySelectorAll("[data-panel-close]").forEach(function (el) { el.addEventListener("click", closePanel); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !panel.hidden && checkPassed) closePanel(); });
 

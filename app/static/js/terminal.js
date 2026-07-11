@@ -468,38 +468,50 @@
     const answerInput = q.querySelector(".q-answer");
     const status = q.querySelector(".ticker-status");
     btns.forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", async function () {
         if (q.classList.contains("answered")) return;
         q.classList.add("answered");
         const chosen = btn.dataset.val;
-        const correct = q.dataset.correct;
-        if (answerInput) answerInput.value = chosen;
-        const ok = chosen === correct;
-        if (ok) {
-          btn.classList.add("led-green");
-          flash("green", 160);
-          correctChime();
-        } else {
-          btn.classList.add("led-red", "shake");
-          flash("red", 110);
-          wrongBuzz();
-          btns.forEach((b) => { if (b.dataset.val === correct) b.classList.add("led-green", "pulse"); else if (b !== btn) b.classList.add("dimmed"); });
-        }
-        btns.forEach((b) => (b.disabled = true));
+        if (answerInput) answerInput.value = chosen;   // form fallback; server is authoritative
+        btns.forEach((b) => (b.disabled = true));      // lock immediately (first commit)
 
-        // Elaborative feedback + manual proceed (Enter or click).
+        // Ask the SERVER whether it was right — the answer key is not in the DOM.
+        // It records this first commit and returns the correct letter + feedback.
+        let ok = false, correct = null, fbmsg = "", known = false;
+        try {
+          const res = await fetch("/location/" + encodeURIComponent(location) + "/answer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ attempt_id: (form && form.dataset.attempt) || "", qkey: q.dataset.qkey, letter: chosen }),
+          });
+          if (res.ok) { const d = await res.json(); ok = !!d.is_correct; correct = d.correct; fbmsg = d.feedback || ""; known = true; }
+        } catch (e) {}
+
+        if (known) {
+          if (ok) {
+            btn.classList.add("led-green");
+            flash("green", 160);
+            correctChime();
+          } else {
+            btn.classList.add("led-red", "shake");
+            flash("red", 110);
+            wrongBuzz();
+            btns.forEach((b) => { if (b.dataset.val === correct) b.classList.add("led-green", "pulse"); else if (b !== btn) b.classList.add("dimmed"); });
+          }
+        }
+
+        // Manual proceed (Enter or click).
         const last = tIdx >= tQs.length - 1;
         const proceed = function () { if (last) finishQuiz(); else showTicker(tIdx + 1); };
         q._proceed = proceed;
         if (status) {
           status.hidden = false;
-          status.className = "ticker-status " + (ok ? "ok" : "bad");
+          status.className = "ticker-status " + (known ? (ok ? "ok" : "bad") : "");
           status.innerHTML = "";
           const verdict = document.createElement("div");
           verdict.className = "ts-verdict";
-          verdict.textContent = ok ? "VERIFIED ✓" : "INCORRECT — RETRY LOGGED";
+          verdict.textContent = known ? (ok ? "VERIFIED ✓" : "INCORRECT — RETRY LOGGED") : "LOGGED";
           status.appendChild(verdict);
-          const fbmsg = ok ? q.dataset.fbok : q.dataset.fbno;
           if (fbmsg) {
             const fb = document.createElement("div");
             fb.className = "ts-feedback";

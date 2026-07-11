@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime
 
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
@@ -12,6 +13,7 @@ from ..game_content import (
     LOCATIONS,
     QUIZZES,
     REFLECTION_PROMPTS,
+    TRIAL_COUNT,
     build_library_shelves,
     get_hooks,
     get_questions_by_keys,
@@ -237,13 +239,12 @@ def location(key):
     hooks = get_hooks(key)  # guess-first priming beats (never logged/graded)
 
     if interaction == "terminal":
-        # The terminal embeds the graded Trial: pick this attempt's questions
-        # (pinning the sorting diagnostic) and remember exactly what was shown.
-        shown_keys = select_trial_questions(key)
-        session[f"shown_{key}"] = shown_keys
-        quiz = get_questions_by_keys(key, shown_keys)
+        # The terminal embeds the graded Trial. The SERVER draws + stores this
+        # attempt's questions (pinning the sorting diagnostic); the page gets
+        # only the attempt id, never a trusted shown-keys list.
+        aid, quiz = _start_trial_attempt(key)
         return render_template(
-            "game/terminal.html", loc=loc, quiz=quiz, shown_keys=shown_keys,
+            "game/terminal.html", loc=loc, quiz=quiz, attempt_id=aid,
             hooks=hooks, explored=library_read_ids(key), lab_passed=bool(lp.passed),
         )
 
@@ -310,6 +311,94 @@ def mark_progress(key):
     return jsonify({"ok": True, "explored": ids})
 
 
+# ── Server-authoritative Trial attempts ───────────────────────────────────
+# A served Trial attempt is valid for this long; after that a fresh draw is
+# required (guards against a stale form being submitted much later).
+TRIAL_TTL_SECONDS = 2 * 60 * 60
+
+
+def _start_trial_attempt(key):
+    """Begin a Trial attempt SERVER-side. The server chooses the TRIAL_COUNT
+    unique question keys and stores them in the (signed) session under a fresh
+    random attempt id + start time. The browser is given ONLY the attempt id —
+    never a trusted list of which questions to grade. Returns (attempt_id, quiz
+    dicts to render).  Old `shown_<key>` fallbacks are intentionally gone."""
+    keys = list(dict.fromkeys(select_trial_questions(key)))[:TRIAL_COUNT]
+    aid = secrets.token_urlsafe(12)
+    session[f"trial_{key}"] = {
+        "aid": aid,
+        "keys": keys,
+        "started": datetime.utcnow().timestamp(),
+        "graded": False,
+        "answers": {},          # qkey -> FIRST committed letter (locked server-side)
+    }
+    session.modified = True
+    return aid, get_questions_by_keys(key, keys)
+
+
+def _load_trial_attempt(key, aid):
+    """Return (attempt, None) for a valid, ungraded, unexpired attempt whose id
+    matches `aid` and whose stored key-set is exactly TRIAL_COUNT unique known
+    keys; otherwise (None, reason). Never trusts anything the browser says about
+    WHICH questions were shown."""
+    att = session.get(f"trial_{key}")
+    if not att or att.get("aid") != aid:
+        return None, "invalid"
+    if att.get("graded"):
+        return None, "already-graded"
+    if datetime.utcnow().timestamp() - att.get("started", 0) > TRIAL_TTL_SECONDS:
+        return None, "expired"
+    keys = att.get("keys") or []
+    bank = {q["key"] for q in QUIZZES.get(key, [])}
+    if len(keys) != TRIAL_COUNT or len(set(keys)) != TRIAL_COUNT or not set(keys) <= bank:
+        return None, "corrupt"
+    return att, None
+
+
+@game_bp.route("/location/<key>/answer", methods=["POST"])
+@login_required
+def commit_answer(key):
+    """Commit ONE Trial answer and return its correctness + elaborative feedback.
+
+    This is how instant feedback works WITHOUT the answer key in the DOM: the
+    page ships no `data-correct`; the client asks the server. The FIRST letter
+    committed for a question is recorded server-side and locked — later calls
+    (or a throwaway letter fished for the answer) return that same recorded
+    answer, so this can't be used as an answer oracle. submit_quiz grades from
+    these recorded answers."""
+    loc = LOCATIONS.get(key)
+    if loc is None or loc.get("stub", False):
+        abort(404)
+    if not is_unlocked(current_user, key):
+        return jsonify({"error": "locked"}), 403
+    data = request.get_json(silent=True) or {}
+    att, err = _load_trial_attempt(key, data.get("attempt_id", ""))
+    qkey = data.get("qkey", "")
+    if att is None or qkey not in att["keys"]:
+        return jsonify({"error": err or "invalid"}), 400
+    q = get_questions_by_keys(key, [qkey])
+    if not q:
+        return jsonify({"error": "unknown-question"}), 400
+    q = q[0]
+    letter = data.get("letter", "")
+    if letter not in q["options"]:
+        return jsonify({"error": "bad-option"}), 400
+    answers = att.setdefault("answers", {})
+    if qkey not in answers:                     # record only the FIRST commit
+        answers[qkey] = letter
+        session[f"trial_{key}"] = att
+        session.modified = True
+    committed = answers[qkey]
+    is_correct = committed == q["correct"]
+    feedback = (q.get("feedback_correct") if is_correct else q.get("feedback_wrong")) or q.get("explanation", "")
+    return jsonify({
+        "is_correct": is_correct,
+        "correct": q["correct"],
+        "committed": committed,
+        "feedback": feedback,
+    })
+
+
 @game_bp.route("/location/<key>/trial")
 @login_required
 def trial(key):
@@ -322,12 +411,10 @@ def trial(key):
     # sorting diagnostic) — the generic trial page would bypass it.
     if loc.get("interaction") == "terminal":
         return redirect(url_for("game.location", key=key))
-    # Draw this attempt's questions at random and remember what was shown so the
-    # graded set == the shown set (see submit_quiz).
-    shown_keys = select_trial_questions(key)
-    session[f"shown_{key}"] = shown_keys
-    quiz = get_questions_by_keys(key, shown_keys)
-    return render_template("game/trial.html", loc=loc, quiz=quiz, shown_keys=shown_keys)
+    # The SERVER draws + stores this attempt's questions; the page gets only the
+    # attempt id (see _start_trial_attempt / submit_quiz).
+    aid, quiz = _start_trial_attempt(key)
+    return render_template("game/trial.html", loc=loc, quiz=quiz, attempt_id=aid)
 
 
 @game_bp.route("/location/<key>/submit", methods=["POST"])
@@ -339,23 +426,42 @@ def submit_quiz(key):
     if not is_unlocked(current_user, key):
         return redirect(url_for("game.hub"))
 
-    # Grade only the questions this attempt actually showed. Prefer the hidden
-    # field posted with the form (authoritative for this exact page), then the
-    # session record. If BOTH are missing (expired session / crafted POST) the
-    # attempt cannot be graded faithfully — never fall back to the whole bank,
-    # because the graded set must always equal the shown set.
-    bank_keys = [q["key"] for q in QUIZZES.get(key, [])]
-    shown_raw = request.form.get("shown_keys", "")
-    shown_keys = [k for k in shown_raw.split(",") if k in bank_keys]
-    if not shown_keys:
-        shown_keys = [k for k in session.get(f"shown_{key}", []) if k in bank_keys]
-    if not shown_keys:
-        flash("That attempt expired — here is a fresh Trial.", "warning")
-        return redirect(url_for("game.location", key=key))
+    # SERVER-AUTHORITATIVE grading. The browser sends only an attempt id; the
+    # graded set is the exact TRIAL_COUNT unique keys the server stored for that
+    # attempt. Any browser-provided question list is ignored — so forged or
+    # duplicated keys (e.g. lib_s1×4) cannot be graded, and a replayed/expired
+    # attempt is refused. See _start_trial_attempt / _load_trial_attempt.
+    fresh = url_for(
+        "game.location" if loc.get("interaction") == "terminal" else "game.trial",
+        key=key,
+    )
+    att, err = _load_trial_attempt(key, request.form.get("attempt_id", ""))
+    if att is None:
+        session.pop(f"trial_{key}", None)
+        flash("That Trial attempt has expired or was already submitted — here is a fresh Trial.", "warning")
+        return redirect(fresh)
 
-    quiz = get_questions_by_keys(key, shown_keys)
-    submitted = {q["key"]: request.form.get(q["key"]) for q in quiz}
-    results, score, total, passed = grade_quiz(key, submitted, shown_keys=shown_keys)
+    stored_keys = att["keys"]
+    quiz = get_questions_by_keys(key, stored_keys)
+
+    # The FIRST answer committed per question (recorded server-side via
+    # /answer) is authoritative; fall back to a validated form value only for a
+    # question that was never committed (e.g. JavaScript disabled). Anything that
+    # isn't one of THAT question's option letters is treated as unanswered.
+    recorded = att.get("answers", {})
+    submitted = {}
+    for q in quiz:
+        val = recorded.get(q["key"])
+        if val not in q["options"]:
+            fv = request.form.get(q["key"])
+            val = fv if fv in q["options"] else None
+        submitted[q["key"]] = val
+    results, score, total, passed = grade_quiz(key, submitted, shown_keys=stored_keys)
+
+    # One grading per attempt id — mark it consumed so a replayed POST is refused.
+    att["graded"] = True
+    session[f"trial_{key}"] = att
+    session.modified = True
 
     lp = get_or_create_progress(current_user, key)
     attempt_number = lp.attempts_count + 1

@@ -14,9 +14,11 @@
 <p class="quiz-intro text-center">{{ intro_line|safe }}{% if show_npc %} {{ intro_hint }}{% endif %}</p>
 
 <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
-      class="quiz-form" id="quiz-form" data-location="{{ loc.key }}">
+      class="quiz-form" id="quiz-form" data-location="{{ loc.key }}" data-attempt="{{ attempt_id }}">
   <input type="hidden" name="consulted" id="consulted" value="" />
-  <input type="hidden" name="shown_keys" value="{{ shown_keys|join(',') }}" />
+  {# Server-authoritative attempt: the page carries ONLY this id — never a
+     trusted list of which questions to grade, and never the answer key. #}
+  <input type="hidden" name="attempt_id" value="{{ attempt_id }}" />
 
   <div class="quiz-progress">
     <span class="quiz-counter">Question <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
@@ -26,10 +28,8 @@
   <div class="quiz-questions" id="quiz-questions">
     {% for q in quiz %}
     <div class="quiz-question {{ 'active' if loop.first }}" data-qindex="{{ loop.index0 }}"
-         data-correct="{{ q.correct }}" data-qkey="{{ q.key }}" data-question="{{ q.question }}"
-         data-hint="{{ q.hint | default('') }}"
-         data-fbok="{{ q.feedback_correct | default('') }}"
-         data-fbno="{{ q.feedback_wrong | default('') }}">
+         data-qkey="{{ q.key }}" data-question="{{ q.question }}"
+         data-hint="{{ q.hint | default('') }}">
       <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
       <div class="q-options">
         {% for letter, text in q|shuffle_options %}

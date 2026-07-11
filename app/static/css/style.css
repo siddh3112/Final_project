@@ -2737,15 +2737,41 @@ mark.kw { background: rgba(212, 168, 75, 0.35); color: #5a3d1a; padding: 0 0.2em
 @keyframes term-blink { 50% { opacity: 0; } }
 
 .term-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; }
+/* The primary "clear this sector / proceed" action: a real, visible console
+   button (bordered + phosphor glow when armed), not bare terminal text. */
 .term-continue {
-  font-family: 'Courier New', monospace; font-size: 0.95rem; background: none; border: 1px solid transparent;
-  color: #8ab4d4; cursor: pointer; padding: 0.3rem 0; opacity: 0.4;
+  font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em;
+  background: rgba(138, 180, 212, 0.12); border: 2px solid rgba(138, 180, 212, 0.55); border-radius: 6px;
+  color: #cfe6ff; cursor: pointer; padding: 0.62rem 1.7rem; opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.1s;
 }
-.term-continue.ready { opacity: 1; }
+/* Armed = ready to proceed: a solid, filled, unmistakable PRIMARY button
+   (dark text on phosphor-cyan) — used for both the sector "CONTINUE" and the
+   briefing "BEGIN MISSION", so the way forward is obvious. */
+.term-continue.ready, .term-briefing .term-continue.show {
+  opacity: 1; color: #06131f; border-color: #d6ecff;
+  background: linear-gradient(180deg, #a6d4ee, #62a9d6);
+  box-shadow: 0 0 22px rgba(138, 180, 212, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  text-shadow: none;
+  animation: term-ready-glow 1.8s ease-in-out infinite;
+}
+.reduce-motion .term-continue.ready { animation: none; box-shadow: 0 0 14px rgba(138, 180, 212, 0.4), inset 0 0 10px rgba(138, 180, 212, 0.1); }
 .term-continue.ready::after { content: "|"; animation: term-blink 0.9s steps(1) infinite; }
-.term-continue.ready:hover { content: ""; }
-.term-continue.ready:hover { color: #cfe1ef; }
-.term-continue:disabled { cursor: not-allowed; }
+.reduce-motion .term-continue.ready::after { animation: none; }
+.term-continue.ready:hover, .term-continue.ready:focus-visible,
+.term-briefing .term-continue.show:hover, .term-briefing .term-continue.show:focus-visible {
+  color: #04101a; border-color: #ffffff;
+  background: linear-gradient(180deg, #c2e2f6, #77b8e0);
+  box-shadow: 0 0 30px rgba(138, 180, 212, 0.85), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+  transform: translateY(-1px);
+}
+.term-continue:focus-visible { outline: 2px solid rgba(207, 230, 255, 0.7); outline-offset: 2px; }
+/* Loading state reads clearly as "not ready yet" — a dim, dashed button-in-waiting. */
+.term-continue:disabled { cursor: progress; opacity: 0.4; border-style: dashed; animation: none; }
+@keyframes term-ready-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(138, 180, 212, 0.3), inset 0 0 8px rgba(138, 180, 212, 0.08); }
+  50% { box-shadow: 0 0 20px rgba(138, 180, 212, 0.6), inset 0 0 12px rgba(138, 180, 212, 0.16); }
+}
 .term-skip { background: none; border: none; color: rgba(138, 180, 212, 0.45); font-family: 'Courier New', monospace; font-size: 0.7rem; cursor: pointer; }
 .term-skip:hover { color: #8ab4d4; }
 
@@ -5273,6 +5299,7 @@ body.ascent-body {
   position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%); z-index: 4;
   font-size: 1.25rem; filter: drop-shadow(0 0 8px rgba(224,170,99,0.9));
   transition: left 0.6s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;   /* decoration — never steal clicks from the era node beneath */
 }
 .reduce-motion .tl-rail-fill, .reduce-motion .tl-traveller, .reduce-motion .tl-progress-fill { transition: none; }
 
@@ -5366,6 +5393,13 @@ body.ascent-body {
 .tl-check-fb { margin-top: 0.9rem; font-size: 0.92rem; line-height: 1.5; }
 .tl-check-fb.ok { color: #9fd89f; }
 .tl-check-fb.bad { color: #e8a3a3; }
+/* back from the quick-check to the era's passage (read-only page flip) */
+.tl-back-btn {
+  display: inline-block; margin-top: 1rem; background: none; border: none; cursor: pointer; padding: 0;
+  font-family: 'Inter', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #b39468; border-bottom: 1px dotted rgba(179,148,104,0.6);
+}
+.tl-back-btn:hover { color: #e6b064; border-bottom-color: #e6b064; }
 
 /* ── Trial gate ── */
 .tl-trial { width: min(700px, 92vw); margin: 0.5rem auto 1rem; text-align: center; flex: 0 0 auto; }

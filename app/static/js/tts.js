@@ -99,7 +99,14 @@
 
   function stop() {
     if (!supported) return;
-    try { window.speechSynthesis.cancel(); } catch (e) {}
+    try {
+      var ss = window.speechSynthesis;
+      ss.cancel();
+      // Some engines (Safari/Chrome) don't reliably stop a long utterance that
+      // is mid-sentence on a single cancel() — nudge with resume()+cancel() so
+      // read-aloud never lingers on a page/panel the user has already left.
+      if (ss.speaking || ss.pending) { try { ss.resume(); } catch (e) {} ss.cancel(); }
+    } catch (e) {}
     clearSpeaking();
   }
 

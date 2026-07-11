@@ -260,6 +260,10 @@
           if (window.LibFX) window.LibFX.wrong();
           b.classList.add("wrong", "shake");
           setTimeout(function () { b.classList.remove("shake"); }, 500);
+          // Lock the options after a wrong answer: no instant correction. The only
+          // way forward is the existing "Read the Book Again" gate, which resets
+          // and re-renders fresh (re-enabled) options. (Ungraded learning gate.)
+          opts.forEach(function (o) { o.disabled = true; });
           if (fb) {
             fb.innerHTML =
               '<span class="fb-no"><i class="bi bi-x-lg me-1"></i>Not quite — ' + escapeHtml(book.quiz.explanation) + '</span>' +

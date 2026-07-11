@@ -14,6 +14,7 @@
   const fillEl = document.getElementById("q-fill");
   const consultedEl = document.getElementById("consulted");
   const location = form.dataset.location || "";
+  const attemptId = form.dataset.attempt || "";
   const XP_PER = 25;
 
   let idx = 0;
@@ -50,33 +51,51 @@
 
   // Answer a question: instant green/red feedback + elaborative explanation,
   // then wait for the learner to press Continue.
-  function answer(q, opt) {
+  async function answer(q, opt) {
     if (locked) return;
     locked = true;
 
-    const correct = q.dataset.correct;
-    const isRight = opt.querySelector("input").value === correct;
+    const chosenInput = opt.querySelector("input");
+    chosenInput.checked = true; // the committed answer is the one that gets graded
+    const chosen = chosenInput.value;
     const opts = Array.from(q.querySelectorAll(".q-option"));
+    // Data-level lock immediately: once committed, no switching to another
+    // option — not by a second click, not by keyboard arrow-keys, not by script.
     opts.forEach((o) => {
       o.classList.add("locked");
-      if (o.querySelector("input").value === correct) o.classList.add("correct");
+      if (o !== opt) o.querySelector("input").disabled = true;
     });
 
-    if (isRight) {
-      opt.classList.add("flash-ok");
-      floatXP(opt);
-    } else {
-      opt.classList.add("flash-no", "shake");
+    // Ask the SERVER whether it was right. The answer key is NOT in the DOM; the
+    // server records this (first) commit and returns the correct letter + the
+    // elaborative feedback. On a network error we still let the learner proceed
+    // (their checked answer is graded on submit as a fallback).
+    let isRight = false, correctLetter = null, feedback = "", known = false;
+    try {
+      const res = await fetch("/location/" + encodeURIComponent(location) + "/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attempt_id: attemptId, qkey: q.dataset.qkey, letter: chosen }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        isRight = !!d.is_correct; correctLetter = d.correct; feedback = d.feedback || ""; known = true;
+      }
+    } catch (e) {}
+
+    if (known && correctLetter != null) {
+      opts.forEach((o) => { if (o.querySelector("input").value === correctLetter) o.classList.add("correct"); });
+      if (isRight) { opt.classList.add("flash-ok"); floatXP(opt); }
+      else { opt.classList.add("flash-no", "shake"); }
     }
 
-    // Elaborative feedback (the "explain why" upgrade).
+    // Elaborative feedback (the "explain why" upgrade), now server-provided.
     const fb = q.querySelector(".q-feedback");
     if (fb) {
       const txt = fb.querySelector(".q-feedback-text");
-      const msg = isRight ? q.dataset.fbok : q.dataset.fbno;
-      if (txt) txt.textContent = msg || "";
-      fb.classList.toggle("is-ok", isRight);
-      fb.classList.toggle("is-no", !isRight);
+      if (txt) txt.textContent = known ? feedback : "Answer recorded.";
+      fb.classList.toggle("is-ok", known && isRight);
+      fb.classList.toggle("is-no", known && !isRight);
       fb.hidden = false;
       const nextBtn = fb.querySelector(".q-next-btn");
       if (nextBtn) {
