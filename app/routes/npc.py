@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 from ..game_content import LOCATION_ORDER, QUIZZES
 from ..models import NpcInteraction, QuizAttempt, db
 from ..services.npc_service import get_response
-from ..services.progress import get_or_create_open_session
+from ..services.progress import get_or_create_open_session, is_unlocked
 
 npc_bp = Blueprint("npc", __name__, url_prefix="/npc")
 
@@ -27,6 +27,11 @@ def chat():
     # npc_interactions research data from junk location strings).
     if location not in LOCATION_ORDER:
         return jsonify({"error": "invalid location"}), 400
+    # Don't hand out a location's tutor content before the learner has unlocked it
+    # (prevents spoilers/leakage of locked content). Presentation gate only — it
+    # never touches grading, and the condition==game 403 above still applies.
+    if not is_unlocked(current_user, location):
+        return jsonify({"error": "locked location"}), 403
 
     # ── Adaptive context: recent mistakes (STEMS ONLY) + recent dialogue ──
     recent_mistakes = _recent_mistake_stems(current_user.id, location)

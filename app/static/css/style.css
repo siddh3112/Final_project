@@ -1908,6 +1908,46 @@ body {
 .atlas-launcher-icon { font-size: 1.3rem; line-height: 1; }
 .atlas-widget.open .atlas-launcher { display: none; }
 
+/* ── One-time arrival attention cue (presentation only; game condition) ── */
+@keyframes atlas-cue-pulse {
+  0%   { transform: scale(1);    box-shadow: 0 6px 22px rgba(0,0,0,0.45), 0 0 0 0 color-mix(in srgb, var(--accent, #d4a84b) 60%, transparent); }
+  50%  { transform: scale(1.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 9px color-mix(in srgb, var(--accent, #d4a84b) 28%, transparent); }
+  100% { transform: scale(1);    box-shadow: 0 6px 22px rgba(0,0,0,0.45), 0 0 0 14px color-mix(in srgb, var(--accent, #d4a84b) 0%, transparent); }
+}
+.atlas-launcher.atlas-cue,
+.mini-launcher.atlas-cue { animation: atlas-cue-pulse 0.8s ease-in-out 2; }
+
+.atlas-cue-tip {
+  position: absolute; right: 0; bottom: calc(100% + 12px);
+  max-width: 230px; white-space: nowrap;
+  background: color-mix(in srgb, var(--accent, #d4a84b) 20%, #14100a);
+  color: var(--ink, #ece8ff);
+  border: 1px solid color-mix(in srgb, var(--accent, #d4a84b) 55%, transparent);
+  border-radius: 10px; padding: 0.5rem 0.75rem;
+  font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.01em;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.42);
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: auto; cursor: pointer; z-index: 2;
+}
+.atlas-cue-tip.show { opacity: 1; transform: translateY(0); }
+.atlas-cue-tip::after {
+  content: ""; position: absolute; right: 20px; top: 100%;
+  border: 6px solid transparent;
+  border-top-color: color-mix(in srgb, var(--accent, #d4a84b) 20%, #14100a);
+}
+/* No motion for reduced-motion users: skip the pulse; the label just appears. */
+html.reduce-motion .atlas-launcher.atlas-cue,
+html.reduce-motion .mini-launcher.atlas-cue { animation: none; }
+html.reduce-motion .atlas-cue-tip { transition: opacity 0.001s linear; transform: none; }
+html.reduce-motion .atlas-cue-tip.show { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .atlas-launcher.atlas-cue,
+  .mini-launcher.atlas-cue { animation: none; }
+  .atlas-cue-tip { transition: opacity 0.001s linear; transform: none; }
+  .atlas-cue-tip.show { transform: none; }
+}
+
 .atlas-chat {
   position: absolute; right: 0; bottom: 0;
   width: min(360px, calc(100vw - 44px)); height: 480px; max-height: calc(100vh - 60px);
@@ -5194,7 +5234,7 @@ html.reduce-motion .stars-near { animation: none !important; }
    lives on <html>. Themes override ONLY the shared palette vars below.
 
    Midnight = the :root defaults (no overrides needed). Parchment + Ocean
-   override. The three LOCATION interiors (--accent driven + hardcoded scene
+   override. The four LOCATION interiors (--accent driven + hardcoded scene
    literals) and the FINAL ASCENT (purple/gold) are pinned back to canonical
    in .loc-body / .ascent-body scope, so they are byte-identical in every
    theme. Presentation only — no scoring/data touched.

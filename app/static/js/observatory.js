@@ -100,8 +100,8 @@
 
   const INTRO_SLIDES = [
     "The Observatory holds a single hidden constellation — the architecture of machine learning, traced star by star. Each star is one concept that lets machines learn, predict, and improve without being reprogrammed.",
-    "The constellation builds in order. Click the one glowing star to discover its concept; a line then reaches out to the next star, and so on, until all five connect into one complete shape.",
-    "Only one star is ever ready at a time — it pulses with a ring to show you where to click next. Discover all five to complete the constellation and unlock the Final Assessment. Professor Atlas is here if you need guidance.",
+    "The constellation builds in order. Click the one glowing star to discover its concept; a line then reaches out to the next star, and so on, until all ten connect into one complete shape.",
+    "Only one star is ever ready at a time — it pulses with a ring to show you where to click next. Discover all ten to complete the constellation and unlock the Final Assessment. Professor Atlas is here if you need guidance.",
   ];
 
   const PENTA = [261.63, 293.66, 329.63, 392.0, 440.0]; // hover notes
@@ -838,7 +838,7 @@
     const sweep = document.getElementById("obs-unlock-sweep"), btn = document.getElementById("obs-final-btn");
     l1.textContent = ""; l2.textContent = ""; l3.textContent = ""; if (btn) btn.hidden = true;
     setTimeout(function () { ov.hidden = false; ov.classList.add("show"); }, 1800);
-    setTimeout(function () { typeInto(l1, "ALL FIVE CONCEPTS MAPPED", 45); }, 2800);
+    setTimeout(function () { typeInto(l1, "ALL " + CONSTELLATION_STARS.length + " CONCEPTS MAPPED", 45); }, 2800);
     setTimeout(function () { typeInto(l2, "THE MACHINE LEARNING ATLAS IS COMPLETE", 35); }, 3500);
     setTimeout(function () { typeInto(l3, "FINAL ASSESSMENT UNLOCKED", 45); }, 4200);
     setTimeout(function () { if (sweep) { sweep.classList.remove("go"); void sweep.offsetWidth; sweep.classList.add("go"); } }, 5000);
@@ -847,7 +847,7 @@
 
   // ── Silent restore of discovered stars (mirrors the Library). Re-lights the
   //    already-discovered stars + their constellation lines and sets CONCEPT
-  //    x/5, WITHOUT replaying the cinematic intro or any discovery animation. ──
+  //    x/N, WITHOUT replaying the cinematic intro or any discovery animation. ──
   function restoreExploration() {
     let ids = [];
     try { ids = JSON.parse(document.getElementById("obs-explored").textContent) || []; } catch (e) {}

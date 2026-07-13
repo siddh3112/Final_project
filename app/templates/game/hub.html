@@ -33,10 +33,10 @@
     <p class="hub-story narrative">
       {%- if stats.journey_complete -%}
         The Atlas is whole again, Sage.
-      {%- elif stats.passed_count >= 3 -%}
+      {%- elif stats.passed_count >= stats.total -%}
         One trial remains. The Final Ascent awaits.
       {%- elif stats.passed_count >= 1 -%}
-        The Atlas stirs &mdash; {{ stats.passed_count }} of 3 realms restored.
+        The Atlas stirs &mdash; {{ stats.passed_count }} of {{ stats.total }} realms restored.
       {%- else -%}
         The Atlas lies faded. Begin in the Library.
       {%- endif -%}

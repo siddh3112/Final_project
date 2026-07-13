@@ -14,15 +14,41 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
 
 from ..eval_content import CHAPTER_TITLES, EPILOGUE_LINES, POST_TEST, POST_TEST_PASS
-from ..models import KnowledgeTest, db
+from ..models import GameSession, KnowledgeTest, db
 from ..services.achievements import grant_new
 from ..services.gamification import XP_PER_POSTTEST_CORRECT, gamification_summary
 from ..services.leaderboard import record_run, run_stats
-from ..services.progress import all_passed, progress_map
+from ..services.progress import all_passed, get_or_create_open_session, progress_map
 
 eval_bp = Blueprint("eval", __name__, url_prefix="/eval")
+
+# Server-side pseudo-location key for the Final Assessment's timing session. It is
+# NOT a real game location (absent from LOCATION_ORDER), so it never affects
+# progress/unlock — it exists only to server-stamp the assessment's start/submit
+# times so the recorded duration is authoritative, not browser-supplied.
+ASSESSMENT_KEY = "assessment"
+
+
+def _server_assessment_seconds(user):
+    """Server-authoritative assessment duration, in seconds.
+
+    Closes the open server-stamped assessment session(s) for this user and returns
+    the elapsed time from the EARLIEST start to now. Returns None if the assessment
+    was never opened via GET (e.g. a direct POST) — a duration is never fabricated,
+    and browser-supplied timing is never consulted."""
+    now = datetime.utcnow()
+    sessions = GameSession.query.filter_by(
+        user_id=user.id, location=ASSESSMENT_KEY, ended_at=None
+    ).all()
+    if not sessions:
+        return None
+    start = min((s.started_at or now) for s in sessions)
+    for s in sessions:
+        s.ended_at = now
+    return max(0, int((now - start).total_seconds()))
 
 
 def _assessment_completed(user):
@@ -123,6 +149,10 @@ def post_test():
         if results is not None:
             return results
         # No stored attempt (shouldn't happen) → fall through to a fresh test.
+    # Server-stamp the assessment START so timing is server-authoritative (not
+    # browser-supplied). Reuses an open session on re-entry, so the start time
+    # stays fixed at the first view; it is closed and measured on submit.
+    get_or_create_open_session(current_user, ASSESSMENT_KEY)
     return render_template(
         "eval/post_test.html",
         chapters=_chapters(),
@@ -152,18 +182,23 @@ def submit_post_test():
         if selected == q["correct"]:
             score += 1
 
-    # ── Silent timing telemetry (display-only data; never affects the score) ──
-    total_time = None
-    try:
-        raw = request.form.get("time_spent_seconds")
-        if raw not in (None, ""):
-            total_time = max(0, int(float(raw)))
-    except (TypeError, ValueError):
-        total_time = None
+    # ── Timing is SERVER-AUTHORITATIVE: measured from the server-stamped start
+    # (recorded when GET /eval/post-test rendered the test) to the server's submit
+    # time. Any browser-supplied time_spent_seconds is IGNORED for both the score
+    # (speed bonus) and the recorded research value — it cannot be forged. ──
+    total_time = _server_assessment_seconds(current_user)
 
     # Optional per-question seconds → stored under a reserved key that scoring
     # never reads (scoring only checks the p1..p10 question keys).
     answers_out = dict(answers)
+    # Non-authoritative, client-reported total — kept for reference ONLY; it never
+    # feeds the score, the speed bonus, or the recorded duration (all server-side).
+    client_raw = request.form.get("time_spent_seconds")
+    if client_raw not in (None, ""):
+        try:
+            answers_out["_client_time_spent_seconds"] = max(0, int(float(client_raw)))
+        except (TypeError, ValueError):
+            pass
     try:
         pq = json.loads(request.form.get("per_question_seconds") or "{}")
         if isinstance(pq, dict) and pq:
@@ -188,7 +223,17 @@ def submit_post_test():
     passed = score >= POST_TEST_PASS
     if passed:
         current_user.post_test_done = True
-    db.session.commit()
+    # SINGLE-ATTEMPT at the DB level: if a concurrent double-submit slipped past
+    # the check-then-insert guard above, the unique index on
+    # knowledge_tests(user_id) rejects the losing racer's row here. Roll back and
+    # show the first (authoritative) attempt — so a race can only ever create ONE
+    # KnowledgeTest and (since we return before record_run) ONE RunHistory.
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        results = _render_completed_results()
+        return results if results is not None else redirect(url_for("game.hub"))
 
     # Grant the Atlas Sage (and any pending) achievement; hub celebrates it.
     session["atlas_new_achievements"] = grant_new(current_user)
@@ -337,16 +382,27 @@ def certificate():
     completed_at = kt.created_at if kt else datetime.utcnow()
     mastery = run_stats(current_user).get("best_score")
 
-    buf = _build_certificate_pdf(
-        name=current_user.username,
-        rank=stats.get("rank", "Atlas Sage"),
-        score=score,
-        total=len(POST_TEST),
-        badges_earned=stats.get("badges_earned", 0),
-        badges_total=stats.get("badges_total", 4),
-        mastery=mastery,
-        date_str=completed_at.strftime("%d %B %Y"),
-    )
+    try:
+        buf = _build_certificate_pdf(
+            name=current_user.username,
+            rank=stats.get("rank", "Atlas Sage"),
+            score=score,
+            total=len(POST_TEST),
+            badges_earned=stats.get("badges_earned", 0),
+            badges_total=stats.get("badges_total", 5),
+            mastery=mastery,
+            date_str=completed_at.strftime("%d %B %Y"),
+        )
+    except ImportError:
+        # reportlab (in requirements) isn't installed on this host — degrade
+        # gracefully instead of a 500. Nothing was written; the user keeps their
+        # completion and can retry once the dependency is present.
+        flash(
+            "Certificate generation is temporarily unavailable on this server. "
+            "Your Atlas Sage rank is safe — please try again later.",
+            "warning",
+        )
+        return redirect(url_for("game.hub"))
     safe = re.sub(r"[^A-Za-z0-9_-]+", "_", current_user.username).strip("_") or "player"
     return send_file(
         buf,
@@ -430,7 +486,7 @@ def _build_certificate_pdf(*, name, rank, score, total, badges_earned,
 
     c.setFillColor(MUTED)
     c.setFont("Helvetica", 12.5)
-    c.drawCentredString(cx, H - 286, "has journeyed through the three realms and earned the rank of")
+    c.drawCentredString(cx, H - 286, "has journeyed through the four realms and earned the rank of")
 
     c.setFillColor(GOLD)
     c.setFont("Times-Bold", 27)

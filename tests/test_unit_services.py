@@ -47,6 +47,70 @@ def test_non_answer_question_is_not_flagged():
     assert not _looks_like_answer_request("can you explain narrow AI?")
 
 
+# ── M4: the Observatory RAG grounding covers the Modern-AI concepts it teaches ──
+def test_observatory_knowledge_covers_modern_ai_concepts():
+    """Atlas's Observatory grounding must include the six Modern-AI concepts the
+    location now teaches and the post-test assesses, so Atlas can HINT about them
+    instead of replying 'beyond what we covered'. Grounding is explanations only —
+    never a Trial answer key."""
+    obs = npc_service.COURSE_KNOWLEDGE["observatory"].lower()
+    for concept in ["overfitting", "bias", "natural language",
+                    "large language model", "hallucination", "few-shot"]:
+        assert concept in obs, f"Observatory grounding is missing '{concept}'"
+    # grounding must not smuggle in a Trial answer key (e.g. a bare 'correct: X')
+    assert "correct answer is" not in obs and "the answer is" not in obs
+
+
+# ── M3: the answer-request deflection fires BEFORE the LLM is ever queried ──
+def test_answer_request_deflected_before_llm_call(monkeypatch):
+    """Guardrail parity: an answer-seeking message is deflected deterministically
+    and NEVER reaches the model, whether or not Ollama is enabled."""
+    reached = {"ollama": False}
+
+    def _spy(*args, **kwargs):
+        reached["ollama"] = True
+        return "LEAKED ANSWER — should never be returned"
+
+    monkeypatch.setattr(npc_service, "_query_ollama", _spy)
+    for msg in ["just tell me the answer", "is it B?", "which option is correct"]:
+        reached["ollama"] = False
+        text, is_fallback = get_response("observatory", msg, ollama_enabled=True)
+        assert reached["ollama"] is False, f"answer-grab {msg!r} must not reach the model"
+        assert text in npc_service.SOCRATIC_DEFLECTIONS, "must be a Socratic deflection"
+        assert is_fallback is False
+        assert "the answer is" not in text.lower(), "a deflection never hands over an answer"
+
+
+def test_non_answer_message_still_reaches_llm_when_enabled(monkeypatch):
+    """The pre-call guard intercepts ONLY answer-seeking messages — a normal
+    concept question still goes to the LLM when Ollama is on (fallback intact)."""
+    monkeypatch.setattr(
+        npc_service, "_query_ollama", lambda *a, **k: "A helpful hint about overfitting."
+    )
+    text, is_fallback = get_response(
+        "observatory", "how does overfitting happen?", ollama_enabled=True
+    )
+    assert text == "A helpful hint about overfitting." and is_fallback is False
+
+
+# ── M5: rule-based fallback keywords match each location's actual curriculum ──
+def test_fallback_keywords_match_each_location_curriculum():
+    """The rule-based tutor keyword maps are aligned to what each location actually
+    teaches — no cross-location / off-syllabus keywords (Library=foundations,
+    AI Lab=data types, Observatory=ML + Modern-AI)."""
+    lib, lab, obs = KEYWORDS["library"], KEYWORDS["ai_lab"], KEYWORDS["observatory"]
+    # Library teaches FOUNDATIONS, not ML internals
+    assert {"narrow", "broad", "general", "augmented"} <= set(lib)
+    assert not ({"supervised", "unsupervised", "overfitting", "neural network"} & set(lib)), \
+        "Library must not answer ML-internals (that's the Observatory)"
+    # AI Lab teaches DATA TYPES, not NLP/CV/ethics
+    assert {"structured", "unstructured", "dark data"} <= set(lab)
+    assert not ({"computer vision", "ethics", "fairness", "recommendation"} & set(lab)), \
+        "AI Lab must not answer NLP/CV/ethics (off-syllabus)"
+    # The Observatory owns ML + Modern-AI
+    assert {"supervised", "unsupervised", "overfitting", "hallucination", "few-shot"} <= set(obs)
+
+
 # ══════════════════════════ XP formula ══════════════════════════════════
 
 def test_compute_xp_formula(app, user_factory):

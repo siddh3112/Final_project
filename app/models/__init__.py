@@ -103,6 +103,13 @@ class TrialAttempt(db.Model):
 
 class KnowledgeTest(db.Model):
     __tablename__ = "knowledge_tests"
+    # SINGLE-ATTEMPT: the graded Final Assessment is a one-shot research measure —
+    # exactly one row per participant. This DB-level uniqueness makes a concurrent
+    # double-submit impossible (the losing racer's insert raises IntegrityError),
+    # backing up the check-then-insert guard in eval_routes.submit_post_test.
+    __table_args__ = (
+        db.UniqueConstraint("user_id", name="ux_knowledge_test_user"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)

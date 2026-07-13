@@ -3,7 +3,7 @@ Progress + unlock logic for Atlas Quest.
 
 Unlock chain (LOCATION_ORDER): the first location is always unlocked; each
 later location unlocks only when the previous one is passed (score >= 3/4).
-The post-test unlocks only when all three locations are passed.
+The post-test unlocks only when all four locations are passed.
 """
 
 from datetime import datetime

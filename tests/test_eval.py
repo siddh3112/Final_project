@@ -93,18 +93,81 @@ def test_posttest_pass_mark_is_8_of_10():
 #  SINGLE ATTEMPT — the graded post-test is closed after the first submission
 # ────────────────────────────────────────────────────────────────────
 def test_knowledge_test_records_the_single_attempt(client, user_factory, login, as_correct):
-    """Exactly ONE KnowledgeTest is recorded (answers + score + time); a later
-    submission is rejected and never overwrites the first."""
+    """Exactly ONE KnowledgeTest is recorded (answers + score); a later submission
+    is rejected and never overwrites the first. Timing is server-authoritative:
+    the browser-supplied value is NOT the recorded duration (only kept as a
+    non-authoritative reference)."""
     u = user_factory(passed=ALL_LOCATIONS)
     login(u)
-    client.post(SUBMIT, data=as_correct(8, time_spent_seconds=111))   # the one attempt
-    client.post(SUBMIT, data=as_correct(3, time_spent_seconds=222))   # rejected — no new row
+    client.get(POST_TEST_GET)                                        # server-stamps the start
+    client.post(SUBMIT, data=as_correct(8, time_spent_seconds=111))  # the one attempt
+    client.post(SUBMIT, data=as_correct(3, time_spent_seconds=222))  # rejected — no new row
     _fresh()
     rows = KnowledgeTest.query.filter_by(user_id=u.id).order_by(KnowledgeTest.id.asc()).all()
     assert len(rows) == 1, "the graded assessment is single-attempt"
-    assert rows[0].score == 8 and rows[0].time_spent_seconds == 111
+    assert rows[0].score == 8
+    # server-measured duration, NOT the forged browser value
+    assert rows[0].time_spent_seconds != 111, "recorded time must not be the browser value"
+    assert rows[0].time_spent_seconds is not None and rows[0].time_spent_seconds >= 0
     stored = json.loads(rows[0].answers_json)
     assert all(q["key"] in stored for q in POST_TEST)
+    # the browser value is retained only as a non-authoritative reference
+    assert stored.get("_client_time_spent_seconds") == 111
+
+
+def test_assessment_timing_is_server_authoritative(client, user_factory, login, as_correct):
+    """M2: the recorded/scoring duration is measured from the SERVER-stamped start
+    (GET) to submit — a forged browser time is ignored. We push the server start
+    5 minutes into the past and assert the recorded time reflects THAT, not the
+    tiny client value, and that it also feeds the run (speed bonus) path."""
+    from datetime import datetime, timedelta
+    from app.models import GameSession, RunHistory
+    from app.routes.eval_routes import ASSESSMENT_KEY
+
+    u = user_factory(passed=ALL_LOCATIONS)
+    login(u)
+    client.get(POST_TEST_GET)   # server-stamps the assessment start
+    _fresh()
+    gs = GameSession.query.filter_by(
+        user_id=u.id, location=ASSESSMENT_KEY, ended_at=None
+    ).first()
+    assert gs is not None, "GET must server-stamp an assessment start session"
+    gs.started_at = datetime.utcnow() - timedelta(seconds=300)   # pretend 5 min elapsed
+    db.session.commit()
+
+    client.post(SUBMIT, data=as_correct(8, time_spent_seconds=1))   # forged tiny client time
+    _fresh()
+    kt = KnowledgeTest.query.filter_by(user_id=u.id).order_by(KnowledgeTest.id.asc()).first()
+    assert kt.time_spent_seconds is not None
+    assert 290 <= kt.time_spent_seconds <= 360, \
+        f"recorded time must be server-measured ~300s, not the forged 1 (got {kt.time_spent_seconds})"
+    # the server duration — not the browser value — feeds the run / speed bonus
+    run = RunHistory.query.filter_by(user_id=u.id).first()
+    assert run.time_spent_seconds == kt.time_spent_seconds
+    # the forged client value is retained only as a non-authoritative reference
+    assert json.loads(kt.answers_json).get("_client_time_spent_seconds") == 1
+    # the timing session was closed on submit
+    _fresh()
+    assert GameSession.query.filter_by(
+        user_id=u.id, location=ASSESSMENT_KEY, ended_at=None
+    ).count() == 0
+
+
+def test_knowledge_test_is_unique_per_user(app, user_factory):
+    """M6: knowledge_tests has a DB-level unique index on user_id, so a second row
+    for the same user is rejected — a concurrent double-submit can never create two
+    KnowledgeTest rows (the losing racer hits IntegrityError)."""
+    from sqlalchemy.exc import IntegrityError
+    u = user_factory(passed=ALL_LOCATIONS)
+    db.session.add(KnowledgeTest(user_id=u.id, answers_json="{}", score=8))
+    db.session.commit()
+    db.session.add(KnowledgeTest(user_id=u.id, answers_json="{}", score=3))
+    with pytest.raises(IntegrityError):
+        db.session.commit()
+    db.session.rollback()
+    _fresh()
+    assert KnowledgeTest.query.filter_by(user_id=u.id).count() == 1, \
+        "only ONE KnowledgeTest may exist per user"
 
 
 def test_second_submission_after_pass_is_rejected(client, user_factory, login, as_correct):
@@ -251,6 +314,24 @@ def test_game_user_can_use_atlas(client, user_factory, login):
     assert r.status_code != 403, "game users must be able to reach Professor Atlas"
 
 
+def test_locked_location_npc_is_refused(client, user_factory, login):
+    """L1: a game user cannot pull tutor content for a location they haven't
+    unlocked yet — /npc/chat refuses a locked location and logs nothing. (The
+    control-user 403 is a separate, earlier gate.)"""
+    from app.models import NpcInteraction
+    u = user_factory(condition="game")   # only the Library is unlocked
+    login(u)
+    # the unlocked first location is allowed…
+    ok = client.post("/npc/chat", json={"message": "what is narrow AI?", "location": "library"})
+    assert ok.status_code != 403
+    # …a locked later location is refused
+    r = client.post("/npc/chat", json={"message": "what is overfitting?", "location": "observatory"})
+    assert r.status_code == 403, "a locked location's tutor content must be refused"
+    _fresh()
+    assert NpcInteraction.query.filter_by(user_id=u.id, location="observatory").count() == 0, \
+        "a refused locked-location chat logs nothing"
+
+
 # ────────────────────────────────────────────────────────────────────
 #  Unknown-input rejection — /progress and /read reject bogus ids
 # ────────────────────────────────────────────────────────────────────
@@ -268,6 +349,43 @@ def test_progress_rejects_unknown_ids(client, user_factory, login):
     _fresh()
     rows = BookRead.query.filter_by(user_id=u.id, location="ai_lab").all()
     assert [x.book_id for x in rows] == ["sector-0"]
+
+
+def test_observatory_high_stars_persist(client, user_factory, login):
+    """Regression (audit H1): the Observatory now has 10 constellation stars, so
+    star ids star-0..star-9 must ALL be accepted and persisted. Previously a
+    hardcoded range(5) silently dropped star-5..star-9, so a learner who lit all
+    ten, left, and returned found the last five dark and the Trial gate re-locked.
+    The valid-id count is now derived from the Observatory's content (its hooks),
+    which is 10. Presentation-progress only (BookRead) — never grading data."""
+    from app.game_content import get_hooks
+    n_stars = len(get_hooks("observatory"))
+    assert n_stars >= 6, "the Observatory should have well more than the old 5 stars"
+
+    u = user_factory()
+    login(u)
+    # A high star (the 8th) and the very last star must both be accepted + stored.
+    last = "star-%d" % (n_stars - 1)
+    r7 = client.post("/location/observatory/progress", json={"item": "star-7"})
+    r_last = client.post("/location/observatory/progress", json={"item": last})
+    assert r7.status_code == 200 and "star-7" in r7.get_json()["explored"]
+    assert r_last.status_code == 200 and last in r_last.get_json()["explored"]
+
+    _fresh()
+    stored = {b.book_id for b in BookRead.query.filter_by(user_id=u.id, location="observatory").all()}
+    assert {"star-7", last} <= stored, "high stars must persist (survive navigation)"
+
+    # A subsequent read (re-entering the location) returns them for the restore loop.
+    ids = client.post("/location/observatory/progress", json={"item": "star-0"}).get_json()["explored"]
+    assert {"star-0", "star-7", last} <= set(ids), "saved stars are read back for restore"
+
+    # Boundary: an id beyond the real star count is still rejected (never stored).
+    client.post("/location/observatory/progress", json={"item": "star-%d" % n_stars})
+    client.post("/location/observatory/progress", json={"item": "star-99"})
+    _fresh()
+    stored2 = {b.book_id for b in BookRead.query.filter_by(user_id=u.id, location="observatory").all()}
+    assert "star-99" not in stored2 and ("star-%d" % n_stars) not in stored2, \
+        "ids beyond the derived star count are rejected"
 
 
 def test_read_rejects_unknown_book(client, user_factory, login):

@@ -19,53 +19,45 @@ import re
 # ── Per-location concept explanations (keyword -> explanation) ──
 KEYWORDS = {
     "library": {
-        "machine learning": (
-            "Machine learning is an approach where a system learns patterns from "
-            "data rather than being given explicit rules. Think about it: how is "
-            "'learning from examples' different from 'following instructions'?"
+        "augmented": (
+            "Augmented intelligence amplifies human judgement rather than replacing "
+            "it — the AI does the heavy lifting (say, pre-screening loan "
+            "applications) but a human keeps the final decision and the "
+            "accountability. How is 'assisting' different from 'replacing'?"
         ),
-        "supervised": (
-            "In supervised learning the training examples come with labels — the "
-            "right answer is provided during training. What role do you think those "
-            "labels play while the model learns?"
+        "narrow": (
+            "Narrow AI is built for one specific task and can't step outside it — "
+            "spam filters, face-unlock and chess engines are all narrow. Almost "
+            "every AI you meet today is narrow."
         ),
-        "unsupervised": (
-            "Unsupervised learning works with data that has no labels — the model "
-            "must find structure on its own, such as grouping similar items. How "
-            "might a model organise data when nobody tells it the categories?"
+        "broad": (
+            "Broad AI (IBM's term) integrates several narrow components into one "
+            "business process trained on an organisation's own data — a self-driving "
+            "car combines vision, route-planning and decisions. It is available today."
         ),
-        "training data": (
-            "Training data is the experience a model learns from. Consider: if the "
-            "data is incomplete or biased, what does that imply about what the model "
-            "can possibly learn?"
+        "general": (
+            "General AI would reason and transfer knowledge across any domain the way "
+            "a human does — but it does not exist yet; it remains a long-term research "
+            "goal. Why might answering many questions NOT make something general AI?"
         ),
-        "overfitting": (
-            "Overfitting is when a model memorises its training examples instead of "
-            "learning the general pattern. What would you expect to happen when such "
-            "a model meets brand-new data?"
+        "analysis": (
+            "AI really does two things. First, analysis: it examines large amounts of "
+            "data to find hidden patterns. Then prediction acts on those patterns. "
+            "Which everyday tools do you think rely on that?"
         ),
-        "generalisation": (
-            "Generalisation is how well a model performs on data it has never seen. "
-            "Why might that matter more than performance on the training set itself?"
+        "prediction": (
+            "Prediction is the second thing AI does — after analysing data for "
+            "patterns, it predicts an outcome (a likely diagnosis, a suspicious "
+            "charge, tomorrow's rain). Analysis finds the pattern; prediction acts."
         ),
-        "neural network": (
-            "A neural network is a model loosely inspired by the brain, built from "
-            "layers of connected units that adjust as they learn. It is one method "
-            "among many for finding patterns in data."
+        "fraud": (
+            "Fraud detection is a classic AI prediction: it learns the patterns in "
+            "millions of transactions, then predicts which new charge looks like theft."
         ),
-        "bias": (
-            "Bias in machine learning often comes from the data: if history contains "
-            "unfair patterns, a model can absorb them. Where do you think such "
-            "patterns originate?"
-        ),
-        "algorithm": (
-            "An algorithm is the procedure a model uses to learn from data. The same "
-            "data with different algorithms can produce quite different results."
-        ),
-        "reinforcement learning": (
-            "Reinforcement learning trains an agent through rewards and penalties as "
-            "it acts in an environment — learning by trial and error rather than from "
-            "labelled examples."
+        "artificial intelligence": (
+            "Artificial intelligence is a machine's ability to learn patterns from "
+            "data and make predictions. It adds to human judgement rather than "
+            "replacing it — and much of it works invisibly inside apps you already use."
         ),
     },
     "chronicle": {
@@ -110,69 +102,142 @@ KEYWORDS = {
         ),
     },
     "ai_lab": {
-        "computer vision": (
-            "Computer vision lets machines interpret images and video — detecting "
-            "objects, faces, or scenes. What kind of input does such a system rely on?"
+        "unstructured": (
+            "Unstructured data has no built-in schema and is kept in its native form "
+            "— emails, PDFs, images, audio, chat logs. An estimated 80–90% of "
+            "enterprise data looks like this, which is exactly why AI is needed to "
+            "make sense of it."
         ),
-        "nlp": (
-            "Natural language processing (NLP) is how machines work with human "
-            "language, written or spoken. Where have you seen this in everyday tools?"
+        "semi-structured": (
+            "Semi-structured data sits between the two: it carries tags, keys or "
+            "metadata that make it machine-readable without a rigid table — JSON, XML "
+            "and CSV are the classic examples."
         ),
-        "natural language": (
-            "Working with human language — understanding and generating it — is the "
-            "domain of NLP. Think about translation, chatbots, and voice assistants."
+        "semi structured": (
+            "Semi-structured data carries tags or keys (like JSON or XML) that give "
+            "partial organisation without a rigid schema — a bridge between "
+            "structured tables and raw unstructured content."
         ),
-        "recommendation": (
-            "Recommendation systems suggest items by finding patterns in user "
-            "behaviour and preferences. What data would such a system need to learn "
-            "your taste?"
+        "structured": (
+            "Structured data is highly organised in rows and columns — names, ages, "
+            "dates, account balances — and is easily queried with SQL. Which everyday "
+            "file format fits that description?"
         ),
-        "ethics": (
-            "AI ethics asks whether a system is fair, transparent, and accountable. "
-            "When a model affects people's lives, what responsibilities follow?"
+        "dark data": (
+            "Dark data is information that is collected and stored but never used. It "
+            "can be any type — even tidy structured records count if they sit "
+            "unqueried — and studies suggest it is more than half of enterprise data."
         ),
-        "fairness": (
-            "Fairness concerns whether a model treats different groups equitably. If "
-            "training data reflects historical bias, how might that surface in the "
-            "model's decisions?"
+        "data": (
+            "Data comes in three types: structured (neat rows and columns), "
+            "unstructured (emails, images, audio — no schema), and semi-structured "
+            "(tagged formats like JSON). Most enterprise data is unstructured."
+        ),
+        "tabulation": (
+            "The Era of Tabulation was about sorting raw data into structured tables "
+            "so patterns could surface — the first step, long before machines could "
+            "learn from data."
+        ),
+        "programming": (
+            "The Era of Programming brought machines that follow instructions "
+            "(programs), like ENIAC. But the world soon generated more data than any "
+            "program could process — a new approach was needed."
+        ),
+        "eniac": (
+            "ENIAC was a 1940s programmable computer that ran wartime calculations. "
+            "Even fast programmable machines, though, couldn't keep up with the flood "
+            "of data. What finally could?"
         ),
     },
     "observatory": {
-        "llm": (
-            "A large language model is trained on vast amounts of text and generates "
-            "language by predicting what comes next. What does 'predicting the next "
-            "word' suggest about how it forms answers?"
+        "machine learning": (
+            "Machine learning is how AI learns patterns from data instead of "
+            "following pre-written rules. It is probabilistic — it gives a confidence "
+            "('84% sure') rather than a flat yes/no — and can improve over time. How "
+            "is learning from examples different from following instructions?"
+        ),
+        "unsupervised": (
+            "Unsupervised learning works with UNLABELLED data — the model finds "
+            "structure on its own, such as grouping similar customers, with no right "
+            "answers provided. How might a model organise data nobody has labelled?"
+        ),
+        "supervised": (
+            "In supervised learning the training examples come with labels — the "
+            "correct answer is provided (thousands of photos tagged 'dog'). The model "
+            "learns the pattern, then predicts the label for new, unseen data."
+        ),
+        "reinforcement": (
+            "Reinforcement learning trains an agent through rewards and penalties as "
+            "it acts in an environment — learning by trial and error, with no "
+            "labelled answer key. Think game-playing agents and warehouse robots."
+        ),
+        "overfitting": (
+            "Overfitting is when a model memorises its training examples instead of "
+            "learning the general pattern — so it scores high on training data but "
+            "poorly on new, unseen data. What does that tell you about generalising?"
+        ),
+        "generalisation": (
+            "Generalisation is how well a model performs on data it has never seen. "
+            "Why might that matter more than performance on the training set itself?"
+        ),
+        "bias": (
+            "Bias in machine learning often comes from the data: if the training data "
+            "reflects historical or human biases, the model absorbs and can repeat "
+            "them. A model is only as fair as what it learns from."
+        ),
+        "deterministic": (
+            "A deterministic system gives the same output for the same input every "
+            "time — like a calculator, or braking logic. That predictability is ideal "
+            "where you cannot tolerate surprises."
+        ),
+        "probabilistic": (
+            "A probabilistic system expresses outputs as likelihoods ('78% chance "
+            "this scan shows a tumour') rather than a flat yes/no. Why is expressing "
+            "uncertainty often safer than false certainty?"
+        ),
+        "natural language": (
+            "Natural language processing (NLP) is how machines work with human "
+            "language — reading, understanding and generating text or speech. It "
+            "powers translation, chatbots, voice assistants and spam filters."
+        ),
+        "nlp": (
+            "NLP — natural language processing — lets AI handle messy human language "
+            "(emails, chat, speech) that has no fixed structure. Where have you seen "
+            "it in everyday tools?"
         ),
         "large language model": (
-            "Large language models learn statistical patterns across enormous text "
-            "collections, then generate fluent language. They predict, rather than "
-            "look up, their responses."
+            "A large language model is trained on vast amounts of text and generates "
+            "language by predicting what is most likely to come next — it predicts "
+            "fluent language rather than looking facts up. Atlas uses a local one "
+            "when available."
+        ),
+        "llm": (
+            "An LLM (large language model) generates language by predicting the next "
+            "piece of text from patterns it learned in training. What does "
+            "'predicting the next word' suggest about how it forms answers?"
+        ),
+        "hallucination": (
+            "A hallucination is when a language model produces a confident, fluent "
+            "answer that is actually false. Because it predicts likely words rather "
+            "than checking a source, confidence is not proof — always verify."
+        ),
+        "few-shot": (
+            "Few-shot prompting means giving a model a few worked examples of what "
+            "you want before your real request, so it can follow the pattern. A few "
+            "examples often beat asking with none (zero-shot)."
+        ),
+        "prompting": (
+            "Prompting is the craft of phrasing your request well — giving examples, "
+            "context or step-by-step guidance often improves results. What might a "
+            "few worked examples do for the model?"
         ),
         "prompt": (
             "A prompt is the instruction or context you give a model. Small changes "
             "in wording can change the output a lot — why might that be?"
         ),
-        "prompting": (
-            "Prompting is the craft of phrasing your request well. Giving examples, "
-            "context, or step-by-step guidance often improves results. What might a "
-            "few worked examples do for the model?"
-        ),
-        "hallucination": (
-            "A hallucination is when a model states something fluent and confident "
-            "but false. Given how LLMs generate text, why can't confidence be trusted "
-            "as truth?"
-        ),
         "generative": (
             "Generative AI creates new content — text, images, code — rather than "
             "just classifying existing data. It produces, instead of merely sorting."
-        ),
-        "token": (
-            "A token is a chunk of text (often part of a word) that a model reads and "
-            "generates one at a time. Models build their output token by token."
-        ),
-        "gpt": (
-            "GPT-style models are large language models that generate text by "
-            "predicting the next token from patterns learned in training."
         ),
     },
 }
@@ -223,16 +288,23 @@ def get_response(location, message, ollama_enabled=False, recent_mistakes=None, 
     turns (dicts or objects with user_message/npc_response) for conversational memory.
     Both default to None so existing callers keep working.
     """
-    # Step 10 slot: when enabled, defer to the local LLM.
+    # Rule 1: never give the answer — enforced FIRST, BEFORE any LLM call.
+    # An answer-seeking message ("is it B?", "just tell me the answer") is
+    # deflected deterministically and is never sent to the model, so the
+    # no-answer guardrail holds identically whether or not Ollama is enabled
+    # (previously this ran only on the rule-based fallback path, leaving the LLM
+    # path guarded by the system prompt alone).
+    if _looks_like_answer_request(message):
+        return random.choice(SOCRATIC_DEFLECTIONS), False
+
+    # Step 10 slot: when enabled, defer to the local LLM. Only non-answer-seeking
+    # messages reach here, so the model is never the sole line of defence against
+    # handing over a Trial answer.
     if ollama_enabled:
         llm_text = _query_ollama(location, message, recent_mistakes, history)
         if llm_text:
             return llm_text, False
         # If the LLM is unavailable, fall through to the rule-based engine.
-
-    # Rule 1: never give the answer.
-    if _looks_like_answer_request(message):
-        return random.choice(SOCRATIC_DEFLECTIONS), False
 
     # Rule 2: explain a concept if a keyword is mentioned.
     text = message.lower()
@@ -310,6 +382,24 @@ Reinforcement learning works through trial and error. The algorithm learns by re
 
 Three Levels of AI Revisited:
 Narrow AI specialises in one area — it can look up information it was trained on but cannot apply knowledge elsewhere. Broad AI, available today, can structure vast amounts of unstructured data and find patterns to extend human expertise. General AI, expected perhaps 25 years from now, would be superintelligent — smarter than the best human brains in practically every field including scientific creativity, general wisdom, and social skills.
+
+Overfitting:
+Overfitting is when a model memorises its training examples instead of learning the general pattern behind them. Such a model scores very high on the data it was trained on but does poorly on new, unseen data, because it never learned to generalise. Good models are judged on how well they perform on data they have not seen before.
+
+Bias in Training Data:
+A model only learns from the data it is given, so if that data reflects historical or human biases, the model absorbs those biases and can repeat them in its predictions. This is why representative, carefully chosen training data matters — a model is only as fair as what it learns from.
+
+Natural Language Processing (NLP):
+Natural language processing is how machines work with human language — reading, understanding and generating text or speech. Because human language has no fixed structure, NLP is what lets AI handle messy inputs like emails, chat messages, reviews and voice. It powers translation, chatbots, voice assistants and spam filters.
+
+Large Language Models (LLMs):
+A large language model is trained on vast amounts of text and generates language by predicting what is most likely to come next, one piece at a time. It predicts fluent language rather than looking facts up in a database. Professor Atlas uses a local large language model when one is available to help explain these lessons.
+
+Hallucination:
+A hallucination is when a language model produces a confident, fluent answer that is actually false. Because an LLM predicts likely words rather than checking a source of truth, its confidence is not proof that it is correct. Always verify important claims against reliable sources — including anything this tutor tells you.
+
+Few-Shot Prompting:
+Few-shot prompting means giving a model a few worked examples of what you want before your real request, so it can follow the pattern you have shown. Providing a handful of examples often produces better, more consistent results than asking with no examples at all (which is called zero-shot).
 """,
 }
 

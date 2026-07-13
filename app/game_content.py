@@ -190,7 +190,7 @@ LIBRARY_BOOKS = [
 # in the GAME_INTRO_STEPS voice — presentation only.
 CINEMATIC_LINES = [
     "The Atlas of Knowledge has faded.",
-    "Three realms hold its lost pages.",
+    "Four realms hold its lost pages.",
     "Restore them all… and earn the rank of Atlas Sage.",
 ]
 
@@ -200,7 +200,7 @@ GAME_INTRO_STEPS = [
     "This is your map. Each glowing waypoint is a place to explore. You begin at the Library; new regions reveal themselves as you prove yourself.",
     "Within each location you will study its knowledge, then face a Trial of four questions. Score at least 3 of 4 to open the road onward.",
     "As you learn, you earn XP and badges, and your rank rises — keep an eye on the banner above the map.",
-    "Master all three locations to reveal the final assessment at the journey's end. I shall guide you the whole way. Onward, explorer!",
+    "Master all four locations to reveal the final assessment at the journey's end. I shall guide you the whole way. Onward, explorer!",
 ]
 
 LOCATIONS = {
@@ -942,7 +942,9 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
 # Guess-first "hook" per lesson chunk, in chunk order for each location:
 #   library     -> aligns to LIBRARY_BOOKS (5)
 #   ai_lab      -> aligns to the 4 terminal sector cards
-#   observatory -> aligns to the 5 constellation stars
+#   observatory -> aligns 1:1 to the 10 constellation stars — this list's LENGTH
+#                  is the server-side source of truth for the Observatory star
+#                  count (see explore_valid_ids in routes/game.py)
 # Each: {"question": str, "options": [2-3 short strings] (omit/empty = freeform
 # tap-to-reveal), "payoff": one-line bridge shown after the guess}.
 # Hooks must never reveal a Trial answer — they prime curiosity, nothing more.

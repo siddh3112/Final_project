@@ -20,8 +20,10 @@ XP_PER_POSTTEST_CORRECT = 30
 
 XP_PER_LEVEL = 200  # XP needed to advance one level
 
-# Rank title by how many locations have been passed (0..3), plus the sage rank.
-RANKS = ["Novice Explorer", "Apprentice", "Scholar", "Master Cartographer"]
+# Rank title by how many locations have been passed (0..4), plus the sage rank.
+# One rung per state so passing every location — including the 4th — moves the
+# rank (RANKS[min(passed_count, len(RANKS) - 1)]).
+RANKS = ["Novice Explorer", "Apprentice", "Scholar", "Cartographer", "Master Cartographer"]
 SAGE_RANK = "Atlas Sage"
 
 
@@ -40,13 +42,15 @@ def compute_xp(user, progress=None):
             if lp.passed:
                 xp += XP_LOCATION_BONUS
     if user.post_test_done:
-        latest = (
+        # The FIRST attempt is authoritative (single-attempt); read it with the
+        # same id.asc() ordering as results/certificate so all consumers agree.
+        attempt = (
             KnowledgeTest.query.filter_by(user_id=user.id)
-            .order_by(KnowledgeTest.id.desc())
+            .order_by(KnowledgeTest.id.asc())
             .first()
         )
-        if latest:
-            xp += (latest.score or 0) * XP_PER_POSTTEST_CORRECT
+        if attempt:
+            xp += (attempt.score or 0) * XP_PER_POSTTEST_CORRECT
     return xp
 
 
@@ -88,7 +92,8 @@ def gamification_summary(user):
     xp_into_level = xp % XP_PER_LEVEL
     level_pct = round(xp_into_level / XP_PER_LEVEL * 100)
 
-    # Journey counts the 3 locations PLUS the final assessment as a 4th milestone.
+    # Journey counts every location PLUS the final assessment as one extra
+    # milestone (total is len(LOCATION_ORDER), so this can't drift).
     journey_total = total + 1
     journey_done = passed_count + (1 if user.post_test_done else 0)
     # Everything done: all locations passed AND the final assessment complete.

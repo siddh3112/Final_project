@@ -27,6 +27,52 @@
   launcher.addEventListener("click", openChat);
   closeBtn.addEventListener("click", closeChat);
 
+  // ── One-time arrival attention cue (presentation only) ──
+  // Briefly draw the eye to the tutor button the first time a game-condition
+  // learner lands on a location this session, then settle to normal. This lives
+  // inside npc.js, which is loaded ONLY for the game condition and returns early
+  // above if the widget is absent — so control users never see the cue.
+  (function arrivalCue() {
+    if (!chat.hidden) return; // chat already open (shouldn't happen on fresh load)
+    try {
+      if (sessionStorage.getItem("atlasCueShown")) return; // first location visit per session
+      sessionStorage.setItem("atlasCueShown", "1");
+    } catch (e) { /* private mode: just play it once here */ }
+
+    const reduceMotion =
+      (window.ATLAS_PREFS && window.ATLAS_PREFS.reduce_motion) ||
+      document.documentElement.classList.contains("reduce-motion") ||
+      (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+    // A small, dismissible, non-blocking hint label above the button.
+    const tip = document.createElement("div");
+    tip.className = "atlas-cue-tip";
+    tip.textContent = "Need a hint? Ask Professor Atlas";
+    tip.setAttribute("role", "status");
+    widget.appendChild(tip);
+
+    const timers = [];
+    function dismissCue() {
+      launcher.classList.remove("atlas-cue");
+      tip.classList.remove("show");
+      timers.forEach(clearTimeout);
+      setTimeout(function () { if (tip.parentNode) tip.remove(); }, 350);
+    }
+    tip.addEventListener("click", dismissCue);
+    // Opening the chat cancels the cue immediately.
+    launcher.addEventListener("click", dismissCue, { once: true });
+
+    // Fade the label in shortly after arrival.
+    timers.push(setTimeout(function () { tip.classList.add("show"); }, 400));
+    // Pulse the button a couple of times — skipped for reduced-motion users.
+    if (!reduceMotion) {
+      launcher.classList.add("atlas-cue");
+      timers.push(setTimeout(function () { launcher.classList.remove("atlas-cue"); }, 2000));
+    }
+    // Settle back to normal after a couple of seconds.
+    timers.push(setTimeout(dismissCue, 2600));
+  })();
+
   function addMessage(text, who) {
     const el = document.createElement("div");
     el.className = "atlas-msg atlas-msg-" + who;

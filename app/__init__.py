@@ -183,10 +183,17 @@ def _ensure_sqlite_columns():
         # achievements: keep the earliest earned per (user, key)
         """DELETE FROM achievements WHERE id NOT IN (
              SELECT MIN(id) FROM achievements GROUP BY user_id, achievement_key)""",
+        # knowledge_tests: the graded assessment is single-attempt — one row per
+        # user. Keep the EARLIEST (first == authoritative) attempt if any pre-fix
+        # duplicates exist, then enforce it going forward with a unique index.
+        """DELETE FROM knowledge_tests WHERE id NOT IN (
+             SELECT MIN(id) FROM knowledge_tests GROUP BY user_id)""",
         "CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_user_location"
         " ON location_progress(user_id, location)",
         "CREATE UNIQUE INDEX IF NOT EXISTS ux_achievement_user_key"
         " ON achievements(user_id, achievement_key)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ux_knowledge_test_user"
+        " ON knowledge_tests(user_id)",
     ]
     for sql in hardening:
         try:

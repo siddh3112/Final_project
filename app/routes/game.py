@@ -79,15 +79,21 @@ def mark_book_read(key, book_id):
 def explore_valid_ids(loc):
     """Valid explored-item ids for a location (books / sectors / stars), used to
     reject unknown ids. Presentation-progress only — mirrors the Library's book
-    validation. Sectors = one per AI-Lab learn card; stars = the 5 Observatory
-    constellation points."""
+    validation. Sectors = one per AI-Lab learn card; stars = one per Observatory
+    constellation star (authored 1:1 with the hooks, currently 10)."""
     interaction = loc.get("interaction")
     if interaction == "bookshelf":
         return {b.get("id") for b in loc.get("books", [])}
     if interaction == "terminal":
         return {"sector-%d" % i for i in range(len(loc.get("learn_cards", [])))}
     if interaction == "constellation":
-        return {"star-%d" % i for i in range(5)}
+        # The Observatory renders one constellation star per guess-first hook
+        # (hooks are authored 1:1 with the stars — see HOOKS["observatory"] and
+        # observatory.js OBS_HOOKS[i]). Derive the count from that server-side
+        # content list so the accepted ids (star-0 … star-N-1) always match the
+        # real number of stars — the same way terminal/timeline derive theirs
+        # from learn_cards / beats, never a hardcoded number.
+        return {"star-%d" % i for i in range(len(get_hooks(loc.get("key", ""))))}
     if interaction == "timeline":
         return {"beat-%d" % i for i in range(len(loc.get("beats", [])))}
     return set()
@@ -107,7 +113,7 @@ def hub():
         db.session.commit()
 
     pmap = progress_map(current_user)
-    # The Final Assessment pin is clickable whenever it's unlocked (all three
+    # The Final Assessment pin is clickable whenever it's unlocked (all four
     # locations passed). If already done, re-entry shows the completed RESULTS
     # (not a fresh test) — the GET /eval/post-test route decides. The pin still
     # renders its 'passed' 🏆 state once post_test_done is True.
@@ -186,10 +192,11 @@ def _badge_detail(user, pmap, stats):
             })
             detail[bkey] = d
 
-    # Atlas Sage → post-test score + rank reached.
+    # Atlas Sage → post-test score + rank reached. Read the FIRST (authoritative,
+    # single-attempt) KnowledgeTest with id.asc(), matching results/certificate.
     if "atlas_sage" in em:
         kt = (KnowledgeTest.query.filter_by(user_id=user.id)
-              .order_by(KnowledgeTest.id.desc()).first())
+              .order_by(KnowledgeTest.id.asc()).first())
         d = meta("atlas_sage")
         d.update({
             "kind": "atlas_sage",
