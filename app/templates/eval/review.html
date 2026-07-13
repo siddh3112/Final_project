@@ -17,9 +17,6 @@
 
     <div class="text-center rv-actions">
       <a href="{{ url_for('game.hub') }}" class="btn-continue rv-return">Return to the Map <i class="bi bi-arrow-right ms-1"></i></a>
-      {% if not passed %}
-      <a href="{{ url_for('eval.post_test', retake=1) }}" class="rv-replay-ending"><i class="bi bi-arrow-repeat me-1"></i>Retake the Final Ascent</a>
-      {% endif %}
     </div>
 
     {% for r in review %}

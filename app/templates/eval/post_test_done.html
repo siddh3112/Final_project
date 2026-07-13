@@ -26,12 +26,12 @@
     </div>
 
     {% if not passed %}
-    <!-- Did not reach the pass mark — encourage a retake (attempt is still recorded) -->
+    <!-- Below the pass mark. The Final Assessment is a SINGLE graded attempt, so
+         it is now complete and recorded — there is no retake. -->
     <div class="rv-fail" id="rv-fail" hidden>
-      <div class="rv-fail-icon"><i class="bi bi-arrow-repeat"></i></div>
-      <div class="rv-fail-title">Not passed — yet</div>
-      <p class="rv-fail-sub">You need at least <b>{{ pass_mark }} of {{ total }}</b> correct to conquer the Final Ascent and earn your certificate. Review your answers, then climb again.</p>
-      <a href="{{ url_for('eval.post_test', retake=1) }}" class="rv-retake-btn">Retake the Final Ascent <i class="bi bi-arrow-up-right ms-1"></i></a>
+      <div class="rv-fail-icon"><i class="bi bi-check2-circle"></i></div>
+      <div class="rv-fail-title">Assessment complete</div>
+      <p class="rv-fail-sub">You scored below the <b>{{ pass_mark }} of {{ total }}</b> pass mark. Your responses have been recorded — the Final Assessment is a single graded attempt, so there is no retake. You can still review your answers below.</p>
     </div>
     {% endif %}
 
@@ -78,9 +78,6 @@
       {% if passed %}
       <a href="{{ url_for('eval.certificate') }}" class="rv-replay-ending"><i class="bi bi-download me-1"></i>Download Certificate</a>
       <button type="button" class="rv-replay-ending" id="rv-replay-ending"><i class="bi bi-film me-1"></i>Replay ending</button>
-      {% endif %}
-      {% if is_review %}
-      <a href="{{ url_for('eval.post_test', retake=1) }}" class="rv-replay-ending"><i class="bi bi-arrow-repeat me-1"></i>Retake the Final Assessment</a>
       {% endif %}
     </div>
   </div>

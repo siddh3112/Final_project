@@ -24,7 +24,7 @@
   <header class="obs-header">
     <h1 class="obs-title">{{ loc.name }}</h1>
     <p class="obs-tagline">{{ loc.tagline }}</p>
-    <div class="obs-counter">CONCEPT <span id="obs-count">0</span> / 5 DISCOVERED</div>
+    <div class="obs-counter">CONCEPT <span id="obs-count">0</span> / <span id="obs-total">10</span> DISCOVERED</div>
     <div class="obs-progress"><div class="obs-progress-fill" id="obs-progress-fill"></div></div>
   </header>
 
@@ -93,11 +93,11 @@
     </div>
   </div>
 
-  <!-- ── The Trial (locked until all 5 discovered) ── -->
+  <!-- ── The Trial (locked until all concepts discovered) ── -->
   <section class="obs-trial">
     <div class="obs-trial-gate" id="obs-trial-gate">
       <i class="bi bi-lock-fill"></i>
-      <span>Discover all 5 constellations to unlock <strong>The Trial</strong></span>
+      <span>Light all 10 stars of the constellation to unlock <strong>The Trial</strong></span>
     </div>
     <div class="obs-trial-ready" id="obs-trial-ready" hidden>
       <div class="obs-trial-ready-icon"><i class="bi bi-unlock-fill"></i></div>

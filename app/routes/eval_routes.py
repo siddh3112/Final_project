@@ -24,10 +24,16 @@ from ..services.progress import all_passed, progress_map
 
 eval_bp = Blueprint("eval", __name__, url_prefix="/eval")
 
-# TESTING: allow the post-test to be re-opened/re-taken even after completion,
-# so the results page can be exercised repeatedly.
-# Set back to False for the real study (single-attempt research measure).
-POSTTEST_REPLAYABLE = True
+
+def _assessment_completed(user):
+    """The graded Final Assessment is a ONE-shot research measure. It counts as
+    COMPLETED the moment the user's FIRST KnowledgeTest exists — pass OR fail —
+    after which the graded test is CLOSED: no resubmit, no fresh test, no retake.
+
+    This is deliberately distinct from user.post_test_done, which means the user
+    PASSED (>= POST_TEST_PASS). Completion gates the single attempt; passing only
+    controls the certificate / Atlas Sage / journey-complete rewards."""
+    return KnowledgeTest.query.filter_by(user_id=user.id).first() is not None
 
 
 def _chapters():
@@ -69,7 +75,7 @@ def _render_completed_results():
     run_history, no scoring). Returns None if there is no attempt to show."""
     kt = (
         KnowledgeTest.query.filter_by(user_id=current_user.id)
-        .order_by(KnowledgeTest.id.desc())
+        .order_by(KnowledgeTest.id.asc())  # the FIRST (only) graded attempt is authoritative
         .first()
     )
     if kt is None:
@@ -106,14 +112,13 @@ def _render_completed_results():
 @eval_bp.route("/post-test")
 @login_required
 def post_test():
-    # Gated: only after all three locations are passed.
+    # Gated: only after all locations are passed.
     if not all_passed(current_user):
         return redirect(url_for("game.hub"))
-    # Completion PERSISTS: once done, re-entering shows the RESULTS/REVIEW of the
-    # latest attempt — never a fresh blank test. A fresh test starts ONLY on an
-    # explicit retake (?retake=1), and only while retakes are enabled.
-    retake = request.args.get("retake") == "1"
-    if current_user.post_test_done and not (retake and POSTTEST_REPLAYABLE):
+    # SINGLE-ATTEMPT: once the graded assessment is completed (an attempt exists,
+    # pass OR fail) it is CLOSED. Re-entering ALWAYS shows the recorded results —
+    # never a fresh blank test. There is no retake of the graded measure.
+    if _assessment_completed(current_user):
         results = _render_completed_results()
         if results is not None:
             return results
@@ -131,8 +136,12 @@ def post_test():
 def submit_post_test():
     if not all_passed(current_user):
         return redirect(url_for("game.hub"))
-    if current_user.post_test_done and not POSTTEST_REPLAYABLE:
-        return redirect(url_for("game.hub"))
+    # SINGLE-ATTEMPT: reject any submission once the graded assessment is already
+    # completed (pass OR fail). The FIRST KnowledgeTest is authoritative and is
+    # never overwritten — the user simply sees their existing results.
+    if _assessment_completed(current_user):
+        results = _render_completed_results()
+        return results if results is not None else redirect(url_for("game.hub"))
 
     # ── Scoring (UNCHANGED) ──
     answers = {}
@@ -211,6 +220,7 @@ def submit_post_test():
         post_test_score=score,
         post_test_max=len(POST_TEST),
         library_score=pmap["library"]["best_score"],
+        chronicle_score=pmap["chronicle"]["best_score"],
         ai_lab_score=pmap["ai_lab"]["best_score"],
         observatory_score=pmap["observatory"]["best_score"],
         badges_count=stats["badges_earned"],
@@ -257,7 +267,7 @@ def review():
     stored KnowledgeTest answers; nothing is written."""
     kt = (
         KnowledgeTest.query.filter_by(user_id=current_user.id)
-        .order_by(KnowledgeTest.id.desc())
+        .order_by(KnowledgeTest.id.asc())  # the FIRST (only) graded attempt is authoritative
         .first()
     )
     if kt is None:
@@ -320,7 +330,7 @@ def certificate():
     stats = gamification_summary(current_user)
     kt = (
         KnowledgeTest.query.filter_by(user_id=current_user.id)
-        .order_by(KnowledgeTest.id.desc())
+        .order_by(KnowledgeTest.id.asc())  # the FIRST (only) graded attempt is authoritative
         .first()
     )
     score = kt.score if kt else 0

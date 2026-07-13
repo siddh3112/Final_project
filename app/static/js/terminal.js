@@ -394,23 +394,27 @@
     function evaluate() {
       let placed = 0, correct = 0;
       items.forEach((it) => { const p = placement[it.dataset.id]; if (p) { placed++; if (p === it.dataset.bin) correct++; } });
-      if (placed < 6) return;
+      if (placed < 6) return;   // grade only once all six are committed to bins
       if (result) { result.hidden = false; }
+      // ONE-SHOT, like every Trial question: lock the placement (no retry) and
+      // grade lab_q3 on the learner's ACTUAL sort. A correct sort (>= 4/6, the
+      // existing correctness bar) records the real answer; a wrong sort records
+      // NO answer, so the server scores lab_q3 WRONG like any other question —
+      // it is no longer an automatic point, and a bad sort no longer forces a retry.
+      items.forEach((it) => { it.setAttribute("draggable", "false"); if (placement[it.dataset.id] !== it.dataset.bin) it.classList.add("err"); });
+      const ans = document.getElementById("q3-answer");
       if (correct >= 4) {
         result.textContent = "> CLASSIFICATION COMPLETE — ACCURACY " + correct + "/6 ✓\n> PROCEED TO NEXT SECTOR";
-        items.forEach((it) => { if (placement[it.dataset.id] !== it.dataset.bin) it.classList.add("err"); it.setAttribute("draggable", "false"); });
-        const ans = document.getElementById("q3-answer"); if (ans) ans.value = game.dataset.correctval;
-        machineDone();
-        if (cont) { cont.disabled = false; cont.classList.add("ready"); }
-        stopRumble();
+        if (ans) ans.value = game.dataset.correctval;   // real correct answer → graded correct
+        correctChime();
       } else {
-        result.textContent = "> CLASSIFICATION FAILED — ACCURACY " + correct + "/6 ✗\n> REPROCESSING...";
+        result.textContent = "> CLASSIFICATION INCORRECT — ACCURACY " + correct + "/6 ✗\n> ANSWER LOGGED — PROCEED TO NEXT SECTOR";
+        if (ans) ans.value = "";                        // no answer earned → graded WRONG
         wrongBuzz();
-        setTimeout(function () {
-          items.forEach((it) => { itemsWrap.appendChild(it); it.classList.remove("err", "settled"); delete placement[it.dataset.id]; });
-          if (result) result.hidden = true;
-        }, 1200);
       }
+      machineDone();
+      if (cont) { cont.disabled = false; cont.classList.add("ready"); }   // proceed regardless
+      stopRumble();
     }
   }
 

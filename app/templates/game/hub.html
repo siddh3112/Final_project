@@ -11,8 +11,8 @@
 #}
 {% set markers = {
   'library':     {'x': 19, 'y': 25},
-  'chronicle':   {'x': 30, 'y': 38},
-  'ai_lab':      {'x': 43, 'y': 47},
+  'chronicle':   {'x': 30, 'y': 85},
+  'ai_lab':      {'x': 50, 'y': 29},
   'observatory': {'x': 82, 'y': 24}
 } %}
 {% set final_xy = {'x': 84, 'y': 91} %}
@@ -328,7 +328,7 @@
             {% if loop.first %}<span class="lb-pb-tag">PERSONAL BEST</span>{% endif %}
           </div>
           <div class="lb-run-sub">
-            <span class="lb-locs">L{{ r.library_score }} · A{{ r.ai_lab_score }} · O{{ r.observatory_score }}</span>
+            <span class="lb-locs">L{{ r.library_score }} · C{{ r.chronicle_score }} · A{{ r.ai_lab_score }} · O{{ r.observatory_score }}</span>
             <span class="lb-badges"><i class="bi bi-award-fill"></i> {{ r.badges_count }}</span>
             {% if r.time_spent_seconds is not none %}<span class="lb-time"><i class="bi bi-stopwatch"></i> {{ '%d:%02d'|format(r.time_spent_seconds // 60, r.time_spent_seconds % 60) }}</span>{% endif %}
             <span class="lb-date">{{ r.created_at.strftime('%d %b %Y') }}</span>

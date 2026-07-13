@@ -61,11 +61,35 @@ def test_post_test_wellformed():
     assert POST_TEST_PASS == 8
     seen = set()
     for q in POST_TEST:
-        assert {"key", "question", "options", "correct"} <= set(q)
+        assert {"key", "question", "options", "correct", "concept", "chapter"} <= set(q)
         assert q["key"] not in seen, f"duplicate post-test key {q['key']}"
         seen.add(q["key"])
         assert set(q["options"]) == {"A", "B", "C", "D"}
         assert q["correct"] in q["options"], f"{q['key']}: correct not an option"
+        assert q["chapter"] in (1, 2, 3, 4), f"{q['key']}: chapter out of range"
+
+
+# ── CONTENT VALIDITY: every tested concept is TAUGHT (no orphan) ─────────
+def test_post_test_concepts_are_a_subset_of_taught():
+    """Assessment_Blueprint.md: the set of concepts the post-test measures must be
+    a SUBSET of the concepts the game teaches — no item tests untaught material."""
+    from app.game_content import TAUGHT_CONCEPTS
+    tested = {q["concept"] for q in POST_TEST}
+    taught = set(TAUGHT_CONCEPTS)
+    orphans = tested - taught
+    assert not orphans, f"post-test concepts not taught anywhere: {sorted(orphans)}"
+
+
+def test_post_test_covers_previously_missing_strands():
+    """The strands that were taught-but-untested (AI history, data types) are now
+    assessed, and every question maps to a real taught concept + location."""
+    from app.game_content import TAUGHT_CONCEPTS
+    tested = {q["concept"] for q in POST_TEST}
+    assert {"eras_and_winters", "ai_milestones"} <= tested, "AI history must now be tested"
+    assert {"data_types", "unstructured_data"} <= tested, "data types must now be tested"
+    # each tested concept resolves to a location that teaches it
+    for q in POST_TEST:
+        assert q["concept"] in TAUGHT_CONCEPTS, f"{q['key']} tags an unknown concept {q['concept']}"
 
 
 # ── the Chronicle's timeline beats each carry a valid quick-check ────────

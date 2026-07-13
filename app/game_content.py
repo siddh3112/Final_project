@@ -12,6 +12,37 @@ PASS_THRESHOLD = 3  # must score at least 3 out of 4 to pass a location
 # Order matters: this defines the unlock chain (each unlocks the next).
 LOCATION_ORDER = ["library", "chronicle", "ai_lab", "observatory"]
 
+# ── Content-validity registry (Assessment_Blueprint.md) ──
+# The concepts the game TEACHES, mapped to the location that teaches them. This is
+# the machine-readable side of the Assessment Blueprint: every POST_TEST question
+# tags one of these `concept` keys, and a coverage test asserts the SET of tested
+# concepts is a subset of the taught set — so no post-test item is an orphan
+# (tested but not taught). The Observatory row includes the Modern-AI additions
+# (overfitting, bias, NLP, LLMs, hallucination, few-shot prompting) folded in
+# under Path A. Keep this in sync when adding/removing taught content.
+TAUGHT_CONCEPTS = {
+    # Library — Module 1 (foundations)
+    "what_is_ai": "library",
+    "augmented_intelligence": "library",
+    "analysis_prediction": "library",
+    "three_levels": "library",
+    # Chronicle — Module 2 (history)
+    "eras_and_winters": "chronicle",
+    "ai_milestones": "chronicle",
+    # AI Lab — Module 3 (data)
+    "data_types": "ai_lab",
+    "unstructured_data": "ai_lab",
+    # Observatory — Modules 4–5 (machine learning) + Modern-AI extension
+    "ml_methods": "observatory",
+    "deterministic_probabilistic": "observatory",
+    "overfitting": "observatory",
+    "bias": "observatory",
+    "nlp": "observatory",
+    "llm": "observatory",
+    "hallucination": "observatory",
+    "few_shot_prompting": "observatory",
+}
+
 # ── Interactive Library books ──
 # Each book is a multi-page lesson (intro → concept → example) ending in a
 # low-stakes "quick check" that charges the Knowledge Core and unlocks a
@@ -983,6 +1014,21 @@ HOOKS = {
         {"question": "Which kind of AI actually exists and runs real businesses today?",
          "options": ["Narrow & Broad AI", "General AI", "Super AI"],
          "payoff": "Hold that thought — let's map the big picture."},
+        {"question": "A model aces its practice data but flops on brand-new data. What went wrong?",
+         "options": ["It memorised instead of learning", "It's simply perfect", "It needs less data"],
+         "payoff": "Keep your guess — this trap has a name."},
+        {"question": "How do machines make sense of messy human language — emails, speech, chat?",
+         "options": ["Natural Language Processing", "They can't at all", "Only via spreadsheets"],
+         "payoff": "Hold that thought — language is the next frontier."},
+        {"question": "Your guide, Professor Atlas — what kind of AI do you think it is?",
+         "options": ["A large language model", "A human typing", "A search engine"],
+         "payoff": "Keep that in mind — the tutor IS the technology."},
+        {"question": "An AI confidently states a fake 'fact'. What is that called?",
+         "options": ["A hallucination", "A victory", "A calculation"],
+         "payoff": "Hold that thought — even Atlas can do this."},
+        {"question": "To steer an LLM, what helps most before your real question?",
+         "options": ["A few example answers", "Asking louder", "Nothing at all"],
+         "payoff": "Keep your guess — prompting is a real skill."},
     ],
 }
 

@@ -198,6 +198,7 @@ class RunHistory(db.Model):
     post_test_score = db.Column(db.Integer, nullable=False)
     post_test_max = db.Column(db.Integer, nullable=False)
     library_score = db.Column(db.Integer, nullable=False, default=0)
+    chronicle_score = db.Column(db.Integer, nullable=False, default=0)
     ai_lab_score = db.Column(db.Integer, nullable=False, default=0)
     observatory_score = db.Column(db.Integer, nullable=False, default=0)
     badges_count = db.Column(db.Integer, nullable=False, default=0)

@@ -143,6 +143,9 @@ def _ensure_sqlite_columns():
     wanted = {
         "knowledge_tests": [("time_spent_seconds", "INTEGER")],
         "users": [("seen_intro", "INTEGER")],
+        # The Chronicle (4th location) joined the leaderboard; add its Trial score
+        # to existing run_history rows as 0 (pre-Chronicle runs had no Chronicle).
+        "run_history": [("chronicle_score", "INTEGER NOT NULL DEFAULT 0")],
     }
     conn = db.session.connection()
 

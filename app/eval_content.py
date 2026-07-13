@@ -2,13 +2,14 @@
 Post-test content for Atlas Quest.
 
 This is the ONLY knowledge test in the study. It appears on the hub only after
-all three locations are passed, and tests material from all three locations.
-10 multiple-choice questions.
+all four locations are passed, and tests material taught across them. 10
+multiple-choice questions; 8/10 to pass (POST_TEST_PASS).
 
-Each question carries a "chapter" tag (1-4) used purely for the cinematic "Final
-Ascent" presentation — the question text, options and correct answers are
-unchanged, and scoring is unaffected. An "explanation" line is shown only in the
-post-submit learning review (never during the graded test).
+CONTENT VALIDITY (Assessment_Blueprint.md): every question carries a `concept`
+key that must exist in game_content.TAUGHT_CONCEPTS — so no question tests a
+concept the game doesn't teach (a coverage test enforces this). Each also carries
+a "chapter" tag (1-4) used purely for the cinematic "Final Ascent" presentation;
+the question text, options, correct answers and scoring are unaffected by it.
 """
 
 # Chapter titles for the cinematic 4-act structure.
@@ -25,136 +26,133 @@ CHAPTER_TITLES = {
 # research regardless of pass/fail.
 POST_TEST_PASS = 8
 
+# Blueprint mapping (Assessment_Blueprint.md), 10 items across 5 strands folded
+# into the 4 cinematic chapters:
+#   Ch 1 Foundations  — Q1 what AI is · Q2 three levels · Q3 augmented ·
+#                       Q4 eras/AI-Winters · Q5 milestone (Deep Blue)   [Library + Chronicle]
+#   Ch 2 The Data Deep— Q6 data types · Q7 why unstructured data is hard [AI Lab]
+#   Ch 3 The Learning Machines — Q8 ML method · Q9 overfitting          [Observatory]
+#   Ch 4 Final Synthesis       — Q10 LLM hallucination                   [Observatory / Modern AI]
 POST_TEST = [
     {
-        "key": "p1",
-        "chapter": 1,
-        "question": "What is artificial intelligence best described as?",
+        "key": "p1", "chapter": 1, "concept": "what_is_ai",
+        "question": "The Library taught that artificial intelligence is best described as a machine that…",
         "options": {
-            "A": "Software that can only do tasks it was explicitly programmed to do",
-            "B": "The simulation of human intelligence processes by machines",
-            "C": "A type of database that stores large amounts of information",
-            "D": "Hardware designed to run calculations faster than normal computers",
+            "A": "follows a fixed set of hand-written rules and never changes",
+            "B": "learns patterns from data to make predictions, adding to human judgement",
+            "C": "simply stores large amounts of information for fast lookup",
+            "D": "is just faster hardware for running ordinary calculations",
         },
         "correct": "B",
-        "explanation": "AI is the simulation of human intelligence processes — reasoning, learning and perception — by machines, not just fixed pre-programmed steps.",
+        "explanation": "AI learns patterns from data and makes predictions, adding to human judgement rather than replacing it — unlike ordinary software that only follows fixed, hand-written rules.",
     },
     {
-        "key": "p2",
-        "chapter": 3,
-        "question": "In supervised learning what does the supervision refer to?",
+        "key": "p2", "chapter": 1, "concept": "three_levels",
+        "question": "Which statement about the three levels of AI is correct?",
         "options": {
-            "A": "A human watching the model train in real time",
-            "B": "The model supervising other models",
-            "C": "Labelled training examples that guide learning",
-            "D": "Rules written by a programmer to control the model",
+            "A": "General AI already runs most businesses today",
+            "B": "Narrow AI can transfer its skill to any new task",
+            "C": "Broad AI integrates several narrow systems and is what's available today; General AI does not exist yet",
+            "D": "Super AI is the level used in everyday spam filters",
         },
         "correct": "C",
-        "explanation": "The 'supervision' is the labelled training examples — each input paired with its correct answer — that guide the model's learning.",
+        "explanation": "Narrow AI does one task; Broad AI (IBM's term) integrates several narrow components and is what's used today; General AI — human-level across any domain — does not exist yet.",
     },
     {
-        "key": "p3",
-        "chapter": 3,
-        "question": "Which of the following is an example of unsupervised learning?",
+        "key": "p3", "chapter": 1, "concept": "augmented_intelligence",
+        "question": "A bank uses AI to pre-screen loan applications and flag risks, but a human officer makes the final decision. This 'AI assists, human decides' arrangement is called:",
         "options": {
-            "A": "Training a model to detect whether an email is spam using labelled examples",
-            "B": "Grouping customers by purchasing behaviour without predefined categories",
-            "C": "Teaching a robot to walk by rewarding it for moving forward",
-            "D": "Using a pre-trained image model to classify new photos",
+            "A": "General AI",
+            "B": "Augmented intelligence",
+            "C": "Reinforcement learning",
+            "D": "Unsupervised learning",
         },
         "correct": "B",
-        "explanation": "Grouping customers with no predefined categories is unsupervised learning — it finds structure in unlabelled data (clustering).",
+        "explanation": "Augmented intelligence amplifies human judgement rather than replacing it — the AI does the heavy lifting, but a human keeps the decision and the accountability.",
     },
     {
-        "key": "p4",
-        "chapter": 3,
-        "question": "A model performs very well on training data but poorly on new test data. What problem does this describe?",
+        "key": "p4", "chapter": 1, "concept": "eras_and_winters",
+        "question": "Grand promises went unmet and funding collapsed in the early 1970s — the First AI Winter. What were its two main technical causes?",
+        "options": {
+            "A": "Too many programmers and too few computers",
+            "B": "Limited calculating power and limited information storage",
+            "C": "Government bans and public fear of AI",
+            "D": "A shortage of data and a shortage of electricity",
+        },
+        "correct": "B",
+        "explanation": "The First AI Winter came from two hard limits: machines were too slow (limited calculating power) and could not store enough to reason about the world (limited storage).",
+    },
+    {
+        "key": "p5", "chapter": 1, "concept": "ai_milestones",
+        "question": "Which milestone helped thaw the AI Winters — an IBM system that defeated the reigning world chess champion in 1997?",
+        "options": {
+            "A": "ENIAC",
+            "B": "Watson",
+            "C": "Deep Blue",
+            "D": "The Dartmouth workshop",
+        },
+        "correct": "C",
+        "explanation": "In 1997 IBM's Deep Blue beat the world chess champion — a landmark of the thaw. (Watson won Jeopardy! in 2011; the 1956 Dartmouth workshop first coined 'artificial intelligence'.)",
+    },
+    {
+        "key": "p6", "chapter": 2, "concept": "data_types",
+        "question": "Which of these is an example of UNSTRUCTURED data?",
+        "options": {
+            "A": "A spreadsheet of names, ages and account balances",
+            "B": "A table of stock prices organised by date",
+            "C": "Customer emails, photos and voice recordings",
+            "D": "A database with fixed rows and columns",
+        },
+        "correct": "C",
+        "explanation": "Unstructured data has no rows-and-columns schema — emails, images, audio. Structured data fits neat, SQL-queryable tables.",
+    },
+    {
+        "key": "p7", "chapter": 2, "concept": "unstructured_data",
+        "question": "An estimated 80–90% of enterprise data is unstructured. Why is that hard for traditional, rule-based computers?",
+        "options": {
+            "A": "Unstructured data doesn't really exist",
+            "B": "It has no fixed schema, so conventional programs can't query it directly — AI (e.g. natural-language processing) is needed to make sense of it",
+            "C": "Traditional computers can only read images",
+            "D": "Structured data cannot be analysed at all",
+        },
+        "correct": "B",
+        "explanation": "Without a fixed schema, legacy tools (built for the structured ~10–20%) can't process the unstructured majority — machine learning/AI is what finally makes it usable.",
+    },
+    {
+        "key": "p8", "chapter": 3, "concept": "ml_methods",
+        "question": "A team has 50,000 emails already labelled 'spam' or 'not spam' and wants to train a filter. Which machine-learning method fits?",
+        "options": {
+            "A": "Supervised learning",
+            "B": "Unsupervised learning",
+            "C": "Reinforcement learning",
+            "D": "None — this needs no machine learning",
+        },
+        "correct": "A",
+        "explanation": "Labelled examples with known answers are the hallmark of supervised learning: it learns the input→label mapping and predicts the label for new, unseen emails.",
+    },
+    {
+        "key": "p9", "chapter": 3, "concept": "overfitting",
+        "question": "A model scores 99% on its training data but only 60% on new, unseen data. What has gone wrong?",
         "options": {
             "A": "Underfitting",
-            "B": "Data leakage",
-            "C": "Overfitting",
-            "D": "Feature scaling",
-        },
-        "correct": "C",
-        "explanation": "Excelling on training data but failing on new data is overfitting — the model memorised the training set instead of learning general patterns.",
-    },
-    {
-        "key": "p5",
-        "chapter": 1,
-        "question": "Which technology allows computers to understand spoken and written human language?",
-        "options": {
-            "A": "Computer vision",
-            "B": "Natural language processing",
-            "C": "Reinforcement learning",
-            "D": "Genetic algorithms",
+            "B": "Overfitting",
+            "C": "Nothing — it is perfectly trained",
+            "D": "Reinforcement learning",
         },
         "correct": "B",
-        "explanation": "Natural language processing (NLP) is the field that lets computers understand and generate human language.",
+        "explanation": "Overfitting: the model memorised its training examples instead of learning general patterns, so it fails on data it hasn't seen.",
     },
     {
-        "key": "p6",
-        "chapter": 2,
-        "question": "What does a recommendation system like Netflix primarily rely on?",
+        "key": "p10", "chapter": 4, "concept": "hallucination",
+        "question": "Professor Atlas is itself a large language model. When an LLM produces a confident, fluent answer that is actually FALSE, this is called:",
         "options": {
-            "A": "Human editors choosing content for each user",
-            "B": "Patterns in user behaviour and preferences from historical data",
-            "C": "A fixed list of popular items shown to everyone",
-            "D": "Random selection from available content",
+            "A": "A hallucination",
+            "B": "Overfitting",
+            "C": "A syntax error",
+            "D": "Reinforcement",
         },
-        "correct": "B",
-        "explanation": "Recommendation systems learn from patterns in your past behaviour and preferences in historical data to predict what you'll like.",
-    },
-    {
-        "key": "p7",
-        "chapter": 1,
-        "question": "What is a large language model?",
-        "options": {
-            "A": "A database of every sentence ever written",
-            "B": "A model trained on large amounts of text to generate and understand language",
-            "C": "A translation program that converts code into human language",
-            "D": "A robot that learns language by interacting with humans",
-        },
-        "correct": "B",
-        "explanation": "A large language model is trained on huge amounts of text so it can understand and generate human language.",
-    },
-    {
-        "key": "p8",
-        "chapter": 4,
-        "question": "When an LLM generates confident but factually incorrect information this is called a:",
-        "options": {
-            "A": "Training error",
-            "B": "Bias spike",
-            "C": "Hallucination",
-            "D": "Context overflow",
-        },
-        "correct": "C",
-        "explanation": "Confident but false output from a language model is called a hallucination — a key reason to verify AI answers.",
-    },
-    {
-        "key": "p9",
-        "chapter": 2,
-        "question": "Which prompting technique involves giving the model a few examples of the desired input-output format before asking your question?",
-        "options": {
-            "A": "Zero-shot prompting",
-            "B": "Chain-of-thought prompting",
-            "C": "Few-shot prompting",
-            "D": "System prompting",
-        },
-        "correct": "C",
-        "explanation": "Providing a few worked examples before your question is few-shot prompting — the examples steer the model's output format.",
-    },
-    {
-        "key": "p10",
-        "chapter": 2,
-        "question": "An AI hiring tool is found to favour male candidates. What is the most likely cause?",
-        "options": {
-            "A": "The model was too small to understand gender",
-            "B": "Historical training data reflected existing human biases",
-            "C": "The model was deliberately programmed to discriminate",
-            "D": "The hardware running the model introduced random errors",
-        },
-        "correct": "B",
-        "explanation": "The usual cause of biased AI is biased historical training data, which the model learns and then reproduces.",
+        "correct": "A",
+        "explanation": "A 'hallucination' is confident but false output from a language model — a key reason to verify what any AI (including this tutor) tells you.",
     },
 ]
 

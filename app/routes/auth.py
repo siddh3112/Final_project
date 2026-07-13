@@ -1,3 +1,5 @@
+import random
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -5,11 +7,24 @@ from ..models import User, db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-VALID_CONDITIONS = {"game", "control"}
+# The two study conditions. Assignment is SERVER-controlled (see _assign_condition)
+# — never taken from client input — so the between-groups design stays valid.
+CONDITIONS = ("game", "control")
 
 
-def _clean_condition(value):
-    return value if value in VALID_CONDITIONS else "game"
+def _assign_condition():
+    """Randomly assign a study condition with BALANCED allocation: hand the next
+    participant to whichever group currently has FEWER users (so the two groups
+    never differ by more than one), breaking ties with a coin flip. Computed on
+    the SERVER from live group counts — a participant can never choose their own
+    group, and no client-supplied value is ever consulted."""
+    game_n = User.query.filter_by(condition="game").count()
+    control_n = User.query.filter_by(condition="control").count()
+    if game_n < control_n:
+        return "game"
+    if control_n < game_n:
+        return "control"
+    return random.choice(CONDITIONS)
 
 
 def _reset_presentation_session():
@@ -26,14 +41,10 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for("game.hub"))
 
-    # Condition comes from the URL: /auth/register?condition=game|control
-    condition = _clean_condition(request.args.get("condition", "game"))
-
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
-        condition = _clean_condition(request.form.get("condition", condition))
 
         error = None
         if not username or not email or not password:
@@ -45,9 +56,12 @@ def register():
 
         if error:
             flash(error, "danger")
-            return render_template("auth/register.html", condition=condition)
+            return render_template("auth/register.html")
 
-        user = User(username=username, email=email, condition=condition)
+        # Study condition is assigned by the SERVER — random, balanced, and fixed
+        # for the life of the account. Any client-supplied condition (URL param or
+        # form field) is IGNORED so participants can't choose their own group.
+        user = User(username=username, email=email, condition=_assign_condition())
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -55,7 +69,7 @@ def register():
         _reset_presentation_session()
         return redirect(url_for("game.hub"))
 
-    return render_template("auth/register.html", condition=condition)
+    return render_template("auth/register.html")
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])

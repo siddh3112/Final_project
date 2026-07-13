@@ -81,10 +81,15 @@ def test_speed_bonus_capped_and_floored():
 
 
 def test_combined_score_weights():
-    # 8 correct post-test, three trials 4/4, 4 badges, unknown time
-    total = LB.combined_score(8, [4, 4, 4], 4, None)
-    expected = 8 * LB.WEIGHTS["post_test"] + 12 * LB.WEIGHTS["location"] + 4 * LB.WEIGHTS["badge"]
+    # 8 correct post-test, FOUR trials 4/4 (incl. the Chronicle), 5 badges, no time
+    total = LB.combined_score(8, [4, 4, 4, 4], 5, None)
+    expected = 8 * LB.WEIGHTS["post_test"] + 16 * LB.WEIGHTS["location"] + 5 * LB.WEIGHTS["badge"]
     assert total == expected
+
+
+def test_max_combined_is_internally_consistent():
+    # 100 (post-test) + 128 (4 Trials × 4 × 8) + 60 (5 badges × 12) + 20 (speed)
+    assert LB.MAX_COMBINED == 100 + 128 + 60 + 20 == 308
 
 
 # ══════════════════════ Achievements qualifier ══════════════════════════

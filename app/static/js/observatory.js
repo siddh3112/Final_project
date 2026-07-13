@@ -17,13 +17,19 @@
   const REDUCE = !!((window.AtlasPrefs && window.AtlasPrefs.effective && window.AtlasPrefs.effective("reduce_motion")) ||
     (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches));
 
-  // ONE constellation of 5 stars that builds star-by-star (in order).
+  // ONE constellation that builds star-by-star (in order). Ten concepts: the
+  // five machine-learning stars, then a compact "Modern Language AI" arc.
   const CONSTELLATION_STARS = [
-    { x: 20, y: 65 },   // Star 1 — lower left
-    { x: 35, y: 40 },   // Star 2 — rising
-    { x: 52, y: 55 },   // Star 3 — centre dip
-    { x: 68, y: 30 },   // Star 4 — rising again
-    { x: 82, y: 50 },   // Star 5 — upper right
+    { x: 9,  y: 62 },   // 1 — how ML learns/answers
+    { x: 19, y: 42 },   // 2 — supervised
+    { x: 30, y: 58 },   // 3 — unsupervised
+    { x: 25, y: 30 },   // 4 — reinforcement
+    { x: 40, y: 40 },   // 5 — three levels
+    { x: 52, y: 60 },   // 6 — overfitting & bias
+    { x: 63, y: 36 },   // 7 — NLP
+    { x: 73, y: 56 },   // 8 — LLMs (Atlas)
+    { x: 84, y: 30 },   // 9 — hallucination
+    { x: 92, y: 54 },   // 10 — few-shot prompting
   ];
 
   const CONCEPTS = [
@@ -42,6 +48,21 @@
     { heading: "The Three Levels of AI", era: "CONCEPT 5 — THE BIG PICTURE",
       content: "Now the three levels of AI make deeper sense. Narrow AI specialises in one task and can't transfer it elsewhere — almost every AI you meet is narrow. Broad AI, IBM's term for what's available today, integrates several narrow components into one business process: a self-driving car combines vision, route-planning and decision-making — often improved through reinforcement learning — into a single system. General AI, still only a research goal, would reason and learn across any domain like a human. It does not exist yet.",
       type: "present" },
+    { heading: "When Learning Goes Wrong", era: "CONCEPT 6 — PITFALLS",
+      content: "Learning from data can misfire in two ways. OVERFITTING is when a model memorises its training examples instead of the general pattern — it scores brilliantly on data it has seen but fails on anything new, like a student who memorised past papers word-for-word. BIAS is subtler: a model absorbs whatever bias sits in its training data. Train a hiring model on years of biased human decisions and it will faithfully repeat that bias. So varied, fair data matters as much as a clever algorithm.",
+      type: "normal" },
+    { heading: "Machines That Read & Write", era: "CONCEPT 7 — LANGUAGE AI",
+      content: "Natural Language Processing (NLP) is how machines work with human language — understanding what we write or say, and generating language back. It powers translation, voice assistants, spam detection and chatbots. Turning messy, ambiguous human words into something a machine can reason about is one of AI's hardest and most useful tricks.",
+      type: "breakthrough" },
+    { heading: "Large Language Models", era: "CONCEPT 8 — LLMs",
+      content: "A Large Language Model (LLM) is trained on enormous amounts of text and learns to predict language so well it can answer questions, summarise, and hold a conversation. Professor Atlas — the guide who has walked this whole journey with you — is itself an LLM. It has no true understanding; it predicts the most likely next words from patterns in the text it was trained on.",
+      type: "present" },
+    { heading: "When AI Makes Things Up", era: "CONCEPT 9 — HALLUCINATION",
+      content: "Because an LLM predicts plausible-sounding text rather than checking facts, it can produce a HALLUCINATION — a confident, fluent answer that is simply false. It can invent a citation, a date, or a quote and state it with total certainty. That is why you should verify important answers from any AI — including Professor Atlas.",
+      type: "normal" },
+    { heading: "Steering an LLM", era: "CONCEPT 10 — PROMPTING",
+      content: "You guide an LLM through its PROMPT — the instructions and context you give it. FEW-SHOT PROMPTING means adding a few worked examples of the input→output you want before your real question, so the model copies the pattern. Showing two or three examples of 'review → sentiment' steers it far better than asking cold. How you prompt is a genuine skill of modern AI literacy.",
+      type: "breakthrough" },
   ];
 
   // Star colour follows its concept type (cyan palette).
@@ -59,6 +80,16 @@
       options: ["Through rewards for correct and penalties for wrong predictions", "By copying answers from a database", "It never improves"], correct: 0 },
     { q: "Which level of AI is available and used by enterprises today?",
       options: ["General AI", "Broad AI", "None of them exist yet"], correct: 1 },
+    { q: "What is overfitting?",
+      options: ["A model that memorises training data and then fails on new, unseen data", "A model trained on too little data", "A model with no training data at all"], correct: 0 },
+    { q: "What does Natural Language Processing let machines do?",
+      options: ["Only work with numbers", "Understand and generate human language", "Run ordinary calculations faster"], correct: 1 },
+    { q: "What is a Large Language Model — like Professor Atlas?",
+      options: ["A database of every sentence ever written", "A model trained on huge amounts of text that predicts language", "A human answering in real time"], correct: 1 },
+    { q: "What is an AI 'hallucination'?",
+      options: ["A confident answer that is actually false", "A picture an AI draws", "A hardware failure"], correct: 0 },
+    { q: "What is few-shot prompting?",
+      options: ["Giving the model a few examples to steer its output", "Asking the same question many times", "Training a whole model from scratch"], correct: 0 },
   ];
   function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 
@@ -555,6 +586,8 @@
   // ───────────────────────── DISCOVERY ─────────────────────────
   const hintEl = document.getElementById("sky-hint");
   const countEl = document.getElementById("obs-count");
+  const totalEl = document.getElementById("obs-total");
+  if (totalEl) totalEl.textContent = CONSTELLATION_STARS.length;  // "CONCEPT x / N DISCOVERED"
   const progFill = document.getElementById("obs-progress-fill");
 
   // Step A — clicking the next star ignites it and opens its panel + check.

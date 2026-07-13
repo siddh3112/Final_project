@@ -9,20 +9,21 @@ Additive telemetry: nothing here changes how the post-test is scored or stored.
 from ..models import RunHistory, db
 
 # ── Combined-score weights (tune here) ──
-# The score rewards the whole journey: the three Trials now matter (8 each, up
-# from 5), knowledge stays dominant, badges reward achievement, and a small
-# capped speed bonus breaks ties. Max possible = 100 + 96 + 48 + 20 = 264.
+# The score rewards the whole journey: all FOUR location Trials matter (8 each),
+# knowledge stays dominant, badges reward achievement, and a small capped speed
+# bonus breaks ties. Max possible = 100 + 128 + 60 + 20 = 308.
 WEIGHTS = {
     "post_test": 10,   # knowledge — dominant: score 0..10 → 0..100
-    "location": 8,     # Trial mastery: each location 0..4 → 0..96 across the 3
-    "badge": 12,       # achievement: badges_count 0..4 → 0..48
+    "location": 8,     # Trial mastery: each location 0..4 → 0..128 across the 4
+    "badge": 12,       # achievement: badges_count 0..5 → 0..60
 }
 SPEED_BONUS_CAP = 20        # light tiebreaker only
 SPEED_BASELINE_SECONDS = 600
 SPEED_DIVISOR = 30
 
-# Highest attainable combined score (for reference / display headroom).
-MAX_COMBINED = (10 * WEIGHTS["post_test"]) + (12 * WEIGHTS["location"]) + (4 * WEIGHTS["badge"]) + SPEED_BONUS_CAP  # = 264
+# Highest attainable combined score (for reference / display headroom):
+#   4 location Trials × 4 best_score = 16 location points; 5 badges.
+MAX_COMBINED = (10 * WEIGHTS["post_test"]) + (16 * WEIGHTS["location"]) + (5 * WEIGHTS["badge"]) + SPEED_BONUS_CAP  # = 308
 
 
 def speed_bonus(time_spent_seconds):
@@ -50,14 +51,14 @@ def score_of(run):
     overwriting the historical `combined_score` stored on the row (additive)."""
     return combined_score(
         run.post_test_score or 0,
-        [run.library_score or 0, run.ai_lab_score or 0, run.observatory_score or 0],
+        [run.library_score or 0, run.chronicle_score or 0, run.ai_lab_score or 0, run.observatory_score or 0],
         run.badges_count or 0,
         run.time_spent_seconds,
     )
 
 
-def record_run(user, *, post_test_score, post_test_max, library_score, ai_lab_score,
-               observatory_score, badges_count, time_spent_seconds, xp, rank):
+def record_run(user, *, post_test_score, post_test_max, library_score, chronicle_score,
+               ai_lab_score, observatory_score, badges_count, time_spent_seconds, xp, rank):
     """Insert one RunHistory row for a completed post-test.
 
     Returns (run, is_personal_best, best_after). A new personal best = strictly
@@ -66,7 +67,7 @@ def record_run(user, *, post_test_score, post_test_max, library_score, ai_lab_sc
     """
     cs = combined_score(
         post_test_score,
-        [library_score, ai_lab_score, observatory_score],
+        [library_score, chronicle_score, ai_lab_score, observatory_score],
         badges_count,
         time_spent_seconds,
     )
@@ -83,6 +84,7 @@ def record_run(user, *, post_test_score, post_test_max, library_score, ai_lab_sc
         post_test_score=post_test_score,
         post_test_max=post_test_max,
         library_score=library_score,
+        chronicle_score=chronicle_score,
         ai_lab_score=ai_lab_score,
         observatory_score=observatory_score,
         badges_count=badges_count,

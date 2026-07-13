@@ -1456,15 +1456,16 @@ body {
 .map-stage {
   position: relative;
   width: 100%;
-  aspect-ratio: 728 / 408; /* matches images.jpeg so pins line up & nothing is cropped */
+  aspect-ratio: 1448 / 1086; /* matches images.jpeg (1448×1086) so the whole map shows, uncropped */
   margin: 0.5rem auto 2rem;
   border-radius: 16px;
   border: 3px solid #2b2f4d;
   box-shadow: 0 0 0 1px rgba(212,168,75,0.25), 0 18px 50px rgba(0,0,0,0.55);
   overflow: hidden;
-  /* The world map artwork */
+  /* The world map artwork. The ?v= is a cache-buster: bump it whenever you
+     replace images.jpeg so browsers fetch the new artwork instead of a cached copy. */
   background-color: #1b4a55;
-  background-image: url("../images/images.jpeg");
+  background-image: url("../images/images.jpeg?v=2");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -3785,24 +3786,31 @@ html.reduce-motion .obs-panel.show .obs-panel-inner { animation: none !important
    ══════════════════════════════════════════════════════════════ */
 .hub-body { overflow: hidden; }
 .hub-body .map-screen {
-  height: 100vh; box-sizing: border-box; padding: 0.6rem 1rem 0.5rem;
-  display: flex; flex-direction: column; justify-content: flex-start; gap: 0.25rem;
+  height: 100vh; box-sizing: border-box; padding: 0.35rem 1rem 0.3rem;
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 0.12rem;
+  max-width: 1460px;   /* let the map grow much wider than the default 1040 */
 }
-.hub-body .hub-header { margin-bottom: 0.3rem; }
-.hub-body .hub-title { font-size: clamp(1.6rem, 4vw, 2.6rem); }
-/* HUD tracks the map's width formula exactly, so they line up at any size */
-.hub-body .hud { width: min(100%, calc(64vh * 1.7843)); max-width: none; margin: 0 auto 0.4rem; }
-/* The map is the major element on the page */
+/* Compact chrome (header / HUD / badges) so the map gets the lion's share of the
+   height — a taller map is also a WIDER map (fixed 4:3), filling the side space. */
+.hub-body .hub-header { margin-bottom: 0.1rem; }
+.hub-body .hub-title { font-size: clamp(1.35rem, 3vw, 2rem); }
+.hub-body .hub-story { font-size: 0.82rem; margin: 0 0 0.12rem; }
+/* HUD width tracks the map's width formula exactly, so they line up at any size. */
+.hub-body .hud { width: min(100%, calc(80vh * 1.3333)); max-width: none; margin: 0 auto 0.22rem; padding: 0.5rem 1.6rem; gap: 1.4rem; }
+/* The map is the major element on the page. Ratio 1.3333 = 1448/1086 to match
+   the current map artwork (images.jpeg) so the whole map shows, uncropped.
+   Sized by viewport height so the whole hub still fits one screen. */
 .hub-body .map-stage {
-  width: min(100%, calc(64vh * 1.7843)); height: auto; aspect-ratio: 728 / 408;
-  margin: 0.2rem auto;
+  width: min(100%, calc(80vh * 1.3333)); height: auto; aspect-ratio: 1448 / 1086;
+  margin: 0.05rem auto;
 }
-.hub-body .badges-strip { margin-bottom: 0.3rem; }
-.hub-body .hub-footer { margin-top: auto; padding-top: 0.3rem; }
-@media (max-height: 720px) {
-  .hub-body .map-stage { width: min(100%, calc(56vh * 1.7843)); }
-  .hub-body .hud { width: min(100%, calc(56vh * 1.7843)); }
-  .hub-body .hub-title { font-size: clamp(1.4rem, 3.6vw, 2.1rem); }
+.hub-body .badges-strip { margin-bottom: 0.12rem; }
+.hub-body .badge-chip { padding: 0.25rem 0.6rem; font-size: 0.68rem; }
+.hub-body .hub-footer { margin-top: auto; padding-top: 0.12rem; }
+@media (max-height: 860px) {
+  .hub-body .map-stage { width: min(100%, calc(72vh * 1.3333)); }
+  .hub-body .hud { width: min(100%, calc(72vh * 1.3333)); }
+  .hub-body .hub-title { font-size: clamp(1.3rem, 3.4vw, 1.9rem); }
 }
 
 /* ── Library: static, non-scrollable scene (shelf auto-fit by JS) ── */
