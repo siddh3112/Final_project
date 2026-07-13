@@ -7,24 +7,36 @@ from ..models import User, db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-# The two study conditions. Assignment is SERVER-controlled (see _assign_condition)
-# — never taken from client input — so the between-groups design stays valid.
+# Condition machinery retained but DORMANT: all users are currently assigned
+# 'game' (see _assign_condition), so Professor Atlas is universal. The two-
+# condition split can be restored by uncommenting _assign_condition. This tuple
+# is kept for that revert; assignment is always SERVER-controlled, never from
+# client input.
 CONDITIONS = ("game", "control")
 
 
 def _assign_condition():
-    """Randomly assign a study condition with BALANCED allocation: hand the next
-    participant to whichever group currently has FEWER users (so the two groups
-    never differ by more than one), breaking ties with a coin flip. Computed on
-    the SERVER from live group counts — a participant can never choose their own
-    group, and no client-supplied value is ever consulted."""
-    game_n = User.query.filter_by(condition="game").count()
-    control_n = User.query.filter_by(condition="control").count()
-    if game_n < control_n:
-        return "game"
-    if control_n < game_n:
-        return "control"
-    return random.choice(CONDITIONS)
+    """Assign EVERY new participant to the 'game' condition, so Professor Atlas is
+    available to all users (single-condition study).
+
+    The two-group machinery is deliberately kept intact and simply always
+    evaluates to 'game' now: the `condition` field, the template gates
+    ({% if current_user.condition == 'game' %}), and the /npc/chat 403 gate all
+    still exist — they just never gate anyone out because no one is 'control'.
+    Assignment is still SERVER-controlled; no client-supplied value is consulted.
+
+    REVERSIBLE: to restore the randomised, balanced two-group split, delete the
+    `return "game"` and un-comment the original allocation below. Nothing
+    structural was removed."""
+    return "game"
+    # ── Original balanced-random allocation (kept for easy restore) ──
+    # game_n = User.query.filter_by(condition="game").count()
+    # control_n = User.query.filter_by(condition="control").count()
+    # if game_n < control_n:
+    #     return "game"
+    # if control_n < game_n:
+    #     return "control"
+    # return random.choice(CONDITIONS)
 
 
 def _reset_presentation_session():
@@ -58,9 +70,10 @@ def register():
             flash(error, "danger")
             return render_template("auth/register.html")
 
-        # Study condition is assigned by the SERVER — random, balanced, and fixed
-        # for the life of the account. Any client-supplied condition (URL param or
-        # form field) is IGNORED so participants can't choose their own group.
+        # Single-condition configuration — every user is assigned 'game' by the
+        # SERVER (the random/balanced split is retained, commented, in
+        # _assign_condition for a future between-groups study). Any client-supplied
+        # condition (URL param or form field) is IGNORED regardless.
         user = User(username=username, email=email, condition=_assign_condition())
         user.set_password(password)
         db.session.add(user)

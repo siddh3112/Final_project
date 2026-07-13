@@ -38,7 +38,7 @@ def test_register_creates_hashed_user_and_logs_in(client):
     _fresh()
     u = User.query.filter_by(username="newbie").first()
     assert u is not None
-    assert u.condition in ("game", "control"), "condition is server-assigned to a valid group"
+    assert u.condition == "game", "single-condition study: the server always assigns 'game'"
     assert u.email == "new@example.com", "email is normalised to lowercase"
     # password is stored HASHED, never in plaintext, and verifies correctly
     assert "s3cret" not in (u.password_hash or "")
@@ -46,34 +46,36 @@ def test_register_creates_hashed_user_and_logs_in(client):
 
 
 # ── condition is server-assigned; a client-supplied value is ignored ──
-def test_register_ignores_supplied_condition(client, user_factory):
-    """Seed one game user so the balanced server MUST assign 'control' next; then
-    register supplying condition=game everywhere — the server ignores it."""
-    user_factory(condition="game")   # groups: game=1, control=0
+def test_register_ignores_supplied_condition(client):
+    """Single-condition study: the server ALWAYS assigns 'game' and never consults
+    a client-supplied condition (URL param or form field)."""
     with client.session_transaction() as s:
         s.clear()
     g.pop("_login_user", None)
     client.post(
-        "/auth/register?condition=game",
-        data={"username": "z", "email": "z@ex.com", "password": "pw", "condition": "game"},
+        "/auth/register?condition=control",   # supplied condition must be IGNORED
+        data={"username": "z", "email": "z@ex.com", "password": "pw", "condition": "control"},
     )
     _fresh()
     u = User.query.filter_by(username="z").first()
-    assert u.condition == "control", "server assigns the minority (control); supplied 'game' is ignored"
+    assert u.condition == "game", "server ignores the supplied condition and assigns 'game'"
 
 
-# ── over N registrations, allocation is random but BALANCED ──
-def test_register_allocation_is_balanced(client):
+# ── every new registration is assigned 'game' (Atlas is universal) ──
+def test_register_all_new_users_are_game(client):
+    """Single-condition study: every new user is assigned 'game' (so Professor
+    Atlas is available to everyone). The two-group machinery is retained but always
+    evaluates to 'game' — control is no longer allocated at registration. (A control
+    user can still be set manually; test_control_user_cannot_use_atlas proves the
+    gate machinery is intact and reversible.)"""
     N = 20
     for i in range(N):
-        assert _register_anon(client, i, condition_hint="game").status_code == 302
+        # even when the client keeps supplying 'control', the server assigns 'game'
+        assert _register_anon(client, i, condition_hint="control").status_code == 302
     _fresh()
     game = User.query.filter_by(condition="game").count()
     control = User.query.filter_by(condition="control").count()
-    assert game + control == N
-    # all N supplied "game"; if it were honoured we'd see 20/0. Balanced instead:
-    assert abs(game - control) <= 1, f"allocation must stay balanced, got game={game} control={control}"
-    assert game > 0 and control > 0, "both study groups must be represented"
+    assert game == N and control == 0, f"all new users must be 'game', got game={game} control={control}"
 
 
 # ── no request can change a user's condition once assigned ──
