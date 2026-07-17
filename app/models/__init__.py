@@ -68,7 +68,9 @@ class QuizAttempt(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     location = db.Column(db.String(40), nullable=False)
     question_key = db.Column(db.String(20), nullable=False)
-    selected_answer = db.Column(db.String(4), nullable=True)
+    # A letter (MCQ) OR a comma-joined event-id sequence (ordering items). Widened
+    # from String(4) to hold a sequence; non-breaking (SQLite doesn't enforce length).
+    selected_answer = db.Column(db.String(64), nullable=True)
     is_correct = db.Column(db.Boolean, default=False)
     attempt_number = db.Column(db.Integer, nullable=False, default=1)
     npc_consulted = db.Column(db.Boolean, default=False)

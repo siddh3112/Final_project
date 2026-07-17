@@ -317,51 +317,9 @@ def test_malformed_stored_keyset_is_rejected(client, user_factory, login, bad):
     assert QuizAttempt.query.filter_by(user_id=u.id, location="library").count() == 0
 
 
-# ════════ AI Lab lab_q3 (the sorting diagnostic) — graded, never a free point ════════
-
-def test_ai_lab_lab_q3_is_not_auto_granted(client, user_factory, login):
-    """The AI Lab sorting question (lab_q3) is graded on the learner's real
-    answer — a wrong/absent lab_q3 is scored WRONG, never an automatic point, so
-    it cannot silently auto-pass the Trial."""
-    u = user_factory(passed=("library", "chronicle"))   # unlock the AI Lab
-    login(u)
-    token, keys, qs = _start(client, "ai_lab")
-    assert "lab_q3" in keys, "lab_q3 is pinned into every AI Lab Trial"
-    others = [q for q in qs if q["key"] != "lab_q3"]
-    data = {"attempt_id": token, "lab_q3": ""}   # blank = failed/absent sort → must score wrong
-    for i, q in enumerate(others):               # only 2 of the other 3 correct
-        data[q["key"]] = q["correct"] if i < 2 else next(l for l in q["options"] if l != q["correct"])
-    r = client.post("/location/ai_lab/submit", data=data)
-    assert r.status_code == 200
-    _fresh()
-    rows = QuizAttempt.query.filter_by(user_id=u.id, location="ai_lab").all()
-    q3 = next(a for a in rows if a.question_key == "lab_q3")
-    assert q3.is_correct is False, "lab_q3 must be graded WRONG when not answered correctly"
-    assert sum(1 for a in rows if a.is_correct) == 2, "2 correct + lab_q3 wrong = 2 (no free point)"
-    lp = LocationProgress.query.filter_by(user_id=u.id, location="ai_lab").first()
-    assert lp.passed is False, "2/4 must NOT pass — lab_q3 is not auto-granted"
-
-
-def test_ai_lab_lab_q3_counts_when_actually_correct(client, user_factory, login):
-    """When lab_q3 IS answered correctly (a correct sort), it counts as its one
-    point like any question — 3/4 then passes (PASS_THRESHOLD unchanged)."""
-    u = user_factory(passed=("library", "chronicle"))
-    login(u)
-    token, keys, qs = _start(client, "ai_lab")
-    q3_correct = get_questions_by_keys("ai_lab", ["lab_q3"])[0]["correct"]
-    others = [q for q in qs if q["key"] != "lab_q3"]
-    data = {"attempt_id": token, "lab_q3": q3_correct}
-    for i, q in enumerate(others):
-        data[q["key"]] = q["correct"] if i < 2 else next(l for l in q["options"] if l != q["correct"])
-    r = client.post("/location/ai_lab/submit", data=data)
-    assert r.status_code == 200
-    _fresh()
-    rows = QuizAttempt.query.filter_by(user_id=u.id, location="ai_lab").all()
-    q3 = next(a for a in rows if a.question_key == "lab_q3")
-    assert q3.is_correct is True
-    assert sum(1 for a in rows if a.is_correct) == 3
-    lp = LocationProgress.query.filter_by(user_id=u.id, location="ai_lab").first()
-    assert lp.passed is True, "3/4 passes"
+# (The AI Lab's lab_q3 single-item is replaced by the sorting board — see
+#  tests/test_ai_lab_sorting_board.py for its independent, server-authoritative
+#  per-object grading.)
 
 
 # ── the hub renders for an authenticated user ───────────────────────────

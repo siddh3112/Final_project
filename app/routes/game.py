@@ -8,7 +8,9 @@ from flask_login import current_user, login_required
 from ..prefs import mark_seen, seen_flags, set_prefs
 
 from ..game_content import (
+    BIN_IDS,
     CINEMATIC_LINES,
+    DATA_BINS,
     GAME_INTRO_STEPS,
     LOCATION_ORDER,
     LOCATIONS,
@@ -19,6 +21,8 @@ from ..game_content import (
     get_hooks,
     get_questions_by_keys,
     grade_quiz,
+    normalize_order,
+    order_canonical,
     select_trial_questions,
 )
 from ..eval_content import POST_TEST
@@ -255,6 +259,7 @@ def location(key):
         return render_template(
             "game/terminal.html", loc=loc, quiz=quiz, attempt_id=aid,
             hooks=hooks, explored=library_read_ids(key), lab_passed=bool(lp.passed),
+            data_bins=DATA_BINS,
         )
 
     if interaction == "constellation":
@@ -411,10 +416,39 @@ def commit_answer(key):
     if not q:
         return jsonify({"error": "unknown-question"}), 400
     q = q[0]
+    answers = _attempt_answers(att)
+
+    # Ordering item ("Broken Timeline"): the payload is a sequence of event ids.
+    # Validate it names EXACTLY this item's events (unique, complete) — else reject
+    # (400), never score it. The correct sequence is revealed only in THIS response,
+    # after the first commit is locked, never in the page the learner starts from.
+    if q.get("kind") == "order":
+        norm = normalize_order(data.get("order", ""), q)
+        if norm is None:
+            return jsonify({"error": "bad-order"}), 400
+        if qkey not in answers:                 # record only the FIRST commit
+            answers[qkey] = norm
+            att.answers_json = json.dumps(answers)
+            db.session.commit()
+        committed = answers[qkey]
+        correct = order_canonical(q)
+        is_correct = committed == correct
+        feedback = (q.get("feedback_correct") if is_correct else q.get("feedback_wrong")) or q.get("explanation", "")
+        return jsonify({
+            "is_correct": is_correct,
+            "correct_order": correct,
+            "committed": committed,
+            "feedback": feedback,
+        })
+
+    if q.get("kind") == "sort":
+        # The sorting board commits at SUBMIT (not per-placement), so /answer is not
+        # part of its flow. Reject any stray commit rather than mis-handle it.
+        return jsonify({"error": "not-committable"}), 400
+
     letter = data.get("letter", "")
     if letter not in q["options"]:
         return jsonify({"error": "bad-option"}), 400
-    answers = _attempt_answers(att)
     if qkey not in answers:                     # record only the FIRST commit
         answers[qkey] = letter
         att.answers_json = json.dumps(answers)
@@ -481,10 +515,25 @@ def submit_quiz(key):
     recorded = _attempt_answers(att)
     submitted = {}
     for q in quiz:
-        val = recorded.get(q["key"])
-        if val not in q["options"]:
+        if q.get("kind") == "order":
+            # Ordering item: the server-recorded first commit is authoritative;
+            # fall back to a validated form value only if none was committed. A
+            # malformed sequence normalises to None → graded wrong, never a point.
+            val = normalize_order(recorded.get(q["key"]), q)
+            if val is None:
+                val = normalize_order(request.form.get(q["key"]), q)
+        elif q.get("kind") == "sort":
+            # Sorting board: the placement is a bin id from the form (the board
+            # commits at submit, not per-drag). Server-authoritative: only a bin id
+            # that is one of the served bins counts; anything else (unknown bin,
+            # missing, forged) is treated as unplaced → graded wrong, never a point.
             fv = request.form.get(q["key"])
-            val = fv if fv in q["options"] else None
+            val = fv if fv in BIN_IDS else None
+        else:
+            val = recorded.get(q["key"])
+            if val not in q["options"]:
+                fv = request.form.get(q["key"])
+                val = fv if fv in q["options"] else None
         submitted[q["key"]] = val
     results, score, total, passed = grade_quiz(key, submitted, shown_keys=stored_keys)
 
@@ -502,7 +551,9 @@ def submit_quiz(key):
     consulted_raw = request.form.get("consulted", "")
     consulted = {c for c in consulted_raw.split(",") if c}
 
-    # One quiz_attempts row per question.
+    # One quiz_attempts row per question. is_correct comes from the SHARED grading
+    # core (grade_quiz results) so MCQ and ordering items score by one rule.
+    result_by_key = {r["key"]: r for r in results}
     for q in quiz:
         selected = submitted.get(q["key"])
         db.session.add(
@@ -511,7 +562,7 @@ def submit_quiz(key):
                 location=key,
                 question_key=q["key"],
                 selected_answer=selected,
-                is_correct=(selected == q["correct"]),
+                is_correct=bool(result_by_key.get(q["key"], {}).get("is_correct")),
                 attempt_number=attempt_number,
                 npc_consulted=(q["key"] in consulted),
             )

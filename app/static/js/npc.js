@@ -12,65 +12,102 @@
   const input = document.getElementById("atlas-input");
   const sendBtn = document.getElementById("atlas-send");
 
-  function openChat() {
+  function openChat(opts) {
+    opts = opts || {};
     if (window.AtlasVoice) window.AtlasVoice.stop(); // don't let a lesson read-aloud overlap Atlas
     chat.hidden = false;
+    chat.classList.remove("atlas-closing");
     widget.classList.add("open");
-    if (window.LibFX) window.LibFX.atlasChime();
-    setTimeout(() => input.focus(), 50);
+    if (!opts.silent && window.LibFX) window.LibFX.atlasChime();
+    if (!opts.noFocus) setTimeout(() => input.focus(), 50);
   }
   function closeChat() {
+    chat.classList.remove("atlas-closing");
     chat.hidden = true;
     widget.classList.remove("open");
   }
-
-  launcher.addEventListener("click", openChat);
-  closeBtn.addEventListener("click", closeChat);
-
-  // ── One-time arrival attention cue (presentation only) ──
-  // Briefly draw the eye to the tutor button the first time a game-condition
-  // learner lands on a location this session, then settle to normal. This lives
-  // inside npc.js, which is loaded ONLY for the game condition and returns early
-  // above if the widget is absent — so control users never see the cue.
-  (function arrivalCue() {
-    if (!chat.hidden) return; // chat already open (shouldn't happen on fresh load)
-    try {
-      if (sessionStorage.getItem("atlasCueShown")) return; // first location visit per session
-      sessionStorage.setItem("atlasCueShown", "1");
-    } catch (e) { /* private mode: just play it once here */ }
-
-    const reduceMotion =
+  function atlasReduceMotion() {
+    return (
       (window.ATLAS_PREFS && window.ATLAS_PREFS.reduce_motion) ||
       document.documentElement.classList.contains("reduce-motion") ||
-      (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    );
+  }
 
-    // A small, dismissible, non-blocking hint label above the button.
-    const tip = document.createElement("div");
-    tip.className = "atlas-cue-tip";
-    tip.textContent = "Need a hint? Ask Professor Atlas";
-    tip.setAttribute("role", "status");
-    widget.appendChild(tip);
+  launcher.addEventListener("click", () => openChat());
+  closeBtn.addEventListener("click", closeChat);
 
-    const timers = [];
-    function dismissCue() {
-      launcher.classList.remove("atlas-cue");
-      tip.classList.remove("show");
-      timers.forEach(clearTimeout);
-      setTimeout(function () { if (tip.parentNode) tip.remove(); }, 350);
+  // ── On-arrival: the Atlas panel AUTO-OPENS so the tutor is unmissable ──
+  // Presentation/UX only. The panel opens exactly as if the learner opened it and
+  // Atlas is already greeting (the panel's existing authored greeting sets the
+  // "I give hints, not answers" expectation); it stays open for a few seconds, then
+  // closes gracefully — UNLESS the learner engages with it, which cancels the
+  // auto-close and leaves it open as a normal session. This NEVER calls the language
+  // model and never touches /npc/chat, the guardrails, the unlock gate, or logging.
+  // It REPLACES the old arrival speech-bubble, so there is no double announcement.
+  //
+  // Tunables:
+  //   ATLAS_AUTO_OPEN_MS        — how long the panel stays open before auto-closing.
+  //   ATLAS_AUTO_OPEN_FREQUENCY — "always" (every arrival, as now) or "session"
+  //                               (first visit per location per browser session).
+  const ATLAS_AUTO_OPEN_MS = 5000;
+  const ATLAS_OPEN_DELAY_MS = 450;          // a brief beat after arrival before it opens
+  const ATLAS_CLOSE_ANIM_MS = 260;          // graceful close duration (skipped under reduce-motion)
+  const ATLAS_AUTO_OPEN_FREQUENCY = "always";
+
+  function atlasAutoOpenKey() { return "atlas_auto_open_" + (location || "loc"); }
+  function atlasShouldAutoOpen() {
+    if (ATLAS_AUTO_OPEN_FREQUENCY !== "session") return true;
+    try { return !sessionStorage.getItem(atlasAutoOpenKey()); } catch (e) { return true; }
+  }
+  function atlasMarkAutoOpened() {
+    if (ATLAS_AUTO_OPEN_FREQUENCY !== "session") return;
+    try { sessionStorage.setItem(atlasAutoOpenKey(), "1"); } catch (e) {}
+  }
+
+  (function arrivalAutoOpen() {
+    if (!chat.hidden) return;            // already open — nothing to announce
+    if (!atlasShouldAutoOpen()) return;  // frequency gate (e.g. once per session)
+
+    let autoCloseTimer = null;
+    let closeTimer = null;
+    let engaged = false;
+
+    // Any REAL interaction with the widget cancels the auto-close and keeps the
+    // panel open as a normal session: clicking/tapping inside the panel, focusing
+    // or typing in the input (focusin bubbles up from it), or clicking the owl. If
+    // a graceful close is already animating, interrupt it and stay open — never
+    // close the panel out from under someone who is interacting with it.
+    function cancelAutoClose() {
+      engaged = true;
+      if (autoCloseTimer) { clearTimeout(autoCloseTimer); autoCloseTimer = null; }
+      if (closeTimer) {
+        clearTimeout(closeTimer); closeTimer = null;
+        chat.classList.remove("atlas-closing");
+        chat.hidden = false; widget.classList.add("open");
+      }
     }
-    tip.addEventListener("click", dismissCue);
-    // Opening the chat cancels the cue immediately.
-    launcher.addEventListener("click", dismissCue, { once: true });
+    widget.addEventListener("pointerdown", cancelAutoClose);
+    widget.addEventListener("focusin", cancelAutoClose);
 
-    // Fade the label in shortly after arrival.
-    timers.push(setTimeout(function () { tip.classList.add("show"); }, 400));
-    // Pulse the button a couple of times — skipped for reduced-motion users.
-    if (!reduceMotion) {
-      launcher.classList.add("atlas-cue");
-      timers.push(setTimeout(function () { launcher.classList.remove("atlas-cue"); }, 2000));
+    function gracefulClose() {
+      if (chat.hidden || engaged) return;
+      if (atlasReduceMotion()) { closeChat(); return; }   // no motion: just disappear
+      chat.classList.add("atlas-closing");
+      closeTimer = setTimeout(function () {
+        closeTimer = null;
+        if (!engaged) closeChat();       // closeChat also clears .atlas-closing
+      }, ATLAS_CLOSE_ANIM_MS);
     }
-    // Settle back to normal after a couple of seconds.
-    timers.push(setTimeout(dismissCue, 2600));
+
+    function open() {
+      if (engaged || !chat.hidden) return;         // learner already opened/engaged during the delay
+      openChat({ silent: true, noFocus: true });   // no chime on load; don't steal focus (that would read as engagement)
+      atlasMarkAutoOpened();
+      autoCloseTimer = setTimeout(gracefulClose, ATLAS_AUTO_OPEN_MS);
+    }
+
+    setTimeout(open, ATLAS_OPEN_DELAY_MS);
   })();
 
   function addMessage(text, who) {

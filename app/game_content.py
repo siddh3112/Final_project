@@ -609,101 +609,136 @@ QUIZZES = {
             "feedback_wrong": "Watson won Jeopardy! in 2011 and ENIAC was a 1940s calculator. The chess victory of 1997 belonged to IBM's Deep Blue.",
             "explanation": "Deep Blue's 1997 chess win was a landmark of the thaw; Watson's Jeopardy! win followed in 2011.",
             "hint": "It played chess, not Jeopardy!."
+        },
+
+        # ── "The Broken Timeline" — the Chronicle's signature ORDERING items ──
+        # The learner repairs a scrambled sequence of events. Authored content (not
+        # model-generated) so grading is deterministic. `kind: "order"` marks it; the
+        # CORRECT sequence is the authored order of `events` (ids), held server-side
+        # only — never emitted to the Trial DOM (the client renders the events
+        # SHUFFLED via the shuffle_events filter). Graded all-or-nothing through the
+        # shared core: 1 point only if the whole sequence matches. Both are pinned for
+        # the Chronicle so sequencing is the Trial's dominant mode (2 order + 2 MCQ).
+        {
+            "key": "chr_order_eras",
+            "kind": "order",
+            "concept": "eras_and_winters",
+            "question": "The archive's timeline has been corrupted. Restore these events to their true chronological order — earliest at the top.",
+            "events": [
+                {"id": "ev_tabulation", "label": "The Era of Tabulation — sorting raw data into tables"},
+                {"id": "ev_programming", "label": "The Era of Programming — ENIAC runs stored instructions (1940s)"},
+                {"id": "ev_dartmouth", "label": "Dartmouth coins the term “artificial intelligence” (1956)"},
+                {"id": "ev_first_winter", "label": "The First AI Winter — funding collapses (1970s)"},
+                {"id": "ev_deep_blue", "label": "Deep Blue defeats the world chess champion (1997)"},
+            ],
+            "feedback_correct": "Restored. Tabulation gave way to Programming, then Dartmouth named the field in 1956; the First Winter froze it in the 1970s, and Deep Blue marked the thaw in 1997.",
+            "feedback_wrong": "Not the true order. It runs: Tabulation → Programming (ENIAC, 1940s) → Dartmouth 1956 → the First Winter (1970s) → Deep Blue (1997).",
+            "explanation": "The eras run Tabulation → Programming → the naming of AI at Dartmouth (1956) → the First Winter (1970s) → Deep Blue's 1997 victory in the thaw.",
+            "hint": "Start with sorting data by hand and end with a machine beating a chess champion. Where do the 1940s, 1956, the 1970s and 1997 fall?",
+        },
+        {
+            "key": "chr_order_winter",
+            "kind": "order",
+            "concept": "eras_and_winters",
+            "question": "Reassemble the causal chain that led to an AI Winter — the first cause at the top.",
+            "events": [
+                {"id": "ev_boom", "label": "Expert systems boom on million-dollar mainframes"},
+                {"id": "ev_pcs", "label": "Cheaper personal computers outpace those mainframes"},
+                {"id": "ev_collapse", "label": "The expert-systems market collapses"},
+                {"id": "ev_funding", "label": "Investment and funding dry up"},
+                {"id": "ev_winter", "label": "An AI Winter sets in"},
+            ],
+            "feedback_correct": "Exactly the chain: the boom drew investment, cheap PCs undercut the costly mainframes, the market collapsed, funding dried up, and the Winter set in.",
+            "feedback_wrong": "The chain runs: expert-systems boom → cheap PCs outpace mainframes → the market collapses → funding dries up → the Winter sets in.",
+            "explanation": "Expert systems boomed on costly mainframes; cheaper PCs overtook them, the market collapsed, funding evaporated, and an AI Winter followed.",
+            "hint": "Begin with the thing that was thriving, and end with the freeze. What has to fail before funding disappears?",
         }
     ],
 
+    # ── "The Classification Board" — the AI Lab's whole Trial is one drag-and-drop
+    # sorting task. Each item is ONE data object (kind: "sort") whose CORRECT bin is
+    # held SERVER-SIDE only (q["correct"] = a DATA_BINS id) — never in the DOM. The
+    # server draws 4, renders them shuffled as draggable cards, and grades each
+    # INDEPENDENTLY through the shared core (selected bin == correct bin = 1 point).
+    # Each object classifies unambiguously: dark-data objects are defined by being
+    # collected-but-never-used; the others by FORMAT with no "unused" framing (so
+    # they can't defensibly be dark). Aim ~8-10+ so the 4-object draw varies.
     "ai_lab": [
-        {
-            "key": "lab_q3",
-            "question": "Which of the following is an example of unstructured data?",
-            "options": {
-                "A": "A spreadsheet of hotel reservation dates and prices",
-                "B": "A database of customer names and addresses",
-                "C": "Social media posts and customer comments",
-                "D": "A table of stock prices organised by date"
-            },
-            "correct": "C",
-            "feedback_correct": "Unstructured data, also called dark data, lacks any built-in organisation. Social media posts, images, and customer comments cannot be processed by conventional programs.",
-            "feedback_wrong": "The answer is social media posts and customer comments. Unstructured data has no built-in rows and columns — unlike spreadsheets, databases and tables.",
-            "explanation": "Unstructured data, also called dark data, lacks any built-in organisation. Social media posts, images, and customer comments cannot be processed by conventional computer programs.",
-            "hint": "Which option has no neat rows and columns — something free-form like text, images, or comments?",
-            "no_shuffle": True
-        },
-        {
-            "key": "lab_s1",
-            "question": "A retailer wants to analyse customer emails and call-centre recordings to understand complaints. What type of data is this?",
-            "options": {
-                "A": "Structured — fits neatly in tables",
-                "B": "Unstructured — no fixed schema, needs AI like NLP to interpret",
-                "C": "Semi-structured — it has a rigid schema",
-                "D": "It isn't data"
-            },
-            "correct": "B",
-            "feedback_correct": "Right — emails and audio have no rows-and-columns schema, so traditional databases can't query them directly.",
-            "feedback_wrong": "This is unstructured data. Around 80–90% of enterprise data looks like this (Gartner/IBM), and AI like natural-language processing is what unlocks it.",
-            "explanation": "Right — emails and audio have no rows-and-columns schema, so traditional databases can't query them directly.",
-            "hint": "Emails and audio recordings don't fit into neat rows and columns. Which data type has no fixed schema?"
-        },
-        {
-            "key": "lab_s2",
-            "question": "A company stores millions of JSON API logs with tags and key-value pairs, but no rigid table schema. This is:",
-            "options": {
-                "A": "Structured data",
-                "B": "Unstructured data",
-                "C": "Semi-structured data",
-                "D": "Dark data by definition"
-            },
-            "correct": "C",
-            "feedback_correct": "Correct — tags and keys make it machine-readable without a fixed schema.",
-            "feedback_wrong": "This is semi-structured data — JSON and XML carry metadata/keys that give partial organisation without a rigid schema. It sits between structured tables and raw unstructured content.",
-            "explanation": "Correct — tags and keys make it machine-readable without a fixed schema.",
-            "hint": "It has tags and key-value pairs but no rigid table. What sits between structured and unstructured?"
-        },
-        {
-            "key": "lab_s3",
-            "question": "A bank finds years of archived transaction records in an old system that nobody ever queries. Though neatly organised, what is this an example of?",
-            "options": {
-                "A": "Dark data",
-                "B": "Unstructured data",
-                "C": "Semi-structured data",
-                "D": "Real-time data"
-            },
-            "correct": "A",
-            "feedback_correct": "Yes — dark data is collected and stored but never used, and it can be perfectly structured.",
-            "feedback_wrong": "This is dark data — unused information that can be any type, including tidy structured tables. More than half of enterprise data is estimated to be dark (Splunk): a huge untapped, and unsecured, resource.",
-            "explanation": "Yes — dark data is collected and stored but never used, and it can be perfectly structured.",
-            "hint": "The records are tidy but nobody ever uses them. What do we call collected data that just sits unused?"
-        },
-        {
-            "key": "lab_s4",
-            "question": "Why do most companies' dashboards and reports only cover a small slice of their total data?",
-            "options": {
-                "A": "Unstructured data doesn't exist",
-                "B": "Structured data can't be analysed",
-                "C": "All data is equally easy to use",
-                "D": "Traditional tools were built for the ~10–20% that's structured"
-            },
-            "correct": "D",
-            "feedback_correct": "Right — legacy reporting tools were designed for structured data, leaving the unstructured 80%+ largely untouched until AI arrived.",
-            "feedback_wrong": "Most reporting tools target structured data — the ~10–20% that fits neat tables. The unstructured majority (emails, PDFs, images, audio) stayed hard to use until AI made it actionable.",
-            "explanation": "Right — legacy reporting tools were designed for structured data, leaving the unstructured 80%+ largely untouched until AI arrived.",
-            "hint": "Old reporting tools were designed for one kind of data. Which small slice — structured or unstructured — could they actually handle?"
-        },
-        {
-            "key": "lab_s5",
-            "question": "Which item is structured data?",
-            "options": {
-                "A": "A folder of scanned contracts",
-                "B": "A spreadsheet of customer names, ages and balances in fixed columns",
-                "C": "A podcast recording",
-                "D": "A collection of social-media photos"
-            },
-            "correct": "B",
-            "feedback_correct": "Correct — fixed fields in labelled columns, easily queried with SQL.",
-            "feedback_wrong": "The spreadsheet is structured — predefined fields like name/age/balance. Contracts, audio and photos are unstructured: no fixed schema, stored in native form.",
-            "explanation": "Correct — fixed fields in labelled columns, easily queried with SQL.",
-            "hint": "Only one of these fits neatly into labelled rows and columns you could query with SQL."
-        }
+        {"key": "lab_o1", "kind": "sort", "concept": "data_types", "icon": "📊", "correct": "structured",
+         "question": "A spreadsheet of customer names, ages and account balances in fixed columns",
+         "feedback_correct": "Structured — fixed fields in labelled columns, easily queried with SQL.",
+         "feedback_wrong": "This is STRUCTURED data: predefined columns (name, age, balance) that fit neat rows and are SQL-queryable.",
+         "explanation": "Rows-and-columns with a fixed schema is the definition of structured data.",
+         "hint": "It fits neat labelled rows and columns you could query with SQL."},
+        {"key": "lab_o2", "kind": "sort", "concept": "data_types", "icon": "📈", "correct": "structured",
+         "question": "A relational table of daily stock prices, one row per date",
+         "feedback_correct": "Structured — a fixed table schema, one row per date.",
+         "feedback_wrong": "This is STRUCTURED data: a rigid table with one row per date and fixed columns.",
+         "explanation": "A relational table with a fixed schema is structured data.",
+         "hint": "One row per date, fixed columns — what kind of data has a rigid table schema?"},
+        {"key": "lab_o3", "kind": "sort", "concept": "data_types", "icon": "🗃️", "correct": "structured",
+         "question": "A payroll database with fixed fields for employee ID, salary and start date",
+         "feedback_correct": "Structured — predefined fields in a rigid schema.",
+         "feedback_wrong": "This is STRUCTURED data: fixed fields (ID, salary, start date) in a rigid, queryable schema.",
+         "explanation": "Fixed, predefined fields in a database are structured data.",
+         "hint": "Predefined fields in a rigid schema — structured, semi or unstructured?"},
+
+        {"key": "lab_o4", "kind": "sort", "concept": "data_types", "icon": "🏷️", "correct": "semi",
+         "question": "A stream of JSON API logs, each tagged with keys but no fixed table schema",
+         "feedback_correct": "Semi-structured — tags and keys give partial order without a rigid table.",
+         "feedback_wrong": "This is SEMI-STRUCTURED data: JSON carries keys/tags that make it machine-readable without a fixed table schema.",
+         "explanation": "Tags/keys without a rigid schema (JSON, XML) is semi-structured — the bridge between structured and unstructured.",
+         "hint": "It has keys and tags but no rigid table. What sits between structured and unstructured?"},
+        {"key": "lab_o5", "kind": "sort", "concept": "data_types", "icon": "🔖", "correct": "semi",
+         "question": "An XML product feed where every entry carries its own descriptive tags",
+         "feedback_correct": "Semi-structured — XML tags give partial structure without a rigid schema.",
+         "feedback_wrong": "This is SEMI-STRUCTURED data: XML tags give partial organisation without a fixed table schema.",
+         "explanation": "XML with self-describing tags is a classic semi-structured format.",
+         "hint": "Self-describing tags, but no fixed table — which category is that?"},
+        {"key": "lab_o6", "kind": "sort", "concept": "data_types", "icon": "📟", "correct": "semi",
+         "question": "Sensor readings streamed as key–value pairs with no rigid table schema",
+         "feedback_correct": "Semi-structured — key–value pairs are machine-readable without a fixed schema.",
+         "feedback_wrong": "This is SEMI-STRUCTURED data: key–value pairs carry partial structure without a rigid table.",
+         "explanation": "Key–value pairs with no fixed schema are semi-structured.",
+         "hint": "Key–value pairs, no rigid table — between structured and unstructured."},
+
+        {"key": "lab_o7", "kind": "sort", "concept": "data_types", "icon": "📧", "correct": "unstructured",
+         "question": "Customer support emails and call recordings the support team works through daily",
+         "feedback_correct": "Unstructured — free-text and audio with no rows-and-columns schema.",
+         "feedback_wrong": "This is UNSTRUCTURED data: emails and audio have no fixed schema (and the team actively uses them, so it isn't dark data).",
+         "explanation": "Native-format text and audio with no schema is unstructured; it's in active use, so not dark.",
+         "hint": "Free-text and audio, no schema — and it's actively used. Which category?"},
+        {"key": "lab_o8", "kind": "sort", "concept": "data_types", "icon": "🖼️", "correct": "unstructured",
+         "question": "The photo library of product images the marketing team publishes each week",
+         "feedback_correct": "Unstructured — images have no schema; and they're actively used, so not dark.",
+         "feedback_wrong": "This is UNSTRUCTURED data: images have no rows-and-columns schema, and they're actively published (so not dark data).",
+         "explanation": "Images in native form have no schema — unstructured; actively used, so not dark.",
+         "hint": "Images with no schema, published weekly — which category (and it's not dark)?"},
+        {"key": "lab_o9", "kind": "sort", "concept": "data_types", "icon": "🎙️", "correct": "unstructured",
+         "question": "Voicemail messages the call centre transcribes and acts on every day",
+         "feedback_correct": "Unstructured — raw audio with no schema; and it's used daily, so not dark.",
+         "feedback_wrong": "This is UNSTRUCTURED data: audio has no schema, and it's transcribed daily (so not dark data).",
+         "explanation": "Raw audio has no schema — unstructured; used daily, so not dark.",
+         "hint": "Raw audio, no schema, used every day — which category?"},
+
+        {"key": "lab_o10", "kind": "sort", "concept": "data_types", "icon": "📹", "correct": "dark",
+         "question": "Six years of CCTV footage that no one has ever reviewed",
+         "feedback_correct": "Dark data — collected and stored, but never used. That's what makes it dark.",
+         "feedback_wrong": "This is DARK DATA: the defining trait is that it's collected but NEVER used or reviewed — regardless of its format.",
+         "explanation": "Dark data is information collected and stored but never used — here, footage nobody has reviewed.",
+         "hint": "It's kept but NOBODY has ever looked at it. What do we call collected-but-unused data?"},
+        {"key": "lab_o11", "kind": "sort", "concept": "data_types", "icon": "🗄️", "correct": "dark",
+         "question": "Archived server logs the company keeps but never analyses",
+         "feedback_correct": "Dark data — stored but never analysed.",
+         "feedback_wrong": "This is DARK DATA: it's retained but never analysed — collected-but-unused is the signature of dark data.",
+         "explanation": "Kept but never analysed = dark data, whatever its underlying format.",
+         "hint": "Retained but never analysed — which category is defined by being unused?"},
+        {"key": "lab_o12", "kind": "sort", "concept": "data_types", "icon": "💾", "correct": "dark",
+         "question": "Old transaction records, neatly tabulated, sitting in a legacy system nobody queries",
+         "feedback_correct": "Dark data — even tidy, structured records are dark if they're never used.",
+         "feedback_wrong": "This is DARK DATA: though neatly structured, nobody queries it — dark data can be any type, including tidy tables.",
+         "explanation": "Dark data can be perfectly structured; what makes it dark is that it's never used — here, records nobody queries.",
+         "hint": "Tidy tables, but nobody queries them. Dark data can be any type — what defines it?"}
     ],
 
     "observatory": [
@@ -796,6 +831,68 @@ QUIZZES = {
             "feedback_wrong": "Reinforcement learning — improving actions through feedback and reward, like a game-playing agent. It also ties back to \"broad AI\": many ML methods integrated into one system.",
             "explanation": "Right — self-driving decision systems often use reinforcement learning, and the car as a whole is broad AI (many methods combined).",
             "hint": "The key words are trial, reward and consequence. Which learning method improves through feedback?"
+        },
+
+        # ── "The Hallucination Hunt" — the Observatory's signature pinned item ──
+        # Professor Atlas states four claims; exactly ONE is a hallucination
+        # (confidently worded but false). Authored content (NOT model-generated) so
+        # grading is deterministic and independent of Ollama. Each set is an ordinary
+        # 4-option MCQ where `correct` is the FALSE statement (the one to catch), so
+        # it grades through the normal server path as 1 point, all-or-nothing. The
+        # server pins ONE set per attempt (see PINNED_QUESTIONS group) and
+        # shuffle_options randomises display order, so the false claim's identity is
+        # never in the DOM and has no positional tell. `hunt: True` switches on the
+        # "Atlas speaking" presentation in _trial_core.html; grading is unaffected.
+        {
+            "key": "obs_hunt1",
+            "hunt": True,
+            "concept": "hallucination",
+            "question": "I am a language model — and a language model can state a falsehood with complete confidence. Below are four of my readings on how machines learn. Exactly one is a hallucination: confidently worded, but false. Find it.",
+            "options": {
+                "A": "Supervised learning uses labelled examples to learn a mapping from inputs to outputs.",
+                "B": "Unsupervised learning finds structure in data without labelled outcomes.",
+                "C": "Reinforcement learning requires a labelled dataset of correct actions before training can begin.",
+                "D": "A probabilistic model expresses its output as a confidence rather than a definite yes or no."
+            },
+            "correct": "C",
+            "feedback_correct": "Well caught. Reinforcement learning has no labelled set of 'correct actions' to copy — it learns from rewards and penalties through trial and error. The other three claims were true.",
+            "feedback_wrong": "That claim was true. The hallucination was the one about reinforcement learning: it does NOT need a labelled dataset of correct actions — it learns from rewards and penalties by trial and error. Confident wording is never proof.",
+            "explanation": "Reinforcement learning learns from reward and penalty through trial and error; it has no labelled dataset of correct actions to imitate. That was the false claim.",
+            "hint": "Three of these describe their method correctly. Weigh each against what you learned — which one demands something that method never actually uses?"
+        },
+        {
+            "key": "obs_hunt2",
+            "hunt": True,
+            "concept": "hallucination",
+            "question": "I am a language model — and a language model can state a falsehood with complete confidence. Below are four of my readings on how machines learn. Exactly one is a hallucination: confidently worded, but false. Find it.",
+            "options": {
+                "A": "Overfitting occurs when a model performs well on training data but poorly on new data.",
+                "B": "A large language model verifies each statement against a database of facts before it answers.",
+                "C": "Few-shot prompting steers a model by including a small number of examples in the prompt.",
+                "D": "A model trained on biased historical data can reproduce that bias in its predictions."
+            },
+            "correct": "B",
+            "feedback_correct": "Exactly — and this one is close to home. A language model like me predicts likely language; it does not look anything up or verify against a database. That is precisely why I can state a falsehood fluently.",
+            "feedback_wrong": "That claim was true. The hallucination was the one about a large language model 'verifying against a database of facts' — it does no such thing. It predicts likely text, which is why confident wording is never proof.",
+            "explanation": "A large language model generates the most likely next text from patterns learned in training; it does not consult or verify against a fact database. That was the false claim — and the reason hallucinations happen.",
+            "hint": "One of these describes a mechanism a language model does not actually have. Recall how an LLM produces its answer."
+        },
+        {
+            "key": "obs_hunt3",
+            "hunt": True,
+            "concept": "hallucination",
+            "question": "I am a language model — and a language model can state a falsehood with complete confidence. Below are four of my readings on how machines learn. Exactly one is a hallucination: confidently worded, but false. Find it.",
+            "options": {
+                "A": "Natural language processing lets a model work with unstructured human language such as emails and speech.",
+                "B": "A deterministic system returns the same output every time it is given the same input.",
+                "C": "A confident, fluent answer from a model can still be completely false.",
+                "D": "If a model scores 100% on its training data, it is guaranteed to do just as well on new, unseen data."
+            },
+            "correct": "D",
+            "feedback_correct": "Well caught. Scoring perfectly on training data often means the model has overfit — memorised the examples rather than learned the pattern — so it can fail on new data. Generalisation is what counts.",
+            "feedback_wrong": "That claim was true. The hallucination was the one promising that 100% training accuracy guarantees success on new data — that is often a sign of overfitting, not mastery. A model is judged on unseen data.",
+            "explanation": "High training accuracy can indicate overfitting rather than genuine learning; performance on new, unseen data is what matters. That was the false claim.",
+            "hint": "One claim makes a guarantee that sounds reassuring but contradicts what you learned about overfitting. Which one promises too much?"
         }
     ]
 }
@@ -806,22 +903,81 @@ TRIAL_COUNT = 4
 
 # Questions that must always appear in a location's Trial. The AI Lab pins its
 # hands-on data-sorting diagnostic (lab_q3, rendered as the sorting machine).
+# ── Data-classification bins for the AI Lab's "Classification Board" (sort items).
+# Rendered as neutral drop targets; each object's correct bin lives only in its
+# question's `correct` field (a bin id here), never in the Trial DOM.
+DATA_BINS = [
+    {"id": "structured", "label": "STRUCTURED"},
+    {"id": "semi", "label": "SEMI-STRUCTURED"},
+    {"id": "unstructured", "label": "UNSTRUCTURED"},
+    {"id": "dark", "label": "DARK DATA"},
+]
+BIN_IDS = {b["id"] for b in DATA_BINS}
+BIN_LABELS = {b["id"]: b["label"] for b in DATA_BINS}
+
+
 PINNED_QUESTIONS = {
-    "ai_lab": ["lab_q3"],
+    # The AI Lab no longer pins a single item — its whole Trial is the sorting board
+    # (4 `sort` objects drawn from the bank, each graded independently).
+    # The Observatory pins "The Hallucination Hunt". This entry is a GROUP (a list
+    # nested inside the pin list): the server picks exactly ONE of these
+    # interchangeable sets per attempt and excludes the rest from the draw, so one
+    # hunt always appears first and the unused sets never leak into the Trial.
+    "observatory": [["obs_hunt1", "obs_hunt2", "obs_hunt3"]],
+    # The Chronicle pins BOTH "Broken Timeline" ordering items, so sequencing is the
+    # Trial's dominant mode (2 ordering + 2 sampled MCQs).
+    "chronicle": ["chr_order_eras", "chr_order_winter"],
 }
+
+
+# ── Ordering items ("Broken Timeline") — server-authoritative sequence grading ──
+def order_canonical(q):
+    """The CORRECT sequence for an ordering item: its event ids in authored order,
+    comma-joined. Server-side only — never rendered into the Trial DOM."""
+    return ",".join(e["id"] for e in q.get("events", []))
+
+
+def normalize_order(value, q):
+    """Validate + normalise a submitted ordering.
+
+    Returns the comma-joined id string if `value` lists EXACTLY this item's event
+    ids — each exactly once, none missing, none extra (the shown_keys discipline);
+    otherwise None, so a forged/malformed sequence is never scored as correct.
+    """
+    if not value:
+        return None
+    ids = [s for s in str(value).split(",") if s]
+    valid = [e["id"] for e in q.get("events", [])]
+    if sorted(ids) != sorted(valid):
+        return None
+    return ",".join(ids)
 
 
 def select_trial_questions(location_key, count=TRIAL_COUNT):
     """Pick which question keys to show for one Trial attempt.
 
-    Pinned questions (e.g. the AI Lab sorting diagnostic) are always included
-    and kept first; the remainder are sampled at random from the bank. Returns
-    a list of question keys.
+    Pinned entries are always included and kept first. A pinned entry may be
+    either a single key (e.g. the AI Lab sorting diagnostic ``lab_q3``, always
+    shown) or a GROUP — a list/tuple of interchangeable keys (e.g. the Observatory
+    Hallucination Hunt sets ``obs_hunt1..3``). For a group the server picks exactly
+    ONE member per attempt and the WHOLE group is excluded from the random
+    remainder, so only the chosen set ever appears. The remainder is sampled at
+    random from the bank. Returns a list of question keys.
     """
     bank = QUIZZES.get(location_key, [])
     by_key = {q["key"]: q for q in bank}
-    pinned = [k for k in PINNED_QUESTIONS.get(location_key, []) if k in by_key]
-    pool = [q["key"] for q in bank if q["key"] not in pinned]
+    pinned = []
+    grouped = set()  # every key belonging to a pinned entry (chosen or not)
+    for entry in PINNED_QUESTIONS.get(location_key, []):
+        if isinstance(entry, (list, tuple)):
+            members = [k for k in entry if k in by_key]
+            grouped.update(members)
+            if members:
+                pinned.append(_random.choice(members))  # server picks ONE set
+        elif entry in by_key:
+            pinned.append(entry)
+            grouped.add(entry)
+    pool = [q["key"] for q in bank if q["key"] not in grouped]
     need = max(0, count - len(pinned))
     chosen = _random.sample(pool, min(need, len(pool)))
     return pinned + chosen
@@ -910,22 +1066,40 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
 
     for q in quiz:
         selected = submitted_answers.get(q["key"])
-        is_correct = selected == q["correct"]
+        # One shared loop, one score rule (1 point per correct item). Ordering items
+        # grade all-or-nothing on the WHOLE sequence; SORT items compare the chosen
+        # bin id (independent, 1 point each); MCQs compare the option letter.
+        if q.get("kind") == "order":
+            correct = order_canonical(q)
+            is_correct = normalize_order(selected, q) == correct
+            options = None
+        elif q.get("kind") == "sort":
+            correct = q["correct"]                 # a bin id, server-side only
+            is_correct = selected == correct
+            options = None
+        else:
+            correct = q["correct"]
+            is_correct = selected == correct
+            options = q["options"]
         if is_correct:
             score += 1
-        results.append(
-            {
-                "key": q["key"],
-                "question": q["question"],
-                "options": q["options"],
-                "selected": selected,
-                "correct": q["correct"],
-                "is_correct": is_correct,
-                "explanation": q.get("explanation", ""),
-                "feedback": (q.get("feedback_correct") if is_correct
-                             else q.get("feedback_wrong")) or q.get("explanation", ""),
-            }
-        )
+        row = {
+            "key": q["key"],
+            "question": q["question"],
+            "kind": q.get("kind", "mcq"),
+            "options": options,
+            "events": q.get("events"),
+            "selected": selected,
+            "correct": correct,
+            "is_correct": is_correct,
+            "explanation": q.get("explanation", ""),
+            "feedback": (q.get("feedback_correct") if is_correct
+                         else q.get("feedback_wrong")) or q.get("explanation", ""),
+        }
+        if q.get("kind") == "sort":
+            row["correct_label"] = BIN_LABELS.get(correct, correct)
+            row["selected_label"] = BIN_LABELS.get(selected, selected)
+        results.append(row)
 
     total = len(quiz)
     passed = score >= PASS_THRESHOLD

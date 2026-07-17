@@ -28,6 +28,34 @@ def shuffle_options(q):
         items[i], items[j] = items[j], items[i]
     return items
 
+
+def shuffle_events(q):
+    """Return an ordering item's `events` in a randomised DISPLAY order.
+
+    The learner reassembles the true sequence, so the events are presented
+    scrambled; the CORRECT order lives only in game_content (never in the DOM).
+    Copies the list (never mutates source) and re-rolls up to a few times so the
+    already-solved order is not shown by fluke.
+    """
+    events = list((q.get("events") if isinstance(q, dict) else q) or [])
+    if len(events) < 2:
+        return events
+    correct = [e["id"] for e in events]
+    shuffled = events[:]
+    for _ in range(8):
+        random.shuffle(shuffled)
+        if [e["id"] for e in shuffled] != correct:
+            break
+    return shuffled
+
+
+def shuffle_board(items):
+    """Return a shuffled COPY of a list — used to present the AI Lab's sorting-board
+    objects in a random intake order (their draw order never hints the bins)."""
+    lst = list(items or [])
+    random.shuffle(lst)
+    return lst
+
 # ── Real login/register is ON. Flip to True to bypass auth with a shared
 # "guest" auto-login while rebuilding the GUI. ──
 AUTH_DISABLED = False
@@ -45,6 +73,8 @@ def create_app(config=None):
     app = Flask(__name__, static_folder="static", template_folder="templates")
 
     app.jinja_env.filters["shuffle_options"] = shuffle_options
+    app.jinja_env.filters["shuffle_events"] = shuffle_events
+    app.jinja_env.filters["shuffle_board"] = shuffle_board
 
     # Overridable via environment for any non-local deployment (default unchanged).
     app.config["SECRET_KEY"] = os.environ.get("ATLAS_SECRET_KEY", "atlas-quest-dev-secret")

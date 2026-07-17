@@ -444,127 +444,111 @@
     }, 650);
   }
 
-  // ───────────────── TICKER-TAPE QUIZ ─────────────────
-  const consulted = new Set();
-  const consultedEl = document.getElementById("consulted");
+  // ───────────────── ASSESSMENT: DATA-CLASSIFICATION BOARD ─────────────────
   const form = document.getElementById("terminal-quiz");
-  const tQs = Array.from(document.querySelectorAll(".ticker-q"));
-  let tIdx = 0, submitting = false;
+  const board = document.getElementById("sort-board");
+  const submitBtn = document.getElementById("board-submit");
+  const sortedCountEl = document.getElementById("sorted-count");
+  let submitting = false, dragObj = null, selectedObj = null, boardReady = false;
 
   function revealQuiz() {
     const quiz = document.getElementById("term-quiz");
     if (quiz) quiz.hidden = false;
-    const tot = document.getElementById("tk-total"); if (tot) tot.textContent = tQs.length;
-    showTicker(0);
+    initBoard();
   }
-  function showTicker(i) {
-    tIdx = i;
-    tQs.forEach((q, k) => q.classList.toggle("active", k === i));
-    const cur = document.getElementById("tk-cur"); if (cur) cur.textContent = i + 1;
-    const q = tQs[i];
-    const tape = q.querySelector(".tape-text");
-    if (tape && !tape.dataset.done) {
-      typeLine(tape, tape.dataset.text, 16, function () { tape.dataset.done = "1"; });
-    }
+  function boardObjs() { return board ? Array.from(board.querySelectorAll(".board-obj")) : []; }
+  // The hidden .obj-answer inputs live in the FORM (before #sort-board), so query
+  // the form — NOT the board — or placements never register and Submit never enables.
+  function placedCount() {
+    let n = 0;
+    if (form) form.querySelectorAll(".obj-answer").forEach((i) => { if (i.value) n++; });
+    return n;
   }
-  function wireTicker(q) {
-    const btns = Array.from(q.querySelectorAll(".console-btn"));
-    const answerInput = q.querySelector(".q-answer");
-    const status = q.querySelector(".ticker-status");
-    btns.forEach(function (btn) {
-      btn.addEventListener("click", async function () {
-        if (q.classList.contains("answered")) return;
-        q.classList.add("answered");
-        const chosen = btn.dataset.val;
-        if (answerInput) answerInput.value = chosen;   // form fallback; server is authoritative
-        btns.forEach((b) => (b.disabled = true));      // lock immediately (first commit)
+  function setAnswer(objKey, binId) {
+    const inp = form && form.querySelector('.obj-answer[data-obj="' + objKey + '"]');
+    if (inp) inp.value = binId || "";
+  }
+  function refreshProgress() {
+    const total = boardObjs().length, n = placedCount();
+    if (sortedCountEl) sortedCountEl.textContent = n;
+    if (submitBtn) { const ready = total > 0 && n >= total; submitBtn.disabled = !ready; submitBtn.classList.toggle("ready", ready); }
+  }
+  function placeObj(obj, drop, binId) {
+    drop.appendChild(obj); obj.classList.add("placed");
+    setAnswer(obj.dataset.obj, binId); itemDrop(); refreshProgress();
+  }
+  function returnObj(obj, intake) {
+    intake.appendChild(obj); obj.classList.remove("placed");
+    setAnswer(obj.dataset.obj, ""); refreshProgress();
+  }
+  function selectObj(obj) { clearSelect(); selectedObj = obj; obj.classList.add("selected"); }
+  function clearSelect() { if (selectedObj) selectedObj.classList.remove("selected"); selectedObj = null; }
 
-        // Ask the SERVER whether it was right — the answer key is not in the DOM.
-        // It records this first commit and returns the correct letter + feedback.
-        let ok = false, correct = null, fbmsg = "", known = false;
-        try {
-          const res = await fetch("/location/" + encodeURIComponent(location) + "/answer", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ attempt_id: (form && form.dataset.attempt) || "", qkey: q.dataset.qkey, letter: chosen }),
-          });
-          if (res.ok) { const d = await res.json(); ok = !!d.is_correct; correct = d.correct; fbmsg = d.feedback || ""; known = true; }
-        } catch (e) {}
-
-        if (known) {
-          if (ok) {
-            btn.classList.add("led-green");
-            flash("green", 160);
-            correctChime();
-          } else {
-            btn.classList.add("led-red", "shake");
-            flash("red", 110);
-            wrongBuzz();
-            btns.forEach((b) => { if (b.dataset.val === correct) b.classList.add("led-green", "pulse"); else if (b !== btn) b.classList.add("dimmed"); });
-          }
-        }
-
-        // Manual proceed (Enter or click).
-        const last = tIdx >= tQs.length - 1;
-        const proceed = function () { if (last) finishQuiz(); else showTicker(tIdx + 1); };
-        q._proceed = proceed;
-        if (status) {
-          status.hidden = false;
-          status.className = "ticker-status " + (known ? (ok ? "ok" : "bad") : "");
-          status.innerHTML = "";
-          const verdict = document.createElement("div");
-          verdict.className = "ts-verdict";
-          verdict.textContent = known ? (ok ? "VERIFIED ✓" : "INCORRECT — RETRY LOGGED") : "LOGGED";
-          status.appendChild(verdict);
-          if (fbmsg) {
-            const fb = document.createElement("div");
-            fb.className = "ts-feedback";
-            fb.textContent = "> " + fbmsg;
-            status.appendChild(fb);
-          }
-          const nextBtn = document.createElement("button");
-          nextBtn.type = "button";
-          nextBtn.className = "term-continue ts-next";
-          nextBtn.textContent = last ? "> SUBMIT ASSESSMENT [ENTER]" : "> NEXT QUERY [ENTER]";
-          nextBtn.addEventListener("click", proceed, { once: true });
-          status.appendChild(nextBtn);
-          try { nextBtn.focus(); } catch (err) {}
-        } else {
-          setTimeout(proceed, 1500);
-        }
-      });
+  function initBoard() {
+    if (!board || boardReady) return;
+    boardReady = true;
+    const intake = document.getElementById("intake-items");
+    boardObjs().forEach((obj) => {
+      obj.addEventListener("dragstart", (e) => { dragObj = obj; try { e.dataTransfer.setData("text/plain", obj.dataset.obj); } catch (er) {} obj.classList.add("dragging"); });
+      obj.addEventListener("dragend", () => { obj.classList.remove("dragging"); dragObj = null; });
+      obj.addEventListener("click", () => selectObj(obj));                                  // click/keyboard: select
+      obj.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectObj(obj); } });
     });
-    // per-question hint → Atlas mini-monitor
-    const hintBtn = q.querySelector(".hint-btn");
-    const box = q.querySelector(".hint-box");
-    if (hintBtn && box) {
-      hintBtn.addEventListener("click", async function () {
-        consulted.add(q.dataset.qkey);
-        if (consultedEl) consultedEl.value = Array.from(consulted).join(",");
-        atlasFace(true);
-        box.hidden = false; box.textContent = "> ATLAS: processing query…";
-        hintBtn.disabled = true;
-        const fallback = q.dataset.hint || "Think about which option lacks neat rows and columns.";
-        try {
-          const res = await fetch("/npc/chat", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: "Give me a hint without revealing the answer: " + q.dataset.question, location: location }),
-          });
-          const data = await res.json();
-          const good = data && data.response && !data.is_fallback;
-          box.textContent = "> ATLAS: " + (good ? data.response : fallback);
-        } catch (e) { box.textContent = "> ATLAS: " + fallback; }
-        finally { hintBtn.disabled = false; setTimeout(() => atlasFace(false), 1200); }
+    Array.from(board.querySelectorAll(".board-bin")).forEach((bin) => {
+      const drop = bin.querySelector(".bbin-drop");
+      bin.addEventListener("dragover", (e) => { e.preventDefault(); bin.classList.add("over"); });
+      bin.addEventListener("dragleave", () => bin.classList.remove("over"));
+      bin.addEventListener("drop", (e) => {
+        e.preventDefault(); bin.classList.remove("over");
+        let id = ""; try { id = e.dataTransfer.getData("text/plain"); } catch (er) {} id = id || (dragObj && dragObj.dataset.obj);
+        const obj = board.querySelector('.board-obj[data-obj="' + id + '"]');
+        if (obj) placeObj(obj, drop, bin.dataset.bin);
       });
+      bin.addEventListener("click", () => { if (selectedObj) { placeObj(selectedObj, drop, bin.dataset.bin); clearSelect(); } });  // keyboard: select obj → click bin
+    });
+    if (intake) {
+      intake.addEventListener("dragover", (e) => e.preventDefault());
+      intake.addEventListener("drop", (e) => {
+        e.preventDefault(); let id = ""; try { id = e.dataTransfer.getData("text/plain"); } catch (er) {} id = id || (dragObj && dragObj.dataset.obj);
+        const obj = board.querySelector('.board-obj[data-obj="' + id + '"]');
+        if (obj) returnObj(obj, intake);
+      });
+      intake.addEventListener("click", () => { if (selectedObj) { returnObj(selectedObj, intake); clearSelect(); } });
     }
+    refreshProgress();
+    wireBoardHint();
   }
-  tQs.forEach(wireTicker);
 
-  function finishQuiz() {
+  // Board-level hint → Atlas mini-monitor (general classification guidance).
+  function wireBoardHint() {
+    const hintBtn = document.getElementById("board-hint");
+    const box = document.getElementById("board-hint-box");
+    if (!hintBtn || !box) return;
+    hintBtn.addEventListener("click", async function () {
+      atlasFace(true);
+      box.hidden = false; box.textContent = "> ATLAS: processing query…";
+      hintBtn.disabled = true;
+      const fallback = "Structured fits neat rows and columns; semi-structured carries tags or keys; unstructured has no schema; dark data is anything collected but never used.";
+      try {
+        const res = await fetch("/npc/chat", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "Give me a hint for telling structured, semi-structured, unstructured and dark data apart, without revealing any answers.", location: location }),
+        });
+        const data = await res.json();
+        const good = data && data.response && !data.is_fallback;
+        box.textContent = "> ATLAS: " + (good ? data.response : fallback);
+      } catch (e) { box.textContent = "> ATLAS: " + fallback; }
+      finally { hintBtn.disabled = false; setTimeout(() => atlasFace(false), 1200); }
+    });
+  }
+
+  if (submitBtn) submitBtn.addEventListener("click", finishBoard);
+  function finishBoard() {
     if (submitting || !form) return;
+    if (placedCount() < boardObjs().length) return;   // submit only once all are placed
     submitting = true;
     flash("white", 90);
-    setTimeout(function () { stopHum(); form.submit(); }, 600);
+    setTimeout(function () { stopHum(); form.submit(); }, 500);
   }
 
   // ───────────────── ENTER key = press the active CONTINUE ─────────────────
@@ -579,11 +563,11 @@
       if (begin && begin.classList.contains("show")) { e.preventDefault(); begin.click(); }
       return;
     }
-    // active quiz question awaiting proceed (after answering)
-    const activeTq = document.querySelector(".ticker-q.active.answered");
-    if (activeTq) {
-      const nb = activeTq.querySelector(".ts-next");
-      if (nb) { e.preventDefault(); nb.click(); }
+    // assessment board: Enter submits once every specimen is placed
+    const quizSection = document.getElementById("term-quiz");
+    if (quizSection && !quizSection.hidden) {
+      const sb = document.getElementById("board-submit");
+      if (sb && !sb.disabled) { e.preventDefault(); sb.click(); }
       return;
     }
     // active learn / machine card continue

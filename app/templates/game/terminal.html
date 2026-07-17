@@ -5,12 +5,10 @@
 
 {% block body %}
 {% set show_npc = current_user.condition == 'game' %}
-{% set ns = namespace(q3_correct='') %}
-{% for q in quiz %}{% if q.key == 'lab_q3' %}{% set ns.q3_correct = q.correct %}{% endif %}{% endfor %}
 
 <div class="crt-dim" id="crt-dim" aria-hidden="true"></div>
 
-<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}" data-passed="{{ '1' if lab_passed else '0' }}">
+<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}" data-passed="{{ '1' if lab_passed else '0' }}" style="--accent: {{ loc.accent }};">
 
 <!-- Guess-first hook per sector (never logged/graded) -->
 <script type="application/json" id="term-hooks">{{ hooks | default([]) | tojson }}</script>
@@ -71,9 +69,9 @@
           <p class="brief-intro">&gt; Welcome, researcher. Before you operate this terminal, read your orders:</p>
           <ul class="brief-list" id="brief-list">
             <li><span class="brief-key">[1]</span> Review each <b>SECTOR</b> of declassified data. Read it, then press <b>&gt; CONTINUE</b>.</li>
-            <li><span class="brief-key">[2]</span> One sector is a live <b>CLASSIFICATION DIAGNOSTIC</b> — drag each data item onto the correct bin (STRUCTURED / SEMI / UNSTRUCTURED).</li>
+            <li><span class="brief-key">[2]</span> One sector is a <b>PRACTICE</b> classification bench — drag each data item onto the correct bin to warm up (this run isn't graded).</li>
             <li><span class="brief-key">[3]</span> The four switches above the monitor (<b>SECT-1…4</b>) light up as you clear each sector.</li>
-            <li><span class="brief-key">[4]</span> When all sectors are cleared, the system reboots into <b>ASSESSMENT MODE</b>. Score <b>3 / 4</b> to pass.</li>
+            <li><span class="brief-key">[4]</span> When all sectors are cleared, the system reboots into <b>ASSESSMENT MODE</b> — sort <b>four data specimens</b> into their correct bins. Score <b>3 / 4</b> to pass.</li>
             <li><span class="brief-key">[5]</span> Stuck? Open <b>PROFESSOR_ATLAS</b> (bottom-right) for a hint — he will never hand you an answer.</li>
           </ul>
           <div class="term-actions">
@@ -123,9 +121,9 @@
               <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: DATA_CLASSIFICATION | DIAGNOSTIC<span class="term-load">CONVEYOR: ONLINE</span></div>
               <hr class="term-hr" />
               <h2 class="term-head static">&gt; SECTOR: DATA_CLASSIFICATION</h2>
-              <p class="machine-intro">&gt; DATA comes in three forms. STRUCTURED fits neat rows and columns — a spreadsheet of names, ages and balances, easily queried with SQL. UNSTRUCTURED has no schema and is stored raw: emails, images, audio, chat logs. SEMI-STRUCTURED sits between the two — tags or keys give partial order without a rigid table (JSON, XML).<br />&gt; An estimated 80–90% of enterprise data is unstructured, yet most legacy tools were built for the structured ~10–20% — so dashboards often show only a thin slice. Watch for DARK DATA too: information collected but never used (it can even be tidy, structured records).<br />&gt; Drag each item on the conveyor into the correct bin. Your sort IS your answer to this diagnostic — classify all six carefully; you get one attempt.</p>
+              <p class="machine-intro">&gt; DATA comes in three forms. STRUCTURED fits neat rows and columns — a spreadsheet of names, ages and balances, easily queried with SQL. UNSTRUCTURED has no schema and is stored raw: emails, images, audio, chat logs. SEMI-STRUCTURED sits between the two — tags or keys give partial order without a rigid table (JSON, XML).<br />&gt; An estimated 80–90% of enterprise data is unstructured, yet most legacy tools were built for the structured ~10–20% — so dashboards often show only a thin slice. Watch for DARK DATA too: information collected but never used (it can even be tidy, structured records).<br />&gt; Drag each item on the conveyor into the correct bin. This is a PRACTICE run — a warm-up for the graded classification that follows the reboot.</p>
 
-              <div class="sorting-game" data-qkey="lab_q3" data-correctval="{{ ns.q3_correct }}">
+              <div class="sorting-game sorting-practice">
                 <!-- Conveyor belt feed -->
                 <div class="conveyor">
                   <div class="conveyor-belt"></div>
@@ -166,39 +164,48 @@
             <input type="hidden" name="consulted" id="consulted" value="" />
             <!-- Server-authoritative attempt id (never a trusted shown-keys list). -->
             <input type="hidden" name="attempt_id" value="{{ attempt_id }}" />
-            <!-- Q3 answer comes from the sorting machine on the previous card -->
-            <input type="hidden" name="lab_q3" id="q3-answer" value="" />
+            {# One hidden field per object; JS writes the chosen bin id on placement.
+               The correct bin is NEVER rendered — grading is server-side. #}
+            {% for q in quiz %}<input type="hidden" name="{{ q.key }}" class="obj-answer" data-obj="{{ q.key }}" value="" />{% endfor %}
 
             <div class="quiz-head">
-              <span class="quiz-head-title">&gt; ASSESSMENT MODE</span>
-              <span class="quiz-head-count">QUERY <b id="tk-cur">1</b>/<span id="tk-total">0</span></span>
+              <span class="quiz-head-title">&gt; ASSESSMENT MODE — DATA CLASSIFICATION</span>
+              <span class="quiz-head-count">SPECIMENS SORTED <b id="sorted-count">0</b>/<span id="sorted-total">{{ quiz|length }}</span></span>
             </div>
 
-            <div class="ticker-stage" id="ticker-stage">
-              {% for q in quiz %}{% if q.key != 'lab_q3' %}
-              <div class="ticker-q" data-qkey="{{ q.key }}"
-                   data-question="{{ q.question }}" data-hint="{{ q.hint | default('') }}">
-                <input type="hidden" name="{{ q.key }}" class="q-answer" value="" />
-                <div class="ticker-tape"><span class="tape-text" data-text="{{ q.question }}"></span></div>
-                <div class="console-options">
-                  {% for letter, text in q|shuffle_options %}
-                  <button type="button" class="console-btn" data-val="{{ letter }}">
-                    <span class="btn-led"></span>
-                    <span class="btn-letter">{{ letter }}</span>
-                    <span class="btn-text">{{ text }}</span>
-                  </button>
+            <div class="sort-board" id="sort-board">
+              <div class="board-intake">
+                <div class="intake-label">&gt; INTAKE — drag each specimen to its bin</div>
+                <div class="intake-items" id="intake-items">
+                  {% for q in quiz|shuffle_board %}
+                  <div class="board-obj" draggable="true" data-obj="{{ q.key }}" tabindex="0" role="button"
+                       data-question="{{ q.question }}" data-hint="{{ q.hint | default('') }}"
+                       aria-label="{{ q.question }}">
+                    <span class="obj-ic" aria-hidden="true">{{ q.icon | default('🗂️') }}</span>
+                    <span class="obj-label">{{ q.question }}</span>
+                  </div>
                   {% endfor %}
                 </div>
-                {% if show_npc %}
-                <div class="hint-row">
-                  <button type="button" class="hint-btn term-btn-sm">&gt; ATLAS.hint()</button>
-                </div>
-                <div class="hint-box term-note" hidden></div>
-                {% endif %}
-                <div class="ticker-status" hidden></div>
               </div>
-              {% endif %}{% endfor %}
+
+              <div class="board-bins">
+                {% for bin in data_bins %}
+                <div class="board-bin" data-bin="{{ bin.id }}">
+                  <div class="bbin-label">{{ bin.label }}</div>
+                  <div class="bbin-drop"></div>
+                </div>
+                {% endfor %}
+              </div>
             </div>
+
+            <div class="term-actions board-actions">
+              <button type="button" class="term-continue" id="board-submit" disabled>&gt; SUBMIT CLASSIFICATION [ENTER]</button>
+            </div>
+            <p class="board-note">Drag a specimen to a bin — or tap it, then tap a bin. Submit once all {{ quiz|length }} are placed.</p>
+            {% if show_npc %}
+            <div class="hint-row"><button type="button" class="hint-btn term-btn-sm" id="board-hint">&gt; ATLAS.hint()</button></div>
+            <div class="hint-box term-note" id="board-hint-box" hidden></div>
+            {% endif %}
           </form>
         </section>
 

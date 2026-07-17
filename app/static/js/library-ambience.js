@@ -32,7 +32,9 @@
 
   var AC = window.AudioContext || window.webkitAudioContext;
   var ctx = null, master = null;
-  var muted = false, started = false;
+  // Inherit the GLOBAL "Master sound" preference (settings toggle) — the same
+  // mechanism the AI Lab / Observatory use. Start muted if sound is off.
+  var muted = !!(window.ATLAS_PREFS && window.ATLAS_PREFS.sound === false), started = false;
   var fireNode = null;
 
   function ensureCtx() {
@@ -40,7 +42,7 @@
     try {
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 1;
+      master.gain.value = muted ? 0 : 1;
       master.connect(ctx.destination);
     } catch (e) { ctx = null; }
     return ctx;
@@ -241,27 +243,34 @@
     started = true;
     ensureCtx();
     try { if (ctx && ctx.state === "suspended") ctx.resume(); } catch (e) {}
+    if (!muted) startFire();   // begin the ambient crackling fire on first gesture
   }
   ["pointerdown", "keydown"].forEach(function (ev) {
     document.addEventListener(ev, kick, { once: true });
   });
 
-  // ── Mute toggle (top-right) ──
+  // ── Mute toggle (top-right) — reflects the inherited global sound pref ──
   var btn = document.getElementById("lib-mute");
+  function syncMuteBtn() {
+    if (!btn) return;
+    btn.textContent = muted ? "🔇" : "🔊";
+    btn.classList.toggle("muted", muted);
+    btn.setAttribute("aria-label", muted ? "Sound off" : "Sound on");
+  }
   if (btn) {
+    syncMuteBtn();   // show 🔇 at load if the user has sound off globally
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
       kick();
       muted = !muted;
       try {
         if (ctx) {
-          if (muted) { ctx.suspend(); }
-          else { ctx.resume(); }
+          if (!muted && ctx.state === "suspended") ctx.resume();
+          if (master) master.gain.value = muted ? 0 : 1;
+          if (!muted) startFire();   // (idempotent) ensure the ambient is running
         }
       } catch (err) {}
-      btn.textContent = muted ? "🔇" : "🔊";
-      btn.classList.toggle("muted", muted);
-      btn.setAttribute("aria-label", muted ? "Sound off" : "Sound on");
+      syncMuteBtn();
     });
   }
 

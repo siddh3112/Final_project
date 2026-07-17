@@ -10,6 +10,7 @@ it); they never license weakening grading, the shown-set rule, or the pin.
 import pytest
 
 from app.game_content import (
+    BIN_IDS,
     LOCATION_ORDER,
     PASS_THRESHOLD,
     TRIAL_COUNT,
@@ -28,12 +29,18 @@ def _bank_keys(loc):
 
 
 def _submission(loc, shown, n_correct):
-    """Answer the first `n_correct` of `shown` correctly, the rest wrong."""
+    """Answer the first `n_correct` of `shown` correctly, the rest wrong.
+
+    Handles MCQ items (a wrong option letter) and `sort` items (a wrong bin id) —
+    both grade through the same core as `selected == correct`.
+    """
     qs = get_questions_by_keys(loc, shown)
     submitted = {}
     for i, q in enumerate(qs):
         if i < n_correct:
             submitted[q["key"]] = q["correct"]
+        elif q.get("kind") == "sort":
+            submitted[q["key"]] = next(b for b in BIN_IDS if b != q["correct"])
         else:
             submitted[q["key"]] = next(l for l in q["options"] if l != q["correct"])
     return submitted
@@ -110,11 +117,13 @@ def test_selection_count_valid_unique(loc):
 
 # ── select_trial_questions: pinned questions are always present AND first ──
 def test_pinned_question_always_first():
-    loc = "ai_lab"
+    # The Chronicle pins both ordering items (single keys), so they lead every draw
+    # in order. (The AI Lab no longer pins — its whole Trial is the sorting board.)
+    loc = "chronicle"
     pinned = PINNED_QUESTIONS[loc]
     for _ in range(40):
         chosen = select_trial_questions(loc)
-        assert chosen[: len(pinned)] == pinned, "pinned diagnostic must lead every draw"
+        assert chosen[: len(pinned)] == pinned, "pinned items must lead every draw"
 
 
 # ── select_trial_questions: genuinely samples (not a fixed slice) ────────

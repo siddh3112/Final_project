@@ -14,8 +14,8 @@
                   'intro_line': 'Inscribe your answers, scholar — answer at least <strong>3 of 4</strong> correctly to pass the Examination.',
                   'intro_hint': 'Unsure of a passage? Consult Professor Atlas.'},
   'chronicle':   {'icon': '⏳', 'kicker': 'The Reckoning of Ages', 'title': 'The Reckoning of Ages', 'tagline': 'Consult the records and seal each entry',
-                  'atlas_label': 'Consult the Records-keeper',
-                  'intro_line': 'Consult the records, keeper — seal at least <strong>3 of 4</strong> entries correctly to pass the Reckoning.',
+                  'atlas_label': 'Consult the Records-keeper', 'counter_noun': 'Record',
+                  'intro_line': 'Consult the records, keeper — restore the broken timelines and seal at least <strong>3 of 4</strong> entries correctly to pass the Reckoning.',
                   'intro_hint': 'Uncertain of an age? Consult the Records-keeper Atlas.'},
   'observatory': {'icon': '🔭', 'kicker': 'Reading the Sky',       'title': 'Reading the Sky',       'tagline': 'Chart the constellation of what you have learned',
                   'atlas_label': 'Ask the Star-reader',
@@ -29,6 +29,7 @@
 {% set atlas_label = s.atlas_label %}
 {% set intro_line  = s.intro_line %}
 {% set intro_hint  = s.intro_hint %}
+{% set counter_noun = s.counter_noun | default('Question') %}
 
 <div class="location-page trial-page trial-{{ loc.key }} trial-skin trial-skin-{{ loc.key }}"
      data-skin="{{ loc.key }}" style="--accent: {{ loc.accent }};">

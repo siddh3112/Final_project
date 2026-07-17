@@ -1,6 +1,9 @@
 // ════════════════════════════════════════════════════════════════
 //  The Trial — one question at a time, instant feedback, auto-advance,
-//  floating +XP, and a per-question "Ask Professor Atlas" hint.
+//  floating +XP, a per-question "Ask Professor Atlas" hint, and (the Chronicle)
+//  drag/keyboard "Broken Timeline" ordering items. Grading is server-side; the
+//  answer key / correct sequence is NEVER in the DOM — the client asks /answer,
+//  which reveals the truth only after the (locked) first commit.
 // ════════════════════════════════════════════════════════════════
 (function () {
   const form = document.getElementById("quiz-form");
@@ -28,7 +31,7 @@
     locked = false;
   }
 
-  // Floating "+25 XP" that rises and fades from the chosen option.
+  // Floating "+25 XP" that rises and fades from the chosen element.
   function floatXP(target) {
     const el = document.createElement("div");
     el.className = "xp-float";
@@ -49,8 +52,24 @@
     }
   }
 
-  // Answer a question: instant green/red feedback + elaborative explanation,
-  // then wait for the learner to press Continue.
+  // Shared: reveal the per-question feedback panel, then wait for Continue.
+  function revealFeedback(q, known, isRight, feedbackText) {
+    const fb = q.querySelector(".q-feedback");
+    if (!fb) { setTimeout(advance, 1500); return; }
+    const txt = fb.querySelector(".q-feedback-text");
+    if (txt) txt.textContent = known ? feedbackText : "Answer recorded.";
+    fb.classList.toggle("is-ok", known && isRight);
+    fb.classList.toggle("is-no", known && !isRight);
+    fb.hidden = false;
+    const nextBtn = fb.querySelector(".q-next-btn");
+    if (nextBtn) {
+      nextBtn.textContent = idx < total - 1 ? "Continue" : "See results";
+      nextBtn.focus();
+      nextBtn.addEventListener("click", advance, { once: true });
+    }
+  }
+
+  // ── MCQ answer: instant green/red feedback + elaborative explanation. ──
   async function answer(q, opt) {
     if (locked) return;
     locked = true;
@@ -59,17 +78,14 @@
     chosenInput.checked = true; // the committed answer is the one that gets graded
     const chosen = chosenInput.value;
     const opts = Array.from(q.querySelectorAll(".q-option"));
-    // Data-level lock immediately: once committed, no switching to another
-    // option — not by a second click, not by keyboard arrow-keys, not by script.
+    // Data-level lock immediately: once committed, no switching to another option.
     opts.forEach((o) => {
       o.classList.add("locked");
       if (o !== opt) o.querySelector("input").disabled = true;
     });
 
     // Ask the SERVER whether it was right. The answer key is NOT in the DOM; the
-    // server records this (first) commit and returns the correct letter + the
-    // elaborative feedback. On a network error we still let the learner proceed
-    // (their checked answer is graded on submit as a fallback).
+    // server records this (first) commit and returns the correct letter + feedback.
     let isRight = false, correctLetter = null, feedback = "", known = false;
     try {
       const res = await fetch("/location/" + encodeURIComponent(location) + "/answer", {
@@ -88,24 +104,93 @@
       if (isRight) { opt.classList.add("flash-ok"); floatXP(opt); }
       else { opt.classList.add("flash-no", "shake"); }
     }
+    revealFeedback(q, known, isRight, feedback);
+  }
 
-    // Elaborative feedback (the "explain why" upgrade), now server-provided.
-    const fb = q.querySelector(".q-feedback");
-    if (fb) {
-      const txt = fb.querySelector(".q-feedback-text");
-      if (txt) txt.textContent = known ? feedback : "Answer recorded.";
-      fb.classList.toggle("is-ok", known && isRight);
-      fb.classList.toggle("is-no", known && !isRight);
-      fb.hidden = false;
-      const nextBtn = fb.querySelector(".q-next-btn");
-      if (nextBtn) {
-        nextBtn.textContent = idx < total - 1 ? "Continue" : "See results";
-        nextBtn.focus();
-        nextBtn.addEventListener("click", advance, { once: true });
+  // ── Broken Timeline (ordering item): drag or the ▲/▼ buttons to reorder, then
+  //    "Seal this record" commits the arranged sequence. The correct order is not
+  //    in the DOM; the server returns it only after this first commit is locked. ──
+  function wireOrder(q) {
+    const rail = q.querySelector(".order-rail");
+    const valueEl = q.querySelector(".order-value");
+    const confirmBtn = q.querySelector(".order-confirm");
+    if (!rail || !confirmBtn) return;
+    let itemLocked = false;
+
+    const chips = () => Array.from(rail.querySelectorAll(".order-chip"));
+    const sync = () => { if (valueEl) valueEl.value = chips().map((c) => c.dataset.ev).join(","); };
+    sync(); // initialise the hidden value to the shuffled order
+
+    // ▲/▼ buttons — keyboard-accessible reordering (the keyboard fallback).
+    rail.addEventListener("click", function (e) {
+      if (itemLocked) return;
+      const btn = e.target.closest(".order-move");
+      if (!btn) return;
+      const chip = btn.closest(".order-chip");
+      if (btn.classList.contains("order-up") && chip.previousElementSibling) {
+        rail.insertBefore(chip, chip.previousElementSibling);
+      } else if (btn.classList.contains("order-down") && chip.nextElementSibling) {
+        rail.insertBefore(chip.nextElementSibling, chip);
       }
-    } else {
-      setTimeout(advance, 1500);
-    }
+      sync();
+      chip.focus();
+    });
+
+    // Pointer drag reordering.
+    let dragEl = null;
+    rail.addEventListener("dragstart", function (e) {
+      if (itemLocked) { e.preventDefault(); return; }
+      dragEl = e.target.closest(".order-chip");
+      if (dragEl) dragEl.classList.add("dragging");
+    });
+    rail.addEventListener("dragend", function () {
+      if (dragEl) dragEl.classList.remove("dragging");
+      dragEl = null; sync();
+    });
+    rail.addEventListener("dragover", function (e) {
+      if (itemLocked || !dragEl) return;
+      e.preventDefault();
+      const after = chips().filter((c) => c !== dragEl).find((c) => {
+        const box = c.getBoundingClientRect();
+        return e.clientY < box.top + box.height / 2;
+      });
+      if (after) rail.insertBefore(dragEl, after);
+      else rail.appendChild(dragEl);
+    });
+
+    confirmBtn.addEventListener("click", async function () {
+      if (itemLocked) return;
+      itemLocked = true; locked = true;
+      sync();
+      const order = valueEl ? valueEl.value : "";
+      chips().forEach((c) => { c.setAttribute("draggable", "false"); c.classList.add("locked"); });
+      q.querySelectorAll(".order-move").forEach((b) => (b.disabled = true));
+      confirmBtn.disabled = true;
+
+      let known = false, isRight = false, feedback = "", correctOrder = null;
+      try {
+        const res = await fetch("/location/" + encodeURIComponent(location) + "/answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ attempt_id: attemptId, qkey: q.dataset.qkey, order: order }),
+        });
+        if (res.ok) {
+          const d = await res.json();
+          known = true; isRight = !!d.is_correct; feedback = d.feedback || ""; correctOrder = d.correct_order || null;
+        }
+      } catch (e) {}
+
+      if (known && correctOrder) {
+        // Re-form the rail into the TRUE order (post-commit reveal) and light it.
+        const byId = {};
+        chips().forEach((c) => (byId[c.dataset.ev] = c));
+        correctOrder.split(",").forEach((id) => { if (byId[id]) rail.appendChild(byId[id]); });
+        chips().forEach((c) => c.classList.add(isRight ? "ok" : "was"));
+        rail.classList.add(isRight ? "order-solved" : "order-revealed");
+        if (isRight) floatXP(confirmBtn);
+      }
+      revealFeedback(q, known, isRight, feedback);
+    });
   }
 
   // Per-question hint → Professor Atlas (logged as consulted for this question).
@@ -134,8 +219,6 @@
           }),
         });
         const data = await res.json();
-        // Use Atlas's live (Granite) reply only if it's a real, non-fallback answer;
-        // otherwise fall back to the authored Socratic hint for this question.
         const useAtlas = data && data.response && !data.is_fallback;
         const fallbackHint = q.dataset.hint || "Consider what the question is really testing — rule out the options that don't fit.";
         if (textEl) textEl.textContent = useAtlas ? data.response : fallbackHint;
@@ -149,7 +232,11 @@
   }
 
   questions.forEach(function (q) {
-    q.querySelectorAll(".q-option").forEach((opt) => opt.addEventListener("click", () => answer(q, opt)));
+    if (q.dataset.kind === "order") {
+      wireOrder(q);
+    } else {
+      q.querySelectorAll(".q-option").forEach((opt) => opt.addEventListener("click", () => answer(q, opt)));
+    }
     wireHint(q);
   });
 

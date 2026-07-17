@@ -21,7 +21,7 @@
   <input type="hidden" name="attempt_id" value="{{ attempt_id }}" />
 
   <div class="quiz-progress">
-    <span class="quiz-counter">Question <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
+    <span class="quiz-counter">{{ counter_noun | default('Question') }} <b id="q-cur">1</b> / <span id="q-total">{{ quiz|length }}</span></span>
     <div class="quiz-bar"><div class="quiz-bar-fill" id="q-fill"></div></div>
   </div>
 
@@ -29,7 +29,55 @@
     {% for q in quiz %}
     <div class="quiz-question {{ 'active' if loop.first }}" data-qindex="{{ loop.index0 }}"
          data-qkey="{{ q.key }}" data-question="{{ q.question }}"
+         data-kind="{{ q.kind | default('mcq') }}"
          data-hint="{{ q.hint | default('') }}">
+      {% if q.hunt %}
+      {#  The Hallucination Hunt — Atlas himself states four claims; exactly one is
+          false. Rendered as HIM speaking. The false claim's identity is NOT in the
+          DOM: shuffle_options randomises order, the letter (submit id) is neither
+          shown nor marked, and correctness is revealed only by the server after
+          commit (via /answer), exactly like every other item. #}
+      <div class="hunt-intro">
+        <span class="hunt-owl"><span class="atlas-glyph" aria-hidden="true"></span></span>
+        <p class="hunt-say"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
+      </div>
+      <div class="q-options hunt-claims" role="group" aria-label="Four readings — exactly one is a hallucination">
+        {% for letter, text in q|shuffle_options %}
+        <label class="q-option hunt-claim">
+          <input type="radio" name="{{ q.key }}" value="{{ letter }}" />
+          <span class="hunt-claim-quote" aria-hidden="true">&ldquo;</span>
+          <span class="q-option-text hunt-claim-text">{{ text }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% elif q.kind == 'order' %}
+      {#  The Broken Timeline — reorder by drag or the ▲/▼ buttons (keyboard
+          fallback). Events are SERVER-SHUFFLED via shuffle_events; the correct
+          sequence is never in this markup. quiz.js commits the arranged order to
+          /answer and reveals the true timeline only on resolve. #}
+      <p class="q-text order-stem"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
+      <div class="order-howto">
+        <i class="bi bi-hand-index-thumb" aria-hidden="true"></i>
+        <span><b>Drag</b> the entries to reorder — or use the <span class="ohk" aria-hidden="true"><i class="bi bi-chevron-up"></i></span><span class="ohk" aria-hidden="true"><i class="bi bi-chevron-down"></i></span> arrows. Put the <b>earliest at the top</b>, then <b>Seal</b>.</span>
+      </div>
+      <ol class="order-rail" aria-label="Reorder the events — drag, or use the arrows; earliest at the top">
+        {% for ev in q|shuffle_events %}
+        <li class="order-chip" data-ev="{{ ev.id }}" draggable="true" tabindex="0">
+          <span class="order-chip-pos" aria-hidden="true"></span>
+          <span class="order-chip-label">{{ ev.label }}</span>
+          <span class="order-chip-grip" aria-hidden="true" title="Drag to reorder"><i class="bi bi-grip-vertical"></i></span>
+          <span class="order-chip-moves">
+            <button type="button" class="order-move order-up" aria-label="Move earlier"><i class="bi bi-chevron-up"></i></button>
+            <button type="button" class="order-move order-down" aria-label="Move later"><i class="bi bi-chevron-down"></i></button>
+          </span>
+        </li>
+        {% endfor %}
+      </ol>
+      <input type="hidden" name="{{ q.key }}" class="order-value" value="" />
+      <div class="order-actions">
+        <button type="button" class="order-confirm">Seal this record <i class="bi bi-hourglass-split ms-1"></i></button>
+      </div>
+      {% else %}
       <p class="q-text"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
       <div class="q-options">
         {% for letter, text in q|shuffle_options %}
@@ -40,8 +88,9 @@
         </label>
         {% endfor %}
       </div>
+      {% endif %}
 
-      {% if show_npc %}
+      {% if show_npc and not q.hunt %}
       <div class="hint-row">
         <button type="button" class="hint-btn"><span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> {{ atlas_label }}</button>
       </div>

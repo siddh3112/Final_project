@@ -6,9 +6,13 @@ too few questions to fill a Trial, a pin that doesn't exist) the moment it's
 introduced, in any location or the post-test. Pure data assertions.
 """
 
+import os
+import re
+
 import pytest
 
 from app.game_content import (
+    BIN_IDS,
     LOCATION_ORDER,
     LOCATIONS,
     QUIZZES,
@@ -18,6 +22,15 @@ from app.game_content import (
 from app.eval_content import POST_TEST, POST_TEST_PASS
 
 LEARNING_LOCATIONS = [loc for loc in LOCATION_ORDER if QUIZZES.get(loc)]
+
+_OBSERVATORY_JS = os.path.join(
+    os.path.dirname(__file__), "..", "app", "static", "js", "observatory.js"
+)
+
+
+def _observatory_js():
+    with open(_OBSERVATORY_JS, encoding="utf-8") as f:
+        return f.read()
 
 
 # ── every ordered location is real and has a quiz bank ───────────────────
@@ -38,9 +51,25 @@ def test_bank_can_fill_a_trial(loc):
 def test_questions_wellformed(loc):
     seen = set()
     for q in QUIZZES[loc]:
-        assert {"key", "question", "options", "correct"} <= set(q), f"{loc}: missing fields"
         assert q["key"] not in seen, f"{loc}: duplicate question key {q['key']}"
         seen.add(q["key"])
+        if q.get("kind") == "order":
+            # Ordering item ("Broken Timeline"): a stem + >= 2 events with unique
+            # ids and non-empty labels. The correct order is the authored order.
+            assert {"key", "question", "events"} <= set(q), f"{loc}/{q['key']}: missing order fields"
+            evs = q["events"]
+            assert isinstance(evs, list) and len(evs) >= 2, f"{loc}/{q['key']}: needs >= 2 events"
+            ids = [e["id"] for e in evs]
+            assert len(set(ids)) == len(ids), f"{loc}/{q['key']}: duplicate event id"
+            assert all(str(e.get("label", "")).strip() for e in evs), f"{loc}/{q['key']}: empty event label"
+            continue
+        if q.get("kind") == "sort":
+            # Classification object ("Sorting Board"): a stem/label + a correct bin.
+            assert {"key", "question", "correct"} <= set(q), f"{loc}/{q['key']}: missing sort fields"
+            assert str(q["question"]).strip(), f"{loc}/{q['key']}: empty object label"
+            assert q["correct"] in BIN_IDS, f"{loc}/{q['key']}: correct bin '{q['correct']}' is not a real bin"
+            continue
+        assert {"key", "question", "options", "correct"} <= set(q), f"{loc}: missing fields"
         opts = q["options"]
         assert isinstance(opts, dict) and set(opts) == {"A", "B", "C", "D"}, f"{loc}/{q['key']}: options must be A–D"
         assert q["correct"] in opts, f"{loc}/{q['key']}: correct '{q['correct']}' is not an option"
@@ -52,7 +81,11 @@ def test_pinned_questions_exist():
     for loc, pins in PINNED_QUESTIONS.items():
         bank = {q["key"] for q in QUIZZES.get(loc, [])}
         for pin in pins:
-            assert pin in bank, f"pinned {pin} is not in {loc}'s bank"
+            # A pin is either a single key or a GROUP (a list/tuple of
+            # interchangeable keys — e.g. the Observatory Hallucination Hunt sets).
+            members = pin if isinstance(pin, (list, tuple)) else [pin]
+            for key in members:
+                assert key in bank, f"pinned {key} is not in {loc}'s bank"
 
 
 # ── the post-test is a 10-question, 8-to-pass assessment, well-formed ────
@@ -103,6 +136,40 @@ def test_chronicle_beats_have_valid_checks():
         assert len(opts) >= 2, f"beat {i} check needs options"
         assert isinstance(check.get("correct"), int) and 0 <= check["correct"] < len(opts), \
             f"beat {i} check.correct out of range"
+
+
+# ── Observatory star count is ONE number across JS content + server hooks ─
+def test_observatory_star_count_consistent_across_sources():
+    """The Observatory's star count must be a single N everywhere: the JS concept
+    list (stars), the JS quick-checks, and the server-side per-star hooks (which
+    drive explore_valid_ids). Guards the count from drifting between files — the
+    root of the earlier 5-vs-10 bugs."""
+    from app.game_content import get_hooks
+
+    js = _observatory_js()
+    n_concepts = len(re.findall(r"\bheading:", js))   # CONCEPTS entries (one per star)
+    n_checks = len(re.findall(r"\bcorrect:", js))     # CHECKS entries (one per star)
+    n_hooks = len(get_hooks("observatory"))           # server per-star hooks (H1 source)
+    assert n_concepts == n_checks == n_hooks, (
+        f"Observatory counts diverge: concepts={n_concepts} checks={n_checks} hooks={n_hooks}"
+    )
+    assert n_concepts == 10, f"Observatory should have 10 stars, found {n_concepts}"
+
+
+# ── Observatory Trial gate opens ONLY after ALL N stars (not a partial beat) ─
+def test_observatory_trial_unlocks_only_after_all_stars():
+    """Regression (recurring bug): the Trial gate must open ONLY once every star is
+    mapped — derived from CONSTELLATION_STARS.length — never at a mid-journey
+    'present' beat (which previously opened it at star 5). Source-level guard so it
+    can't silently regress: the single unlock trigger must be gated by the full
+    star count."""
+    js = _observatory_js()
+    pending = [ln for ln in js.splitlines() if re.search(r"pendingUnlock\s*=\s*true", ln)]
+    assert len(pending) == 1, f"expected exactly one pendingUnlock trigger, found {len(pending)}"
+    assert re.search(r"discoveredCount\s*>=\s*CONSTELLATION_STARS\.length", pending[0]), (
+        "the Trial unlock must derive from the FULL star count (all N stars), "
+        "not a concept type or a partial number"
+    )
 
 
 # ── the Library's books each carry a valid quick-check + flashcard ───────

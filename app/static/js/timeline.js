@@ -73,6 +73,56 @@
     } catch (e) {}
   }
 
+  // ── Ambient soundscape (aged clockwork hall) — matches the AI Lab / Observatory
+  //    pattern: a persistent context whose master gain reflects the global sound
+  //    pref, a soft low drone, and a faint clock tick. Started on the first user
+  //    gesture (browsers block autoplay). Silent while muted. ──
+  var _actx = null, _master = null, _amStarted = false, _tickTimer = null;
+  function _ac() {
+    try {
+      if (!_actx) {
+        var C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+        _actx = new C();
+        _master = _actx.createGain(); _master.gain.value = muted ? 0 : 1; _master.connect(_actx.destination);
+      }
+      if (_actx.state === "suspended") _actx.resume();
+      return _actx;
+    } catch (e) { return null; }
+  }
+  function startAmbient() {
+    var a = _ac(); if (!a || _amStarted) return; _amStarted = true;
+    try {
+      // Warm, very low "aged hall" drone (two detuned sines), quiet background.
+      [55, 82.4].forEach(function (f, i) {
+        var o = a.createOscillator(), g = a.createGain();
+        o.type = "sine"; o.frequency.value = f;
+        g.gain.value = i === 0 ? 0.03 : 0.02;
+        o.connect(g); g.connect(_master); o.start();
+      });
+      scheduleTick(a);   // faint clock tick motif
+    } catch (e) {}
+  }
+  // A soft filtered click every ~2s — subtle, not foreground. Keeps its timer
+  // running even when muted (it simply produces no sound), so it resumes cleanly.
+  function scheduleTick(a) {
+    _tickTimer = setTimeout(function () { scheduleTick(a); }, 2000);
+    if (muted) return;
+    try {
+      var o = a.createOscillator(), g = a.createGain(), lp = a.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 2000;
+      o.type = "square"; o.frequency.value = 1500;
+      var t = a.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.02, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      o.connect(lp); lp.connect(g); g.connect(_master); o.start(t); o.stop(t + 0.06);
+    } catch (e) {}
+  }
+  // First user gesture kicks the ambient (autoplay-safe).
+  var _kicked = false;
+  function _kick() { if (_kicked) return; _kicked = true; _ac(); if (!muted) startAmbient(); }
+  ["pointerdown", "keydown"].forEach(function (ev) { document.addEventListener(ev, _kick, { once: true }); });
+
   // ── Rail fill + traveller reflect the number of lit eras ──
   function pctFor(i) { return TOTAL > 1 ? (i / (TOTAL - 1)) * 100 : 0; }
   function paint() {
@@ -247,7 +297,14 @@
   //    global voice pref independently) ──
   var muteBtn = document.getElementById("tl-mute");
   function syncMute() { if (muteBtn) { muteBtn.textContent = muted ? "🔇" : "🔊"; muteBtn.classList.toggle("muted", muted); } }
-  if (muteBtn) { syncMute(); muteBtn.addEventListener("click", function () { muted = !muted; if (muted && window.AtlasVoice) window.AtlasVoice.stop(); syncMute(); }); }
+  if (muteBtn) { syncMute(); muteBtn.addEventListener("click", function () {
+    _kick();
+    muted = !muted;
+    try { if (_master) _master.gain.value = muted ? 0 : 1; } catch (e) {}
+    if (!muted) startAmbient();   // (idempotent) ensure the ambient is running
+    if (muted && window.AtlasVoice) window.AtlasVoice.stop();
+    syncMute();
+  }); }
 
   // ── Silent restore: re-light already-completed eras (per user), draw the
   //    rail forward and set ERA x/N — no replay, exactly like the Library. ──

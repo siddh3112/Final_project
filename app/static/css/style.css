@@ -207,10 +207,12 @@ h1, h2, h3, h4, h5, .font-cinzel {
 .trial-page > .loc-topbar,
 .terminal-page > .loc-topbar {
   position: sticky; top: 0; z-index: 30;
-  background: rgba(10, 8, 18, 0.72);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;      /* no dark strip layered over the realm backdrop */
+  border-bottom: none;
+  pointer-events: none;         /* the transparent bar never blocks the page — only the pill is clickable */
 }
+.trial-page > .loc-topbar .back-link,
+.terminal-page > .loc-topbar .back-link { pointer-events: auto; }
 
 /* Trial RESULTS page: pin "Return to Map" to the top-left corner so it stays
    visible while scrolling the per-question review. Sits below the pass
@@ -1386,7 +1388,7 @@ body {
 /* Per-location accent (sets --accent for the scene) */
 .loc-theme-library     { --accent: #d4a84b; --accent-soft: rgba(212,168,75,0.16); }
 .loc-theme-ai_lab      { --accent: #3fd0e0; --accent-soft: rgba(63,208,224,0.16); }
-.loc-theme-observatory { --accent: #8a7cff; --accent-soft: rgba(138,124,255,0.16); }
+.loc-theme-observatory { --accent: #3ab8d8; --accent-soft: rgba(58,184,216,0.16); }
 
 /* Scene glow at top of each location */
 .location-page { position: relative; }
@@ -1899,7 +1901,7 @@ body {
 .atlas-launcher {
   display: flex; align-items: center; gap: 0.55rem;
   background: linear-gradient(135deg, var(--accent, #d4a84b), color-mix(in srgb, var(--accent, #d4a84b) 55%, black));
-  color: #1a1205; border: 1px solid var(--gold-light); border-radius: 999px;
+  color: #1a1205; border: 1px solid var(--accent, var(--gold-light)); border-radius: 999px;
   padding: 0.6rem 1.1rem; font-family: 'Rye', serif; font-size: 0.82rem; font-weight: 600;
   cursor: pointer; box-shadow: 0 6px 22px rgba(0,0,0,0.45), 0 0 18px var(--accent-soft, rgba(212,168,75,0.3));
   transition: transform 0.18s, box-shadow 0.18s;
@@ -1908,7 +1910,7 @@ body {
 .atlas-launcher-icon { font-size: 1.3rem; line-height: 1; }
 .atlas-widget.open .atlas-launcher { display: none; }
 
-/* ── One-time arrival attention cue (presentation only; game condition) ── */
+/* ── On-arrival announcement bubble + button pulse (presentation only) ── */
 @keyframes atlas-cue-pulse {
   0%   { transform: scale(1);    box-shadow: 0 6px 22px rgba(0,0,0,0.45), 0 0 0 0 color-mix(in srgb, var(--accent, #d4a84b) 60%, transparent); }
   50%  { transform: scale(1.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 9px color-mix(in srgb, var(--accent, #d4a84b) 28%, transparent); }
@@ -1917,35 +1919,44 @@ body {
 .atlas-launcher.atlas-cue,
 .mini-launcher.atlas-cue { animation: atlas-cue-pulse 0.8s ease-in-out 2; }
 
+@keyframes atlas-bubble-pop {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.9); }
+  55%  { opacity: 1; transform: translateY(-2px) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Speech bubble: sits just above the owl button with a tail pointing down at it,
+   tinted in the location's --accent so it reads as one coherent tutor feature. */
 .atlas-cue-tip {
-  position: absolute; right: 0; bottom: calc(100% + 12px);
-  max-width: 230px; white-space: nowrap;
-  background: color-mix(in srgb, var(--accent, #d4a84b) 20%, #14100a);
-  color: var(--ink, #ece8ff);
-  border: 1px solid color-mix(in srgb, var(--accent, #d4a84b) 55%, transparent);
-  border-radius: 10px; padding: 0.5rem 0.75rem;
-  font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.01em;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.42);
-  opacity: 0; transform: translateY(6px);
+  position: absolute; right: 0; bottom: calc(100% + 14px);
+  max-width: 250px; line-height: 1.35;
+  background: color-mix(in srgb, var(--accent, #d4a84b) 22%, #171009);
+  color: var(--ink, #f3eeff);
+  border: 1px solid color-mix(in srgb, var(--accent, #d4a84b) 60%, transparent);
+  border-radius: 12px; padding: 0.6rem 0.8rem;
+  font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.01em;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.45), 0 0 18px color-mix(in srgb, var(--accent, #d4a84b) 22%, transparent);
+  opacity: 0; transform: translateY(8px) scale(0.96); transform-origin: bottom right;
   transition: opacity 0.35s ease, transform 0.35s ease;
-  pointer-events: auto; cursor: pointer; z-index: 2;
+  pointer-events: auto; cursor: pointer; z-index: 4;
 }
-.atlas-cue-tip.show { opacity: 1; transform: translateY(0); }
+.atlas-cue-tip.show { opacity: 1; transform: translateY(0) scale(1); animation: atlas-bubble-pop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.3); }
 .atlas-cue-tip::after {
-  content: ""; position: absolute; right: 20px; top: 100%;
-  border: 6px solid transparent;
-  border-top-color: color-mix(in srgb, var(--accent, #d4a84b) 20%, #14100a);
+  content: ""; position: absolute; right: 22px; top: 100%;
+  border: 7px solid transparent;
+  border-top-color: color-mix(in srgb, var(--accent, #d4a84b) 22%, #171009);
 }
-/* No motion for reduced-motion users: skip the pulse; the label just appears. */
+/* No motion for reduced-motion users: skip the pulse + pop; the bubble just
+   appears statically for the few seconds, then is removed. */
 html.reduce-motion .atlas-launcher.atlas-cue,
 html.reduce-motion .mini-launcher.atlas-cue { animation: none; }
 html.reduce-motion .atlas-cue-tip { transition: opacity 0.001s linear; transform: none; }
-html.reduce-motion .atlas-cue-tip.show { transform: none; }
+html.reduce-motion .atlas-cue-tip.show { transform: none; animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .atlas-launcher.atlas-cue,
   .mini-launcher.atlas-cue { animation: none; }
   .atlas-cue-tip { transition: opacity 0.001s linear; transform: none; }
-  .atlas-cue-tip.show { transform: none; }
+  .atlas-cue-tip.show { transform: none; animation: none; }
 }
 
 .atlas-chat {
@@ -1956,6 +1967,14 @@ html.reduce-motion .atlas-cue-tip.show { transform: none; }
   border-radius: 16px; box-shadow: 0 18px 50px rgba(0,0,0,0.6); backdrop-filter: blur(8px);
   animation: card-in 0.25s ease;
 }
+/* Graceful close for the on-arrival auto-open (npc.js adds .atlas-closing just
+   before hiding the panel). Under reduce-motion npc.js skips this class entirely
+   and the panel simply disappears, so no motion is shown. */
+@keyframes atlas-chat-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+.atlas-chat.atlas-closing { animation: atlas-chat-out 0.24s ease forwards; pointer-events: none; }
 .atlas-chat-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--border);
@@ -2883,9 +2902,9 @@ mark.kw { background: rgba(212, 168, 75, 0.35); color: #5a3d1a; padding: 0 0.2em
 .sort-result { margin-top: 1rem; color: #cfe1ef; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; background: #0c1622; border-left: 2px solid #8ab4d4; padding: 0.7rem 0.9rem; white-space: pre-wrap; }
 
 /* ASCII Atlas */
-.term-atlas-btn { background: #0c1622 !important; border: 1px solid #8ab4d4 !important; border-radius: 4px !important; width: auto !important; height: auto !important; padding: 0.4rem 0.6rem !important; }
-.atlas-ascii { margin: 0; color: #8ab4d4; font-family: 'Courier New', monospace; font-size: 0.7rem; line-height: 1.05; text-shadow: 0 0 6px rgba(138,180,212,0.5); }
-.term-atlas .atlas-chat { border-color: #8ab4d4; background: rgba(0, 16, 0, 0.96); }
+.term-atlas-btn { background: #0c1622 !important; border: 1px solid var(--accent, #8ab4d4) !important; border-radius: 4px !important; width: auto !important; height: auto !important; padding: 0.4rem 0.6rem !important; }
+.atlas-ascii { margin: 0; color: var(--accent, #8ab4d4); font-family: 'Courier New', monospace; font-size: 0.7rem; line-height: 1.05; text-shadow: 0 0 6px rgba(138,180,212,0.5); }
+.term-atlas .atlas-chat { border-color: var(--accent, #8ab4d4); background: rgba(0, 16, 0, 0.96); }
 .term-atlas .atlas-chat-title, .term-atlas .atlas-msg-bot { color: #cfe1ef; font-family: 'Courier New', monospace; }
 .term-atlas .atlas-msg-bot { background: rgba(138,180,212,0.08); border-color: rgba(138,180,212,0.3); }
 
@@ -2908,7 +2927,7 @@ mark.kw { background: rgba(212, 168, 75, 0.35); color: #5a3d1a; padding: 0 0.2em
   width: 120px !important; padding: 0.7rem 0.5rem !important;
 }
 .term-atlas-btn .atlas-ascii { text-align: center; }
-.atlas-label { font-family: 'Courier New', monospace; font-size: 0.6rem; letter-spacing: 0.05em; color: #8ab4d4; }
+.atlas-label { font-family: 'Courier New', monospace; font-size: 0.6rem; letter-spacing: 0.05em; color: var(--accent, #8ab4d4); }
 .term-atlas-btn:hover { border-color: #cfe1ef !important; box-shadow: 0 0 14px rgba(138, 180, 212, 0.4); }
 
 /* ══════════════════════════════════════════════════════════════
@@ -3448,17 +3467,17 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
   box-shadow: inset 0 0 24px rgba(0,0,0,0.6), 0 0 14px rgba(138,180,212,0.25); transition: min-height 0.2s;
 }
 .mini-screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(transparent 0, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px); }
-.atlas-mini .atlas-ascii { margin: 0; color: #8ab4d4; font-size: 0.85rem; line-height: 1.1; text-shadow: 0 0 8px rgba(138,180,212,0.6); }
+.atlas-mini .atlas-ascii { margin: 0; color: var(--accent, #8ab4d4); font-size: 0.85rem; line-height: 1.1; text-shadow: 0 0 8px rgba(138,180,212,0.6); }
 .mini-caption { color: #7aab8a; font-size: 0.55rem; letter-spacing: 0.1em; margin-top: 0.4rem; }
-.mini-launcher { display: flex; align-items: center; gap: 0.4rem; justify-content: center; width: 100%; margin-top: 6px; background: #0e1826; border: 1px solid #8ab4d4; color: #8ab4d4; font-family: 'Courier New', monospace; font-size: 0.64rem; padding: 0.42rem; border-radius: 6px; cursor: pointer; }
+.mini-launcher { display: flex; align-items: center; gap: 0.4rem; justify-content: center; width: 100%; margin-top: 6px; background: #0e1826; border: 1px solid var(--accent, #8ab4d4); color: var(--accent, #8ab4d4); font-family: 'Courier New', monospace; font-size: 0.64rem; padding: 0.42rem; border-radius: 6px; cursor: pointer; }
 .mini-launcher:hover { background: rgba(138,180,212,0.12); }
-.mini-led { width: 8px; height: 8px; border-radius: 50%; background: #8ab4d4; box-shadow: 0 0 8px #8ab4d4; animation: led-pulse 2s ease-in-out infinite; }
+.mini-led { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, #8ab4d4); box-shadow: 0 0 8px var(--accent, #8ab4d4); animation: led-pulse 2s ease-in-out infinite; }
 /* Chat opens as a larger panel ABOVE the mini-monitor (not clipped inside it) */
 .atlas-mini .atlas-chat {
   position: absolute; bottom: calc(100% + 10px); right: 0; z-index: 3;
   width: min(360px, 92vw); height: min(440px, 70vh);
   display: flex; flex-direction: column;
-  background: rgba(0,12,0,0.98); border: 1px solid #8ab4d4; border-radius: 8px;
+  background: rgba(0,12,0,0.98); border: 1px solid var(--accent, #8ab4d4); border-radius: 8px;
   box-shadow: 0 0 26px rgba(138,180,212,0.3), 0 14px 34px rgba(0,0,0,0.65);
   animation: mini-chat-in 0.18s ease;
 }
@@ -3466,15 +3485,15 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 @keyframes mini-chat-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .atlas-mini .atlas-chat-head { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0.7rem; border-bottom: 1px solid rgba(138,180,212,0.3); }
 .atlas-mini .atlas-chat-title { color: #cfe1ef; font-size: 0.78rem; letter-spacing: 0.05em; }
-.atlas-mini .atlas-chat-close { background: none; border: none; color: #8ab4d4; font-size: 1.3rem; line-height: 1; cursor: pointer; }
+.atlas-mini .atlas-chat-close { background: none; border: none; color: var(--accent, #8ab4d4); font-size: 1.3rem; line-height: 1; cursor: pointer; }
 .atlas-mini .atlas-chat-log { flex: 1; overflow-y: auto; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
 .atlas-mini .atlas-msg { font-size: 0.8rem; line-height: 1.5; padding: 0.5rem 0.65rem; border-radius: 6px; max-width: 92%; }
 .atlas-mini .atlas-msg-bot { color: #cfe1ef; background: rgba(138,180,212,0.08); border: 1px solid rgba(138,180,212,0.2); align-self: flex-start; }
 .atlas-mini .atlas-msg-user { color: #dbe7f1; background: rgba(255,255,255,0.07); align-self: flex-end; }
 .atlas-mini .atlas-chat-form { display: flex; gap: 0.4rem; padding: 0.55rem; border-top: 1px solid rgba(138,180,212,0.3); }
 .atlas-mini .atlas-chat-input { flex: 1; background: #0c1622; border: 1px solid rgba(138,180,212,0.3); color: #dbe7f1; font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 0.45rem 0.55rem; border-radius: 4px; }
-.atlas-mini .atlas-chat-input:focus { outline: none; border-color: #8ab4d4; box-shadow: 0 0 8px rgba(138,180,212,0.4); }
-.atlas-mini .atlas-chat-send { background: rgba(138,180,212,0.12); border: 1px solid #8ab4d4; color: #8ab4d4; border-radius: 4px; cursor: pointer; padding: 0 0.6rem; }
+.atlas-mini .atlas-chat-input:focus { outline: none; border-color: var(--accent, #8ab4d4); box-shadow: 0 0 8px rgba(138,180,212,0.4); }
+.atlas-mini .atlas-chat-send { background: rgba(138,180,212,0.12); border: 1px solid var(--accent, #8ab4d4); color: var(--accent, #8ab4d4); border-radius: 4px; cursor: pointer; padding: 0 0.6rem; }
 .atlas-mini .atlas-chat-send:hover { background: rgba(138,180,212,0.22); }
 
 @media (max-width: 620px) {
@@ -3547,7 +3566,7 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 /* Observatory fills exactly one viewport and never scrolls — the star sky
    flexes to fill the space between the header and the Trial. */
 .observatory {
-  position: relative; z-index: 1; color: #e7e9ff; --accent: #8a7cff;
+  position: relative; z-index: 1; color: #e7e9ff; --accent: #3ab8d8;
   height: 100vh; height: 100dvh;
   display: flex; flex-direction: column; overflow: hidden;
 }
@@ -5709,10 +5728,13 @@ body.ascent-body {
 .trial-watermark { position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%); width: min(58vh, 540px); height: min(58vh, 540px); opacity: 0.07; }
 .trial-watermark svg { width: 100%; height: 100%; display: block; }
 
-/* ── Tighter, centred layout (less dead space) ── */
-/* safe center: centres when it fits, but pins to the top (never clips the
-   hero title) once feedback makes the card taller than the viewport. */
-.trial-page .loc-container { min-height: calc(100vh - 78px); display: flex; flex-direction: column; justify-content: safe center; padding-top: 0.9rem; }
+/* ── Layout: TOP-ALIGNED so the whole flow (question → feedback → Continue)
+   always scrolls into view. It used to be vertically centred, which pushed the
+   Continue button below the fold once the feedback panel expanded the card (and
+   caused the card to "jump" as content grew). padding-bottom carries !important
+   so it wins over the theme-archive `.loc-container { padding-bottom: 0 }` rule,
+   otherwise the button is jammed against the bottom edge on the Library trial. */
+.trial-page .loc-container { min-height: calc(100vh - 78px); display: flex; flex-direction: column; justify-content: flex-start; padding-top: 1.1rem; padding-bottom: 2rem !important; }
 .trial-page .trial-stage { margin-top: 0.4rem; }
 .trial-page .loc-hero-compact { margin-top: 0; }
 
@@ -5765,6 +5787,27 @@ html.reduce-motion .tskin-pulse, html.reduce-motion .trial-skin .quiz-question.a
 .trial-skin .quiz-question { background: transparent !important; border: none !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0; }
 .trial-skin .quiz-questions { position: relative; z-index: 1; }
 .trial-skin .quiz-intro { position: relative; z-index: 1; }
+
+/* Back-link tinted to the realm's --accent so it MERGES with the warm trial
+   backdrop, instead of the default cool bluish pill (which read as pasted-on on
+   the Library / Chronicle). Mirrors how the AI Lab terminal tints its own. */
+.trial-skin .back-link {
+  background: color-mix(in srgb, var(--accent) 12%, rgba(0, 0, 0, 0.35));
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: color-mix(in srgb, var(--accent) 28%, #efe6d2);
+}
+.trial-skin .back-link:hover {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(0, 0, 0, 0.35));
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Keep the Trial back-nav at a CONSISTENT height on every realm. The Library's
+   Trial is theme-archive (which gives .loc-topbar a tighter padding, so its back
+   button sat higher than the others); normalise all realms — Library / Chronicle /
+   Observatory / AI Lab — to one padding. Layout only. */
+.trial-skin-body .loc-topbar,
+.terminal-body .loc-topbar { padding: 1.1rem 1.5rem; }
 
 /* ────────────────────────── LIBRARY — "The Examination" ─────────────────── */
 .trial-skin-library .trial-skin-title { font-family: 'Rye', serif; color: #f0cfa0; }
@@ -5917,3 +5960,179 @@ html.reduce-motion .tskin-star.current { animation: none; }
   .tskin-motif-lib { gap: 0.55rem; }
   .tskin-folio { width: 30px; height: 38px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   The Hallucination Hunt — the Observatory's signature pinned Trial item.
+   Atlas states four claims; exactly one is false. Presentation only: each
+   claim is a .q-option, so the shared answered / locked / correct / flash-ok /
+   flash-no / shake state classes (set by quiz.js) apply unchanged. The false
+   claim's identity is never in the DOM. Observatory-only, so the cyan accent
+   tints are hard-safe (var(--accent) is #3ab8d8 here).
+   ══════════════════════════════════════════════════════════════════ */
+.hunt-intro {
+  display: flex; align-items: flex-start; gap: 0.8rem;
+  padding: 0.9rem 1rem; margin-bottom: 1.1rem;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(58, 184, 216, 0.16), transparent 60%),
+    rgba(10, 22, 38, 0.55);
+  box-shadow: inset 0 0 34px rgba(58, 184, 216, 0.07);
+}
+.hunt-owl { flex-shrink: 0; line-height: 1; }
+.hunt-owl .atlas-glyph {
+  font-size: 1.75rem; color: var(--accent);
+  filter: drop-shadow(0 0 8px rgba(58, 184, 216, 0.6));
+}
+.hunt-say { margin: 0; color: var(--text); font-size: 0.95rem; line-height: 1.55; font-style: italic; }
+
+.hunt-claims { display: flex; flex-direction: column; gap: 0.6rem; }
+.hunt-claim {
+  position: relative; align-items: flex-start;
+  padding: 0.85rem 1rem 0.85rem 2.2rem;
+  border: 1px solid rgba(58, 184, 216, 0.3);
+  background: rgba(12, 26, 42, 0.5);
+  border-radius: 10px;
+}
+.hunt-claim input[type="radio"] {
+  position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;
+}
+.hunt-claim-quote {
+  position: absolute; left: 0.65rem; top: 0.3rem;
+  color: var(--accent); font-family: 'Rye', serif; font-size: 1.5rem;
+  line-height: 1; opacity: 0.75;
+}
+.hunt-claim-text { color: #dbeaf3; font-size: 0.92rem; line-height: 1.45; }
+.hunt-claim:hover { border-color: var(--accent); background: rgba(58, 184, 216, 0.1); }
+.hunt-claim:has(input:checked) { border-color: var(--accent); background: rgba(58, 184, 216, 0.15); }
+
+/* ══════════════════════════════════════════════════════════════════
+   The Broken Timeline — the Chronicle's ordering items. Drag or ▲/▼ to
+   reorder chips along an aged-bronze rail that re-lights on resolve. Only the
+   Chronicle Trial renders these, so var(--accent) is #c1824a here. Presentation
+   only; grading is server-side and the correct order is never in this markup.
+   ══════════════════════════════════════════════════════════════════ */
+.order-stem { margin-bottom: 0.6rem; }
+
+/* Clear "this is a drag-and-drop" instruction banner. */
+.order-howto {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  margin: 0 0 0.85rem; padding: 0.5rem 0.85rem;
+  background: rgba(211,156,92,0.12); border: 1px solid rgba(211,156,92,0.4);
+  border-radius: 9px; color: #f0dcbb; font-family: 'Inter', sans-serif; font-size: 0.85rem; line-height: 1.4;
+}
+.order-howto > i { color: var(--accent, #c1824a); font-size: 1.05rem; flex-shrink: 0; }
+.order-howto b { color: #f6e6c8; }
+.order-howto .ohk {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.35rem; height: 1.35rem; margin: 0 1px; border-radius: 5px;
+  background: #d79c5c; color: #23140a; font-size: 0.72rem; font-weight: 700; vertical-align: middle;
+}
+
+.order-rail {
+  list-style: none; counter-reset: ordstep; margin: 0 0 1rem; padding: 0;
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.order-chip {
+  counter-increment: ordstep;
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.65rem 0.75rem; border-radius: 11px; color: #f4e6ca;
+  background: linear-gradient(180deg, rgba(84,60,32,0.66), rgba(60,42,22,0.66));
+  border: 1px solid rgba(211,156,92,0.5);
+  box-shadow: inset 0 1px 0 rgba(255,228,186,0.07), 0 5px 16px rgba(0,0,0,0.3);
+  cursor: grab; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+.order-chip:hover {
+  border-color: var(--accent, #c1824a); transform: translateY(-1px);
+  background: linear-gradient(180deg, rgba(102,72,38,0.72), rgba(72,50,26,0.72));
+  box-shadow: inset 0 1px 0 rgba(255,228,186,0.1), 0 8px 20px rgba(0,0,0,0.4);
+}
+.order-chip:focus-visible { outline: 2px solid var(--accent, #c1824a); outline-offset: 2px; }
+.order-chip.dragging { opacity: 0.7; cursor: grabbing; box-shadow: 0 12px 30px rgba(0,0,0,0.55); }
+.order-chip.locked { cursor: default; }
+
+/* Live position number (CSS counter → auto-renumbers as the DOM order changes). */
+.order-chip-pos {
+  flex-shrink: 0; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 34% 28%, #e6bd82, #a5642f);
+  color: #23140a; font-weight: 700; font-size: 0.86rem;
+  border: 1px solid rgba(255,224,176,0.55); box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.order-chip-pos::before { content: counter(ordstep); }
+.order-chip-grip { flex-shrink: 0; color: rgba(230,189,130,0.7); font-size: 1.1rem; display: inline-flex; cursor: grab; }
+.order-chip-label { flex: 1; font-family: 'Source Serif 4', serif; font-size: 0.97rem; line-height: 1.4; }
+.order-chip-moves { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+.order-move {
+  width: 2rem; height: 1.25rem; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  background: rgba(211,156,92,0.18); border: 1px solid rgba(211,156,92,0.55);
+  color: #ecd0a4; border-radius: 6px; cursor: pointer; font-size: 0.72rem;
+}
+.order-move:hover:not(:disabled) { background: rgba(211,156,92,0.36); border-color: var(--accent, #c1824a); color: #fff; }
+.order-move:disabled { opacity: 0.32; cursor: default; }
+
+.order-actions { display: flex; justify-content: center; margin-top: 0.2rem; }
+.order-confirm {
+  background: linear-gradient(180deg, #e0a862, #a5642f); color: #23140a; border: none;
+  border-radius: 10px; padding: 0.6rem 1.5rem; font-weight: 700;
+  font-family: 'Rye', serif; font-size: 0.92rem; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+.order-confirm:hover:not(:disabled) { filter: brightness(1.08); }
+.order-confirm:disabled { opacity: 0.55; cursor: default; }
+
+/* resolve — chips + their number badges light up */
+.order-chip.ok { border-color: var(--success, #4caf8e); background: rgba(76,175,142,0.18); }
+.order-chip.ok .order-chip-pos { background: radial-gradient(circle at 34% 28%, #8fe3c3, #2f8f6f); border-color: rgba(190,240,220,0.6); }
+.order-chip.was { border-color: rgba(224,168,98,0.75); background: rgba(211,156,92,0.22); }
+
+/* results page — the true sequence */
+.result-order { list-style: none; margin: 0.4rem 0 0.6rem; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.result-order-step { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; }
+.result-order.is-correct .result-order-step { border-color: rgba(76,175,142,0.5); }
+.ros-n { width: 1.5rem; height: 1.5rem; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent, #c1824a); color: #1a1205; font-weight: 700; font-size: 0.8rem; }
+
+/* ══════════════════════════════════════════════════════════════════
+   The Classification Board — the AI Lab's whole Trial as one drag-and-drop
+   sorting task (terminal CRT aesthetic). Presentation only; the correct bin for
+   each object lives server-side and is never rendered. Reuses the terminal
+   blue-grey (#8ab4d4). Monospace to match the CRT.
+   ══════════════════════════════════════════════════════════════════ */
+.sort-board { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 0.6rem 0 1rem; font-family: 'Courier New', monospace; }
+.board-intake { border: 1px dashed rgba(138,180,212,0.4); border-radius: 8px; padding: 0.6rem 0.7rem; background: rgba(10,22,34,0.5); }
+.intake-label { color: #8ab4d4; font-size: 0.72rem; letter-spacing: 0.08em; margin-bottom: 0.5rem; opacity: 0.85; }
+.intake-items { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 48px; }
+
+.board-obj {
+  display: flex; align-items: center; gap: 0.5rem; cursor: grab;
+  background: #0e2236; border: 1px solid rgba(138,180,212,0.45); border-radius: 7px;
+  padding: 0.5rem 0.7rem; color: #dbe7f1; font-size: 0.82rem; line-height: 1.3;
+  max-width: 320px; transition: border-color 0.15s, background 0.15s, transform 0.12s, box-shadow 0.15s;
+}
+.board-obj:hover { border-color: #8ab4d4; background: #12293f; }
+.board-obj:focus-visible { outline: 2px solid #8ab4d4; outline-offset: 2px; }
+.board-obj.dragging { opacity: 0.65; cursor: grabbing; }
+.board-obj.selected { border-color: #cfe1ef; box-shadow: 0 0 0 2px rgba(138,180,212,0.5), 0 0 14px rgba(138,180,212,0.35); }
+.board-obj.placed { background: rgba(138,180,212,0.1); }
+.obj-ic { font-size: 1.05rem; flex-shrink: 0; }
+.obj-label { flex: 1; }
+
+.board-bins { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+@media (min-width: 780px) { .board-bins { grid-template-columns: repeat(4, 1fr); } }
+.board-bin {
+  border: 1px solid rgba(138,180,212,0.35); border-radius: 8px; background: rgba(8,18,28,0.55);
+  min-height: 132px; display: flex; flex-direction: column; transition: border-color 0.15s, background 0.15s;
+}
+.board-bin.over { border-color: #8ab4d4; background: rgba(138,180,212,0.12); box-shadow: inset 0 0 18px rgba(138,180,212,0.15); }
+.bbin-label { text-align: center; color: #8ab4d4; font-size: 0.72rem; letter-spacing: 0.06em; padding: 0.45rem 0.3rem; border-bottom: 1px solid rgba(138,180,212,0.25); }
+.bbin-drop { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; padding: 0.45rem; }
+.bbin-drop .board-obj { max-width: none; cursor: default; }
+
+.board-actions { display: flex; justify-content: center; margin-top: 0.5rem; }
+.board-note { text-align: center; color: rgba(207,225,239,0.6); font-family: 'Courier New', monospace; font-size: 0.72rem; margin-top: 0.5rem; }
+
+/* results page — the correct bin per object */
+.result-sort { margin: 0.3rem 0 0.5rem; padding: 0.5rem 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.03); }
+.result-sort.is-correct { border-color: rgba(76,175,142,0.5); }
+.result-sort.is-wrong { border-color: rgba(224,92,92,0.45); }
+.rs-line { font-size: 0.9rem; }
+.rs-wrong { color: #e0a0a0; margin-top: 0.2rem; }

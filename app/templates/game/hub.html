@@ -395,6 +395,7 @@
 
 {% block scripts %}
 {# hub-cinematic must load BEFORE hub-onboard so the tutorial can defer to it #}
+<script src="{{ url_for('static', filename='js/hub-ambience.js') }}"></script>
 <script src="{{ url_for('static', filename='js/hub-cinematic.js') }}"></script>
 <script src="{{ url_for('static', filename='js/hub-onboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/hub-livemap.js') }}"></script>

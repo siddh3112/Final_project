@@ -639,13 +639,18 @@
       soundFinal();
       setTimeout(function () { fx.push({ type: "shock", x: cx, y: cy, color: "#ffffff", t0: performance.now(), dur: 700, maxR: 350, width: 3 }); spawnParts(cx, cy, 12, 90, 600, "#ffffff"); }, 150);
       brightenBoost = 1; fx.push({ type: "aurora", t0: performance.now(), dur: 3000 });
-      pendingUnlock = true;
     } else if (concept.type === "breakthrough") {
       soundBreakthrough();
       setTimeout(function () { fx.push({ type: "shock", x: cx, y: cy, color: "#ffffff", t0: performance.now(), dur: 700, maxR: 350, width: 3 }); spawnParts(cx, cy, 12, 90, 600, "#ffffff"); }, 150);
     } else {
       checkOk();
     }
+    // The Trial gate unlocks ONLY once EVERY star/concept is mapped — derived from
+    // the content length (CONSTELLATION_STARS), never a hardcoded count and never a
+    // mid-journey "present" beat (which previously opened it at star 5). Solving
+    // N-1 leaves it locked; solving the Nth (last) star opens it. Mirrors the
+    // restoreExploration check so both agree.
+    if (discoveredCount >= CONSTELLATION_STARS.length) pendingUnlock = true;
     activeStar = null; // star now fully discovered (i < discoveredCount)
   }
 

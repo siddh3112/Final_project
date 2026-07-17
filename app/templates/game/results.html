@@ -82,6 +82,24 @@
             <span class="q-number">{{ loop.index }}</span>{{ r.question }}
           </p>
 
+          {% if r.kind == 'order' %}
+          {# Ordering item: show the TRUE sequence (events in correct order). The
+             learner's own order isn't replayed here — the verdict + explanation say
+             whether they matched it. #}
+          <ol class="result-order {{ 'is-correct' if r.is_correct else 'is-wrong' }}">
+            {% for ev in r.events %}
+            <li class="result-order-step"><span class="ros-n">{{ loop.index }}</span>{{ ev.label }}</li>
+            {% endfor %}
+          </ol>
+          {% elif r.kind == 'sort' %}
+          {# Sorting object: show the correct bin, and (on a miss) where it was placed. #}
+          <div class="result-sort {{ 'is-correct' if r.is_correct else 'is-wrong' }}">
+            <div class="rs-line">Correct bin: <b>{{ r.correct_label }}</b></div>
+            {% if not r.is_correct %}
+            <div class="rs-line rs-wrong">You placed it in: {{ r.selected_label or '—' }}</div>
+            {% endif %}
+          </div>
+          {% else %}
           <div class="q-options">
             {% for letter, text in r.options.items() %}
             {% set is_correct_answer = (letter == r.correct) %}
@@ -104,6 +122,7 @@
             </div>
             {% endfor %}
           </div>
+          {% endif %}
 
           <div class="explanation">
             <i class="bi bi-lightbulb me-2"></i>{{ r.feedback | default(r.explanation) }}
