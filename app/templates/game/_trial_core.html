@@ -41,7 +41,7 @@
         <span class="hunt-owl"><span class="atlas-glyph" aria-hidden="true"></span></span>
         <p class="hunt-say"><span class="q-number">{{ loop.index }}</span>{{ q.question }}</p>
       </div>
-      <div class="q-options hunt-claims" role="group" aria-label="Four readings — exactly one is a hallucination">
+      <div class="q-options hunt-claims" role="group" aria-label="Four readings, exactly one is a hallucination">
         {% for letter, text in q|shuffle_options %}
         <label class="q-option hunt-claim">
           <input type="radio" name="{{ q.key }}" value="{{ letter }}" />

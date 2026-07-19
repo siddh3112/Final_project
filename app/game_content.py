@@ -324,7 +324,7 @@ LOCATIONS = {
             {
                 "title": "Expert Systems & the Second Winter",
                 "era": "1980s",
-                "text": "AI thawed in the 1980s with expert systems — rule-based programs that captured a specialist's knowledge, running on mainframes that could cost a million dollars. For a time they boomed. But by the late 1980s, cheaper personal computers from Apple and IBM outpaced those costly machines, the expert-system market collapsed, and more than 300 AI companies went bankrupt. The second Winter set in.",
+                "text": "AI thawed in the 1980s with expert systems, rule-based programs that captured a specialist's knowledge, running on mainframes that could cost a million dollars. For a time they boomed. But by the late 1980s, cheaper personal computers from Apple and IBM outpaced those costly machines, the expert-system market collapsed, and more than 300 AI companies went bankrupt. The second Winter set in. Both Winters told the same story: each began with big promises that the technology could not yet deliver, and when the results fell short, investment and confidence collapsed.",
                 "keywords": ["expert systems", "mainframes", "second winter", "bankrupt", "personal computers"],
                 "check": {
                     "q": "What ended the expert-systems boom in the late 1980s?",
@@ -441,82 +441,86 @@ LOCATIONS = {
 # Every question tests APPLICATION and carries elaborative feedback
 # (feedback_correct / feedback_wrong) plus a non-revealing hint.
 QUIZZES = {
+    # ── "The Lexicon" — the Library's whole Trial is a click-to-ink matching board ──
+    # Each item is ONE concept card (kind: "matching") whose CORRECT scenario is held
+    # SERVER-SIDE only (q["correct"] = a scenario id `sid`, never in the DOM). The
+    # server draws 4 concepts, adds 2 deterministic DECOY scenarios (from undrawn
+    # concepts), shuffles the pool, and grades each concept INDEPENDENTLY through the
+    # shared core (chosen scenario id == correct = 1 point). Scenarios are concrete
+    # CASES (transfer, not recall), authored against the Library's taught definitions;
+    # every case fits exactly one concept. `sid`s are decoupled from concept keys so
+    # the DOM never links a concept to its answer.
     "library": [
         {
-            "key": "lib_s1",
-            "question": "A hospital deploys a system that reads chest X-rays to flag possible pneumonia. It cannot schedule surgeries or answer patient questions — only read X-rays. What type of AI is this?",
-            "options": {
-                "A": "Narrow AI",
-                "B": "General AI",
-                "C": "Broad AI",
-                "D": "Super AI"
-            },
-            "correct": "A",
-            "feedback_correct": "Exactly — narrow AI is built for one specific task and can't transfer to others. That inability to generalise is its signature.",
-            "feedback_wrong": "This is narrow AI. A pneumonia-detector that can't do anything else is task-locked — the defining trait of narrow AI. General AI (which doesn't exist yet) could move across tasks like a human.",
-            "explanation": "Exactly — narrow AI is built for one specific task and can't transfer to others. That inability to generalise is its signature.",
-            "hint": "The system does exactly one job and nothing else. Which level of AI is locked to a single task?"
+            "key": "lex_narrow", "kind": "matching", "concept_tag": "three_levels",
+            "concept": "Narrow AI",
+            "sid": "sc_a7", "correct": "sc_a7",
+            "scenario": "A spam filter that flags junk mail it has never seen before — yet it can do nothing else.",
+            "feedback_correct": "Narrow AI — built for one task and unable to step outside it, exactly like a spam filter.",
+            "feedback_wrong": "This case is Narrow AI: built for one specific task (filtering spam) and unable to do anything else.",
+            "explanation": "Narrow AI is built for one specific task and can't generalise — spam filters, face-unlock and chess engines are all narrow.",
+            "hint": "One job, done well, and nothing beyond it. Which level is locked to a single task?",
         },
         {
-            "key": "lib_s2",
-            "question": "A self-driving car combines separate systems for vision, route-planning and decision-making, all trained on one company's driving data. IBM would classify this integrated, business-specific system as:",
-            "options": {
-                "A": "Narrow AI",
-                "B": "Broad AI",
-                "C": "General AI",
-                "D": "Not AI at all"
-            },
-            "correct": "B",
-            "feedback_correct": "Right — broad AI integrates several narrow components into one business process using enterprise-specific data.",
-            "feedback_wrong": "This is broad AI — a collection of narrow-AI systems working together on a specific business problem. It's broader than a single task, but still far from general, human-like intelligence.",
-            "explanation": "Right — broad AI integrates several narrow components into one business process using enterprise-specific data.",
-            "hint": "Several narrow systems working together on one company's problem — that's the middle of the AI spectrum. What does IBM call it?"
+            "key": "lex_broad", "kind": "matching", "concept_tag": "three_levels",
+            "concept": "Broad AI",
+            "sid": "sc_b3", "correct": "sc_b3",
+            "scenario": "A delivery company fuses its own vision, route-planning and scheduling systems into one integrated platform, trained on its own delivery data.",
+            "feedback_correct": "Broad AI — several narrow components integrated into one business process on the organisation's own data.",
+            "feedback_wrong": "This case is Broad AI (IBM's term): several narrow systems integrated into one business process, trained on the organisation's own data.",
+            "explanation": "Broad AI integrates several narrow components into one business process trained on an organisation's own data.",
+            "hint": "Several narrow systems combined into one business process on a company's own data — IBM's middle of the spectrum.",
         },
         {
-            "key": "lib_s3",
-            "question": "Someone claims their chatbot is \"General AI because it can answer questions on any topic.\" Why is this claim almost certainly wrong?",
-            "options": {
-                "A": "Chatbots can't process language",
-                "B": "General AI only works on images",
-                "C": "General AI doesn't exist yet; the chatbot is narrow AI predicting text from training data",
-                "D": "It's actually Super AI"
-            },
-            "correct": "C",
-            "feedback_correct": "Spot on — answering many questions isn't the same as reasoning across domains like a human.",
-            "feedback_wrong": "General AI — reasoning and learning across any domain like a human — is still theoretical. A wide-ranging chatbot is still narrow AI: it predicts text statistically and can't truly transfer understanding.",
-            "explanation": "Spot on — answering many questions isn't the same as reasoning across domains like a human.",
-            "hint": "Answering many questions isn't the same as reasoning like a human. Has true general AI actually been built yet?"
+            "key": "lex_general", "kind": "matching", "concept_tag": "three_levels",
+            "concept": "General AI",
+            "sid": "sc_c1", "correct": "sc_c1",
+            "scenario": "A machine that could take on any intellectual task a person can — which no one has built yet.",
+            "feedback_correct": "General AI — human-level across any domain, and it does not exist yet.",
+            "feedback_wrong": "This case is General AI: reasoning across any domain like a human. It remains a research goal — it doesn't exist yet.",
+            "explanation": "General AI would reason and transfer knowledge across any domain like a human, but it does not exist yet.",
+            "hint": "Any task a human can do — but no one has built it. Which level is still a research goal?",
         },
         {
-            "key": "lib_s4",
-            "question": "A bank uses AI to pre-screen loan applications and highlight risk factors, while human officers make the final decision. This \"AI + human\" arrangement is best described as:",
-            "options": {
-                "A": "General AI",
-                "B": "Replacing humans entirely",
-                "C": "Unsupervised learning",
-                "D": "Augmented intelligence"
-            },
-            "correct": "D",
-            "feedback_correct": "Yes — augmented intelligence amplifies human judgement rather than replacing it.",
-            "feedback_wrong": "This is augmented intelligence — AI does the heavy lifting (screening, flagging) but a human keeps judgement and accountability. It's the responsible, common real-world pattern.",
-            "explanation": "Yes — augmented intelligence amplifies human judgement rather than replacing it.",
-            "hint": "The AI assists but a human makes the final call. What do we call AI that amplifies human judgement instead of replacing it?"
+            "key": "lex_augmented", "kind": "matching", "concept_tag": "augmented_intelligence",
+            "concept": "Augmented Intelligence",
+            "sid": "sc_d9", "correct": "sc_d9",
+            "scenario": "AI pre-screens loan applications and flags the risky ones, but a human officer makes the final decision.",
+            "feedback_correct": "Augmented intelligence — the AI assists, the human keeps the final call and the accountability.",
+            "feedback_wrong": "This case is augmented intelligence: the AI does the heavy lifting, but a human keeps the decision and the accountability.",
+            "explanation": "Augmented intelligence amplifies human judgement rather than replacing it — a human always keeps the final call.",
+            "hint": "The AI flags, but a person decides. What do we call AI that assists rather than replaces?",
         },
         {
-            "key": "lib_s5",
-            "question": "Which of these is NOT an example of narrow AI?",
-            "options": {
-                "A": "A machine that could teach itself any new task on its own, like a human",
-                "B": "A spam filter",
-                "C": "A face-unlock feature",
-                "D": "A film recommendation engine"
-            },
-            "correct": "A",
-            "feedback_correct": "Correct — that describes general AI, which doesn't exist yet. The other three are all narrow AI.",
-            "feedback_wrong": "Spam filters, face unlock and recommendations are all narrow AI — each does one job well. A system that could learn any new task the way a person does would be general AI, which doesn't exist.",
-            "explanation": "Correct — that describes general AI, which doesn't exist yet. The other three are all narrow AI.",
-            "hint": "Three of these each do one fixed job. The odd one out describes a human-like, learn-anything machine."
-        }
+            "key": "lex_notai", "kind": "matching", "concept_tag": "what_is_ai",
+            "concept": "Not AI at all",
+            "sid": "sc_e5", "correct": "sc_e5",
+            "scenario": "A thermostat that switches the heating on whenever the room drops below 18°C.",
+            "feedback_correct": "Not AI — it follows one fixed rule and never learns patterns from data.",
+            "feedback_wrong": "This case is not AI: it follows a single fixed rule (below 18°C → heat on) and learns nothing from data.",
+            "explanation": "AI learns patterns from data to make predictions; a fixed if-then rule that never learns is not AI.",
+            "hint": "The same fixed rule every time, with no learning from data. Is that AI at all?",
+        },
+        {
+            "key": "lex_analysis", "kind": "matching", "concept_tag": "analysis_prediction",
+            "concept": "Analysis (finding the pattern)",
+            "sid": "sc_f2", "correct": "sc_f2",
+            "scenario": "Combing through millions of past card transactions to surface the recurring pattern that marks fraud.",
+            "feedback_correct": "Analysis — examining large amounts of data to find the hidden pattern, the first of AI's two steps.",
+            "feedback_wrong": "This case is Analysis: AI examining large amounts of data to find a hidden pattern — before any prediction is made.",
+            "explanation": "Analysis is AI's first step: examine large amounts of data to find hidden patterns.",
+            "hint": "Surfacing a hidden pattern from a mountain of data — which of AI's two steps is that?",
+        },
+        {
+            "key": "lex_prediction", "kind": "matching", "concept_tag": "analysis_prediction",
+            "concept": "Prediction (naming the outcome)",
+            "sid": "sc_g8", "correct": "sc_g8",
+            "scenario": "Forecasting how much rain will fall tomorrow from decades of weather records.",
+            "feedback_correct": "Prediction — using what was learned to name an outcome, AI's second step.",
+            "feedback_wrong": "This case is Prediction: AI's second step — using the learned pattern to predict an outcome (tomorrow's rainfall).",
+            "explanation": "Prediction is AI's second step: based on the analysis, predict an outcome.",
+            "hint": "Naming tomorrow's outcome from past data — which of AI's two steps is that?",
+        },
     ],
 
     "chronicle": [
@@ -527,7 +531,7 @@ QUIZZES = {
                 "A": "The Era of Programming",
                 "B": "The Era of Tabulation",
                 "C": "The Era of AI",
-                "D": "The Era of Machine Learning"
+                "D": "The Industrial Revolution"
             },
             "correct": "B",
             "feedback_correct": "Correct — tabulation was about sorting raw data into structure to reveal insight, long before machines could 'think'.",
@@ -572,7 +576,7 @@ QUIZZES = {
                 "A": "Limited calculating power and limited information storage",
                 "B": "Too many programmers and too few computers",
                 "C": "A shortage of data and a shortage of electricity",
-                "D": "Government bans and public fear"
+                "D": "Computers were simply too expensive for labs to afford"
             },
             "correct": "A",
             "feedback_correct": "Correct — machines were too slow (limited calculating power) and could not hold enough (limited storage).",
@@ -586,8 +590,8 @@ QUIZZES = {
             "options": {
                 "A": "A brand-new programming language",
                 "B": "Processing power finally becoming fast enough",
-                "C": "Expert systems suddenly getting cheaper",
-                "D": "A single government grant"
+                "C": "A new algorithm that needed no extra computing power",
+                "D": "The arrival of the internet and its flood of data"
             },
             "correct": "B",
             "feedback_correct": "Correct — by the mid-1990s, processing power finally caught up with ambition, and the thaw began.",
@@ -602,7 +606,7 @@ QUIZZES = {
                 "A": "Watson",
                 "B": "ENIAC",
                 "C": "Deep Blue",
-                "D": "Apollo"
+                "D": "The Stanford self-driving robot"
             },
             "correct": "C",
             "feedback_correct": "Correct — Deep Blue beat the world chess champion in 1997. (Watson won Jeopardy! in 2011.)",
@@ -749,7 +753,7 @@ QUIZZES = {
                 "A": "Supervised learning",
                 "B": "Unsupervised learning",
                 "C": "Reinforcement learning",
-                "D": "None of these"
+                "D": "Deterministic rule-based filtering"
             },
             "correct": "A",
             "feedback_correct": "Right — labelled data with known answers is the hallmark of supervised learning.",
@@ -764,7 +768,7 @@ QUIZZES = {
                 "A": "Supervised learning",
                 "B": "Unsupervised learning",
                 "C": "Reinforcement learning",
-                "D": "Deterministic rules"
+                "D": "Sorting them with a fixed database query"
             },
             "correct": "B",
             "feedback_correct": "Correct — with no predefined labels, the model discovers clusters on its own.",
@@ -779,7 +783,7 @@ QUIZZES = {
                 "A": "Supervised learning",
                 "B": "Unsupervised learning",
                 "C": "Reinforcement learning",
-                "D": "Structured data sorting"
+                "D": "Deterministic pre-programmed control"
             },
             "correct": "C",
             "feedback_correct": "Yes — learning through rewards and feedback while interacting with an environment is reinforcement learning.",
@@ -792,8 +796,8 @@ QUIZZES = {
             "question": "A calculator returns exactly the same answer every time you enter 7 × 8, and an autonomous car's braking logic is built to behave the same predictable way. These are examples of:",
             "options": {
                 "A": "Probabilistic systems",
-                "B": "Unsupervised learning",
-                "C": "Dark data",
+                "B": "Reinforcement-learning agents",
+                "C": "Machine-learning models that adapt over time",
                 "D": "Deterministic systems"
             },
             "correct": "D",
@@ -808,8 +812,8 @@ QUIZZES = {
             "options": {
                 "A": "Probabilistic — it expresses confidence/uncertainty, helping doctors prioritise",
                 "B": "Deterministic — it's always exact",
-                "C": "Unsupervised — it has no data",
-                "D": "Broken; AI should never be unsure"
+                "C": "A rule-based system following fixed medical guidelines",
+                "D": "An overfitted model that is just guessing"
             },
             "correct": "A",
             "feedback_correct": "Exactly — a confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
@@ -819,80 +823,169 @@ QUIZZES = {
         },
         {
             "key": "obs_s6",
-            "question": "Recall from the Library that a self-driving car is broad AI. Which ML method most likely helps the car improve its driving decisions through trial, reward and consequence?",
+            "question": "A team is training a four-legged robot to walk across rough ground. It is given no examples of \"correct\" steps; instead it scores points each time it stays balanced and loses points each time it stumbles, and over thousands of attempts it grows steadier on its own. Which machine-learning method is this?",
             "options": {
-                "A": "Supervised only",
+                "A": "Supervised learning",
                 "B": "Reinforcement learning",
-                "C": "Unsupervised only",
-                "D": "It uses no machine learning"
+                "C": "Unsupervised learning",
+                "D": "Deterministic control with pre-written rules"
             },
             "correct": "B",
-            "feedback_correct": "Right — self-driving decision systems often use reinforcement learning, and the car as a whole is broad AI (many methods combined).",
-            "feedback_wrong": "Reinforcement learning — improving actions through feedback and reward, like a game-playing agent. It also ties back to \"broad AI\": many ML methods integrated into one system.",
-            "explanation": "Right — self-driving decision systems often use reinforcement learning, and the car as a whole is broad AI (many methods combined).",
-            "hint": "The key words are trial, reward and consequence. Which learning method improves through feedback?"
+            "feedback_correct": "Right. With no answer key and only a score to learn from, this is reinforcement learning: the robot improves its own actions through repeated attempts.",
+            "feedback_wrong": "This is reinforcement learning. There is no labelled set of correct steps to copy. The robot only receives higher or lower scores as it tries, and it improves its actions from that feedback alone.",
+            "explanation": "No labelled \"correct move\" exists. The robot improves only from the score it earns as it practises: higher when it stays balanced, lower when it stumbles. Learning from that feedback through repeated attempts is reinforcement learning.",
+            "hint": "There is no answer key. The robot only gets a better or worse score each time it tries. Which method learns from that kind of feedback rather than from labelled examples?"
         },
 
-        # ── "The Hallucination Hunt" — the Observatory's signature pinned item ──
+        # ── "The Hallucination Hunt" — the Observatory's WHOLE Trial ──
         # Professor Atlas states four claims; exactly ONE is a hallucination
         # (confidently worded but false). Authored content (NOT model-generated) so
         # grading is deterministic and independent of Ollama. Each set is an ordinary
-        # 4-option MCQ where `correct` is the FALSE statement (the one to catch), so
-        # it grades through the normal server path as 1 point, all-or-nothing. The
-        # server pins ONE set per attempt (see PINNED_QUESTIONS group) and
-        # shuffle_options randomises display order, so the false claim's identity is
-        # never in the DOM and has no positional tell. `hunt: True` switches on the
-        # "Atlas speaking" presentation in _trial_core.html; grading is unaffected.
+        # 4-option MCQ where `correct` is the FALSE claim (the one to catch), so it
+        # grades through the normal server path as 1 point, INDEPENDENT of the other
+        # rounds. The Observatory Trial draws 4 of these sets (see TRIAL_DRAW_ONLY),
+        # so all four rounds are hunts; the plain obs_s* MCQs stay defined below but
+        # are retired from the draw. shuffle_options randomises display order, so the
+        # false claim's identity is never in the DOM and has no positional tell.
+        # `hunt: True` switches on the "Atlas speaking" presentation in
+        # _trial_core.html; grading is unaffected. `false_concept` names the taught
+        # concept each set's FALSE claim tests, so bias, nlp and few_shot_prompting
+        # are finally assessed by a graded item, not only true filler.
         {
             "key": "obs_hunt1",
             "hunt": True,
             "concept": "hallucination",
-            "question": "I am a language model — and a language model can state a falsehood with complete confidence. Below are four of my readings on how machines learn. Exactly one is a hallucination: confidently worded, but false. Find it.",
+            "false_concept": "ml_methods",
+            "question": "Four of my readings on how machines learn. One is a hallucination: confident, but false. Which?",
             "options": {
-                "A": "Supervised learning uses labelled examples to learn a mapping from inputs to outputs.",
-                "B": "Unsupervised learning finds structure in data without labelled outcomes.",
-                "C": "Reinforcement learning requires a labelled dataset of correct actions before training can begin.",
-                "D": "A probabilistic model expresses its output as a confidence rather than a definite yes or no."
+                "A": "Supervised learning trains on labelled examples, where each item already carries its correct answer.",
+                "B": "Unsupervised learning finds structure in data that has no labelled outcomes.",
+                "C": "Reinforcement learning needs a labelled dataset of correct actions before any training can start.",
+                "D": "A probabilistic model reports its answer as a confidence rather than a flat yes or no."
             },
             "correct": "C",
-            "feedback_correct": "Well caught. Reinforcement learning has no labelled set of 'correct actions' to copy — it learns from rewards and penalties through trial and error. The other three claims were true.",
-            "feedback_wrong": "That claim was true. The hallucination was the one about reinforcement learning: it does NOT need a labelled dataset of correct actions — it learns from rewards and penalties by trial and error. Confident wording is never proof.",
-            "explanation": "Reinforcement learning learns from reward and penalty through trial and error; it has no labelled dataset of correct actions to imitate. That was the false claim.",
-            "hint": "Three of these describe their method correctly. Weigh each against what you learned — which one demands something that method never actually uses?"
+            "feedback_correct": "Well caught. Reinforcement learning has no labelled set of correct actions to copy; it learns from rewards and penalties as it tries. The other three readings were true.",
+            "feedback_wrong": "That reading was true. The false one claimed reinforcement learning needs a labelled dataset of correct actions first. It does not: it learns from rewards and penalties by trial and error.",
+            "explanation": "Reinforcement learning learns from reward and penalty as it acts; it has no labelled dataset of correct actions to imitate. That was the false claim."
         },
         {
             "key": "obs_hunt2",
             "hunt": True,
             "concept": "hallucination",
-            "question": "I am a language model — and a language model can state a falsehood with complete confidence. Below are four of my readings on how machines learn. Exactly one is a hallucination: confidently worded, but false. Find it.",
+            "false_concept": "llm",
+            "question": "Here are four claims from my notes. Exactly one is false. Find it.",
             "options": {
-                "A": "Overfitting occurs when a model performs well on training data but poorly on new data.",
-                "B": "A large language model verifies each statement against a database of facts before it answers.",
-                "C": "Few-shot prompting steers a model by including a small number of examples in the prompt.",
-                "D": "A model trained on biased historical data can reproduce that bias in its predictions."
+                "A": "Overfitting is when a model does well on its training data but poorly on new data.",
+                "B": "A large language model checks each statement against a stored database of facts before it answers.",
+                "C": "Few-shot prompting guides a model by placing a few worked examples in the prompt.",
+                "D": "A model trained on biased data can carry that bias into its predictions."
             },
             "correct": "B",
-            "feedback_correct": "Exactly — and this one is close to home. A language model like me predicts likely language; it does not look anything up or verify against a database. That is precisely why I can state a falsehood fluently.",
-            "feedback_wrong": "That claim was true. The hallucination was the one about a large language model 'verifying against a database of facts' — it does no such thing. It predicts likely text, which is why confident wording is never proof.",
-            "explanation": "A large language model generates the most likely next text from patterns learned in training; it does not consult or verify against a fact database. That was the false claim — and the reason hallucinations happen.",
-            "hint": "One of these describes a mechanism a language model does not actually have. Recall how an LLM produces its answer."
+            "feedback_correct": "Exactly, and this one is close to home. A language model like me predicts likely text; it does not look anything up or check a database. That is why I can state a falsehood fluently.",
+            "feedback_wrong": "That reading was true. The false one claimed a large language model checks each statement against a database of facts. It does no such thing; it predicts likely text, which is why confident wording is never proof.",
+            "explanation": "A large language model predicts the most likely next text from patterns in its training; it does not consult or verify against a fact database. That was the false claim."
         },
         {
             "key": "obs_hunt3",
             "hunt": True,
             "concept": "hallucination",
-            "question": "I am a language model — and a language model can state a falsehood with complete confidence. Below are four of my readings on how machines learn. Exactly one is a hallucination: confidently worded, but false. Find it.",
+            "false_concept": "overfitting",
+            "question": "Four statements about what you have studied. One is a hallucination. Catch it.",
             "options": {
-                "A": "Natural language processing lets a model work with unstructured human language such as emails and speech.",
-                "B": "A deterministic system returns the same output every time it is given the same input.",
-                "C": "A confident, fluent answer from a model can still be completely false.",
-                "D": "If a model scores 100% on its training data, it is guaranteed to do just as well on new, unseen data."
+                "A": "Natural language processing lets a model work with human language such as emails and speech.",
+                "B": "A deterministic system returns the same output every time for the same input.",
+                "C": "A fluent, confident answer from a model can still be completely false.",
+                "D": "If a model scores full marks on its training data, it is certain to do just as well on new data."
             },
             "correct": "D",
-            "feedback_correct": "Well caught. Scoring perfectly on training data often means the model has overfit — memorised the examples rather than learned the pattern — so it can fail on new data. Generalisation is what counts.",
-            "feedback_wrong": "That claim was true. The hallucination was the one promising that 100% training accuracy guarantees success on new data — that is often a sign of overfitting, not mastery. A model is judged on unseen data.",
-            "explanation": "High training accuracy can indicate overfitting rather than genuine learning; performance on new, unseen data is what matters. That was the false claim.",
-            "hint": "One claim makes a guarantee that sounds reassuring but contradicts what you learned about overfitting. Which one promises too much?"
+            "feedback_correct": "Well caught. Full marks on training data often means the model has memorised the examples, which is overfitting, so it can fail on new data. Performance on unseen data is what counts.",
+            "feedback_wrong": "That reading was true. The false one promised that full training accuracy guarantees success on new data. It does not; that is often a sign of overfitting, not mastery.",
+            "explanation": "Perfect training accuracy can signal overfitting rather than genuine learning; a model is judged on new, unseen data. That was the false claim."
+        },
+        {
+            "key": "obs_hunt4",
+            "hunt": True,
+            "concept": "hallucination",
+            "false_concept": "bias",
+            "question": "I offer four readings on machine learning. One of them is false. Which one?",
+            "options": {
+                "A": "A model trained on biased data will correct that bias on its own once it sees enough examples.",
+                "B": "Reinforcement learning improves by earning rewards for good actions and penalties for poor ones.",
+                "C": "Supervised learning can predict a category or a number once it has been trained on labelled data.",
+                "D": "A large language model has no real understanding; it predicts the most likely next words."
+            },
+            "correct": "A",
+            "feedback_correct": "Well caught. More data does not remove bias; a model repeats whatever bias sits in its training data. It takes varied, fair data to fix, not simply more of the same.",
+            "feedback_wrong": "That reading was true. The false one claimed a model corrects its own bias once it sees enough examples. It does not; more biased data just repeats the bias. Varied, fair data is what matters.",
+            "explanation": "A model absorbs the bias in its training data and repeats it; a larger amount of the same biased data does not correct it. That was the false claim."
+        },
+        {
+            "key": "obs_hunt5",
+            "hunt": True,
+            "concept": "hallucination",
+            "false_concept": "nlp",
+            "question": "Four claims, navigator. Three are sound; one is a confident falsehood. Name it.",
+            "options": {
+                "A": "Unsupervised learning groups similar items together without being told the groups in advance.",
+                "B": "Natural language processing can handle written text but not the spoken word.",
+                "C": "Overfitting shows up as strong results on training data and weak results on new data.",
+                "D": "A probabilistic system can express its answer as a percentage of confidence."
+            },
+            "correct": "B",
+            "feedback_correct": "Well caught. Natural language processing works with both writing and speech; voice assistants are a taught example of it handling the spoken word.",
+            "feedback_wrong": "That reading was true. The false one claimed natural language processing cannot handle the spoken word. It can: it powers voice assistants as well as written text.",
+            "explanation": "Natural language processing works with human language in both writing and speech, including voice assistants. That was the false claim."
+        },
+        {
+            "key": "obs_hunt6",
+            "hunt": True,
+            "concept": "hallucination",
+            "false_concept": "few_shot_prompting",
+            "question": "Read these four carefully. One is a hallucination dressed as fact. Which?",
+            "options": {
+                "A": "Supervised learning needs labelled examples whose correct answers are already known.",
+                "B": "A deterministic calculator returns the same result for the same sum every time.",
+                "C": "Few-shot prompting means writing one long, detailed instruction and giving the model no examples.",
+                "D": "An AI can state a false fact with complete confidence, so its answers are worth checking."
+            },
+            "correct": "C",
+            "feedback_correct": "Well caught. Few-shot prompting is defined by including a few worked examples in the prompt so the model copies the pattern. An instruction with no examples is not few-shot prompting.",
+            "feedback_wrong": "That reading was true. The false one described few-shot prompting as a long instruction with no examples. Few-shot prompting is the opposite: it includes a few worked examples.",
+            "explanation": "Few-shot prompting works by placing a few worked examples in the prompt so the model copies the pattern; an instruction with no examples is not few-shot. That was the false claim."
+        },
+        {
+            "key": "obs_hunt7",
+            "hunt": True,
+            "concept": "hallucination",
+            "false_concept": "deterministic_probabilistic",
+            "question": "Four of my readings on how machines work. Spot the one that is false.",
+            "options": {
+                "A": "Reinforcement learning has no answer key; it learns from rewards and penalties as it goes.",
+                "B": "A probabilistic system always returns exactly the same answer for the same input.",
+                "C": "Natural language processing powers tools such as translation and voice assistants.",
+                "D": "Broad AI is available today and combines several narrow systems into one."
+            },
+            "correct": "B",
+            "feedback_correct": "Well caught. Returning the same answer every time describes a deterministic system. A probabilistic system weighs likelihoods and reports confidence, so it can handle uncertainty.",
+            "feedback_wrong": "That reading was true. The false one claimed a probabilistic system always returns the same answer. That describes a deterministic system; a probabilistic one expresses confidence and can vary.",
+            "explanation": "A system that always returns the same output for the same input is deterministic; a probabilistic system expresses likelihoods rather than one fixed answer. That was the false claim."
+        },
+        {
+            "key": "obs_hunt8",
+            "hunt": True,
+            "concept": "hallucination",
+            "false_concept": "hallucination",
+            "question": "Four claims about what machines can and cannot do. One is false. Find it.",
+            "options": {
+                "A": "Bias in a model usually comes from bias already present in its training data.",
+                "B": "Few-shot prompting steers a model by showing it a few examples first.",
+                "C": "When a language model is unsure of a fact, it flags that it is guessing instead of answering with confidence.",
+                "D": "Unsupervised learning finds patterns in data that carries no labels."
+            },
+            "correct": "C",
+            "feedback_correct": "Well caught. A language model does not know what it does not know; it predicts likely text and can state a falsehood with full confidence, so it will not warn you when it is unsure.",
+            "feedback_wrong": "That reading was true. The false one claimed a model flags when it is guessing. It does not: it predicts likely text and can sound completely certain while being wrong, which is why its answers need checking.",
+            "explanation": "A language model predicts plausible text rather than checking facts, and it can state a falsehood with total confidence; it does not flag its own uncertainty. That was the false claim."
         }
     ]
 }
@@ -919,14 +1012,22 @@ BIN_LABELS = {b["id"]: b["label"] for b in DATA_BINS}
 PINNED_QUESTIONS = {
     # The AI Lab no longer pins a single item — its whole Trial is the sorting board
     # (4 `sort` objects drawn from the bank, each graded independently).
-    # The Observatory pins "The Hallucination Hunt". This entry is a GROUP (a list
-    # nested inside the pin list): the server picks exactly ONE of these
-    # interchangeable sets per attempt and excludes the rest from the draw, so one
-    # hunt always appears first and the unused sets never leak into the Trial.
-    "observatory": [["obs_hunt1", "obs_hunt2", "obs_hunt3"]],
+    # The Observatory no longer pins a single hunt: its WHOLE Trial is the
+    # Hallucination Hunt now, so all 4 rounds are hunts drawn at random (see
+    # TRIAL_DRAW_ONLY below) rather than 1 pinned hunt plus 3 plain MCQs.
     # The Chronicle pins BOTH "Broken Timeline" ordering items, so sequencing is the
     # Trial's dominant mode (2 ordering + 2 sampled MCQs).
     "chronicle": ["chr_order_eras", "chr_order_winter"],
+}
+
+
+# Some Trials draw from only PART of their bank; the rest of the bank stays defined
+# (nothing deleted, so a revert is a one-line change) but is not offered in the
+# draw. The Observatory Trial is entirely "The Hallucination Hunt": it draws only
+# hunt sets, so the plain obs_s* MCQs remain in the bank for reference but are
+# retired from the composition. The value is the item flag a Trial restricts to.
+TRIAL_DRAW_ONLY = {
+    "observatory": "hunt",   # draw only items whose q["hunt"] is truthy
 }
 
 
@@ -953,18 +1054,61 @@ def normalize_order(value, q):
     return ",".join(ids)
 
 
+# ── Matching items ("The Lexicon") — server-authoritative concept↔scenario pairing ──
+def _matching_bank(location_key):
+    return [q for q in QUIZZES.get(location_key, []) if q.get("kind") == "matching"]
+
+
+def lexicon_pool(location_key, concept_keys):
+    """The scenario pool for a Lexicon board: the drawn concepts' correct scenarios
+    PLUS 2 deterministic decoy scenarios (from undrawn concepts). Returns a list of
+    {sid, text}. Deterministic given `concept_keys`, so the pool re-derives identically
+    at grade time (no per-attempt storage). The correct/decoy scenarios are
+    indistinguishable in the result — only their `sid` + text, no 'decoy' marker.
+    """
+    by_key = {q["key"]: q for q in _matching_bank(location_key)}
+    drawn = [by_key[k] for k in concept_keys if k in by_key]
+    pool = [{"sid": q["sid"], "text": q["scenario"]} for q in drawn]
+    undrawn = sorted(
+        (q for q in by_key.values() if q["key"] not in concept_keys),
+        key=lambda q: q["key"],
+    )
+    for q in undrawn[:2]:                       # 2 deterministic decoys
+        pool.append({"sid": q["sid"], "text": q["scenario"]})
+    return pool
+
+
+def lexicon_pool_sids(location_key, concept_keys):
+    """The set of scenario ids a Lexicon submission may legally reference."""
+    return {s["sid"] for s in lexicon_pool(location_key, concept_keys)}
+
+
+def scenario_text(location_key, sid):
+    """The case text for a scenario id (results/feedback only; never the pairing)."""
+    for q in _matching_bank(location_key):
+        if q.get("sid") == sid:
+            return q["scenario"]
+    return None
+
+
 def select_trial_questions(location_key, count=TRIAL_COUNT):
     """Pick which question keys to show for one Trial attempt.
 
     Pinned entries are always included and kept first. A pinned entry may be
-    either a single key (e.g. the AI Lab sorting diagnostic ``lab_q3``, always
-    shown) or a GROUP — a list/tuple of interchangeable keys (e.g. the Observatory
-    Hallucination Hunt sets ``obs_hunt1..3``). For a group the server picks exactly
-    ONE member per attempt and the WHOLE group is excluded from the random
-    remainder, so only the chosen set ever appears. The remainder is sampled at
-    random from the bank. Returns a list of question keys.
+    either a single key (e.g. a single always-shown item) or a GROUP — a list/tuple
+    of interchangeable keys. For a group the server picks exactly ONE member per
+    attempt and the WHOLE group is excluded from the random remainder, so only the
+    chosen set ever appears. The remainder is sampled at random from the bank.
+
+    A location listed in TRIAL_DRAW_ONLY draws from only the flagged SUBSET of its
+    bank (e.g. the Observatory draws only ``hunt`` items — the whole Trial is the
+    Hallucination Hunt — so the retired obs_s* MCQs are never offered). Returns a
+    list of question keys.
     """
     bank = QUIZZES.get(location_key, [])
+    only_flag = TRIAL_DRAW_ONLY.get(location_key)
+    if only_flag:
+        bank = [q for q in bank if q.get(only_flag)]
     by_key = {q["key"]: q for q in bank}
     pinned = []
     grouped = set()  # every key belonging to a pinned entry (chosen or not)
@@ -1077,6 +1221,10 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
             correct = q["correct"]                 # a bin id, server-side only
             is_correct = selected == correct
             options = None
+        elif q.get("kind") == "matching":
+            correct = q["correct"]                 # a scenario id, server-side only
+            is_correct = selected == correct
+            options = None
         else:
             correct = q["correct"]
             is_correct = selected == correct
@@ -1085,7 +1233,7 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
             score += 1
         row = {
             "key": q["key"],
-            "question": q["question"],
+            "question": q.get("question") or q.get("concept", ""),
             "kind": q.get("kind", "mcq"),
             "options": options,
             "events": q.get("events"),
@@ -1099,6 +1247,10 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
         if q.get("kind") == "sort":
             row["correct_label"] = BIN_LABELS.get(correct, correct)
             row["selected_label"] = BIN_LABELS.get(selected, selected)
+        elif q.get("kind") == "matching":
+            row["concept"] = q.get("concept", "")
+            row["correct_text"] = q.get("scenario", "")   # the correct case
+            row["selected_text"] = scenario_text(location_key, selected)
         results.append(row)
 
     total = len(quiz)

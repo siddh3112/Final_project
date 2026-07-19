@@ -38,7 +38,12 @@ def _fresh():
 #  Trial grading — passes at >= PASS_THRESHOLD (3 of 4); score = # correct
 # ────────────────────────────────────────────────────────────────────
 def _library_trial(n_correct):
-    """Build a 4-question library trial submission with exactly n correct."""
+    """Build a 4-item Library trial submission with exactly n correct.
+
+    The Library Trial is now "The Lexicon" — matching items whose answer is a
+    scenario id — so a correct answer is the item's own scenario id and a wrong one
+    is another item's scenario id. Grading is the same shared core (selected==correct).
+    """
     shown = [q["key"] for q in QUIZZES["library"]][:4]
     qs = get_questions_by_keys("library", shown)
     submitted = {}
@@ -46,7 +51,7 @@ def _library_trial(n_correct):
         if i < n_correct:
             submitted[q["key"]] = q["correct"]
         else:
-            submitted[q["key"]] = next(l for l in q["options"] if l != q["correct"])
+            submitted[q["key"]] = next(o["correct"] for o in qs if o["correct"] != q["correct"])
     return submitted, shown
 
 

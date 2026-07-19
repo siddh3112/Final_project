@@ -21,6 +21,8 @@ from ..game_content import (
     get_hooks,
     get_questions_by_keys,
     grade_quiz,
+    lexicon_pool,
+    lexicon_pool_sids,
     normalize_order,
     order_canonical,
     select_trial_questions,
@@ -441,9 +443,9 @@ def commit_answer(key):
             "feedback": feedback,
         })
 
-    if q.get("kind") == "sort":
-        # The sorting board commits at SUBMIT (not per-placement), so /answer is not
-        # part of its flow. Reject any stray commit rather than mis-handle it.
+    if q.get("kind") in ("sort", "matching"):
+        # The sorting board and the Lexicon matching board both commit at SUBMIT
+        # (not per-item), so /answer is not part of their flow. Reject a stray commit.
         return jsonify({"error": "not-committable"}), 400
 
     letter = data.get("letter", "")
@@ -479,7 +481,15 @@ def trial(key):
     # The SERVER draws + stores this attempt's questions; the page gets only the
     # attempt id (see _start_trial_attempt / submit_quiz).
     aid, quiz = _start_trial_attempt(key)
-    return render_template("game/trial.html", loc=loc, quiz=quiz, attempt_id=aid)
+    # For a Lexicon matching board, also build the scenario pool (4 correct + 2
+    # deterministic decoys). The pool is derived from the stored concept keys, so
+    # grading re-derives it identically; the template shuffles it for display.
+    scenarios = None
+    if quiz and quiz[0].get("kind") == "matching":
+        scenarios = lexicon_pool(key, [q["key"] for q in quiz])
+    return render_template(
+        "game/trial.html", loc=loc, quiz=quiz, attempt_id=aid, scenarios=scenarios
+    )
 
 
 @game_bp.route("/location/<key>/submit", methods=["POST"])
@@ -508,6 +518,12 @@ def submit_quiz(key):
     stored_keys = _attempt_keys(att)
     quiz = get_questions_by_keys(key, stored_keys)
 
+    # Lexicon board: the legal scenario ids are re-derived from the stored concept
+    # keys (same deterministic pool as at render), so a forged/off-pool id can't score.
+    matching_pool_sids = (
+        lexicon_pool_sids(key, stored_keys) if quiz and quiz[0].get("kind") == "matching" else set()
+    )
+
     # The FIRST answer committed per question (recorded server-side via
     # /answer) is authoritative; fall back to a validated form value only for a
     # question that was never committed (e.g. JavaScript disabled). Anything that
@@ -529,6 +545,13 @@ def submit_quiz(key):
             # missing, forged) is treated as unplaced → graded wrong, never a point.
             fv = request.form.get(q["key"])
             val = fv if fv in BIN_IDS else None
+        elif q.get("kind") == "matching":
+            # Lexicon board: the inked link is a scenario id from the form. Only a
+            # scenario id from THIS attempt's served pool counts; an unknown id (or a
+            # scenario reused for the wrong concept) is graded wrong, never a point.
+            # Independent per concept — each concept's correct scenario is its own.
+            fv = request.form.get(q["key"])
+            val = fv if fv in matching_pool_sids else None
         else:
             val = recorded.get(q["key"])
             if val not in q["options"]:

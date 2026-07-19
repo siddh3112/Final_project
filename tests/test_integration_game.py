@@ -41,10 +41,19 @@ def _start(client, loc):
 
 
 def _answer_data(qs, n_correct):
-    """Answers keyed by the SERVER's questions: first n_correct right, rest wrong."""
+    """Answers keyed by the SERVER's questions: first n_correct right, rest wrong.
+
+    A wrong answer is a different option letter (MCQ) or a different item's answer
+    id (matching/sort) — both grade through the same core as selected != correct.
+    """
     data = {}
     for i, q in enumerate(qs):
-        data[q["key"]] = q["correct"] if i < n_correct else next(l for l in q["options"] if l != q["correct"])
+        if i < n_correct:
+            data[q["key"]] = q["correct"]
+        elif q.get("options"):
+            data[q["key"]] = next(l for l in q["options"] if l != q["correct"])
+        else:
+            data[q["key"]] = next(o["correct"] for o in qs if o["correct"] != q["correct"])
     return data
 
 
@@ -200,23 +209,25 @@ def test_answer_key_not_in_trial_dom(client, user_factory, login):
 def test_commit_endpoint_locks_first_answer(client, user_factory, login):
     """The /answer commit endpoint records the FIRST committed letter; a later
     call returns that same locked answer (so it can't be used to fish the key),
-    and submit grades the locked answer."""
-    u = user_factory()
+    and submit grades the locked answer. Tested on the Observatory — an MCQ Trial
+    that still uses /answer (the Library is now the click-to-ink Lexicon board,
+    which commits at submit)."""
+    u = user_factory(passed=("library", "chronicle", "ai_lab"))   # unlock the Observatory
     login(u)
-    aid, keys, qs = _start(client, "library")
-    k0 = keys[0]
-    q0 = get_questions_by_keys("library", [k0])[0]
+    aid, keys, qs = _start(client, "observatory")
+    k0 = keys[0]     # any Observatory round (all are hunts; each is an MCQ under the hood)
+    q0 = get_questions_by_keys("observatory", [k0])[0]
     c0 = q0["correct"]
     w0 = next(l for l in q0["options"] if l != c0)
-    first = client.post("/location/library/answer",
+    first = client.post("/location/observatory/answer",
                         json={"attempt_id": aid, "qkey": k0, "letter": w0}).get_json()
-    retry = client.post("/location/library/answer",
+    retry = client.post("/location/observatory/answer",
                         json={"attempt_id": aid, "qkey": k0, "letter": c0}).get_json()
     assert first["is_correct"] is False
     assert retry["committed"] == w0, "first commit is locked; retry cannot switch it"
-    client.post("/location/library/submit", data={"attempt_id": aid})
+    client.post("/location/observatory/submit", data={"attempt_id": aid})
     _fresh()
-    row = QuizAttempt.query.filter_by(user_id=u.id, location="library", question_key=k0).first()
+    row = QuizAttempt.query.filter_by(user_id=u.id, location="observatory", question_key=k0).first()
     assert row.selected_answer == w0 and row.is_correct is False
 
 

@@ -9,18 +9,18 @@
 {#  Per-realm framing text. The graded flow underneath is identical for every
     skin (see _trial_core.html + quiz.js); only this presentation differs.  #}
 {% set skin = {
-  'library':     {'icon': '📖', 'kicker': 'The Examination',      'title': 'The Examination',      'tagline': 'Prove what the tomes have taught you',
+  'library':     {'icon': '📖', 'kicker': 'The Lexicon',           'title': 'The Lexicon',           'tagline': 'Rule a line from each concept to the case that proves it',
                   'atlas_label': 'Consult Professor Atlas',
-                  'intro_line': 'Inscribe your answers, scholar — answer at least <strong>3 of 4</strong> correctly to pass the Examination.',
+                  'intro_line': 'Rule a line, scholar — connect each concept to the real-world case that proves it. Ink at least <strong>3 of 4</strong> correctly to seal the Concordance.',
                   'intro_hint': 'Unsure of a passage? Consult Professor Atlas.'},
   'chronicle':   {'icon': '⏳', 'kicker': 'The Reckoning of Ages', 'title': 'The Reckoning of Ages', 'tagline': 'Consult the records and seal each entry',
                   'atlas_label': 'Consult the Records-keeper', 'counter_noun': 'Record',
                   'intro_line': 'Consult the records, keeper — restore the broken timelines and seal at least <strong>3 of 4</strong> entries correctly to pass the Reckoning.',
                   'intro_hint': 'Uncertain of an age? Consult the Records-keeper Atlas.'},
-  'observatory': {'icon': '🔭', 'kicker': 'Reading the Sky',       'title': 'Reading the Sky',       'tagline': 'Chart the constellation of what you have learned',
-                  'atlas_label': 'Ask the Star-reader',
-                  'intro_line': 'Read the sky, navigator — chart at least <strong>3 of 4</strong> correctly to pass.',
-                  'intro_hint': 'Lost among the stars? Ask the Star-reader Atlas.'},
+  'observatory': {'icon': '🔭', 'kicker': 'Reading the Sky',       'title': 'Reading the Sky',       'tagline': 'Four readings each round, one is a hallucination. Catch it.',
+                  'atlas_label': 'Ask the Star-reader', 'counter_noun': 'Reading',
+                  'intro_line': 'I am a language model, navigator, and a language model can voice a falsehood with total confidence. Each round I give you four readings and exactly one is a hallucination. Catch the false one in at least <strong>3 of 4</strong> rounds to pass.',
+                  'intro_hint': ''},
 } %}
 {% set s = skin.get(loc.key, {'icon': '⚔️', 'kicker': 'The Trial', 'title': 'The Trial', 'tagline': loc.name ~ ' — ' ~ loc.topic,
                               'atlas_label': 'Ask Professor Atlas for a hint',
@@ -30,6 +30,7 @@
 {% set intro_line  = s.intro_line %}
 {% set intro_hint  = s.intro_hint %}
 {% set counter_noun = s.counter_noun | default('Question') %}
+{% set is_lexicon = quiz and quiz[0].kind == 'matching' %}
 
 <div class="location-page trial-page trial-{{ loc.key }} trial-skin trial-skin-{{ loc.key }}"
      data-skin="{{ loc.key }}" style="--accent: {{ loc.accent }};">
@@ -71,7 +72,7 @@
 
       <!-- ── Per-realm progress MOTIF (driven by trial-skin.js; charts as you
            answer). The plain "Question x/4" counter stays inside the core. ── -->
-      {% if loc.key == 'library' %}
+      {% if loc.key == 'library' and not is_lexicon %}
       <div class="tskin-motif tskin-motif-lib" id="tskin-motif" aria-hidden="true">
         {% set roman = ['I', 'II', 'III', 'IV', 'V', 'VI'] %}
         {% for i in range(quiz|length) %}
@@ -115,7 +116,11 @@
 
     <section class="trial-stage">
       <div class="trial-content trial-card">
-        {% include "game/_trial_core.html" %}
+        {% if is_lexicon %}
+          {% include "game/_lexicon_board.html" %}
+        {% else %}
+          {% include "game/_trial_core.html" %}
+        {% endif %}
       </div>
     </section>
 
@@ -125,6 +130,10 @@
 {% endblock %}
 
 {% block scripts %}
+{% if quiz and quiz[0].kind == 'matching' %}
+<script src="{{ url_for('static', filename='js/lexicon.js') }}"></script>
+{% else %}
 <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
 <script src="{{ url_for('static', filename='js/trial-skin.js') }}"></script>
+{% endif %}
 {% endblock %}

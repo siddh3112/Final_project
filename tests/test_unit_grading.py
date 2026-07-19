@@ -41,6 +41,8 @@ def _submission(loc, shown, n_correct):
             submitted[q["key"]] = q["correct"]
         elif q.get("kind") == "sort":
             submitted[q["key"]] = next(b for b in BIN_IDS if b != q["correct"])
+        elif q.get("kind") == "matching":
+            submitted[q["key"]] = next(o["correct"] for o in qs if o["correct"] != q["correct"])
         else:
             submitted[q["key"]] = next(l for l in q["options"] if l != q["correct"])
     return submitted

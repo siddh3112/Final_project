@@ -69,6 +69,13 @@ def test_questions_wellformed(loc):
             assert str(q["question"]).strip(), f"{loc}/{q['key']}: empty object label"
             assert q["correct"] in BIN_IDS, f"{loc}/{q['key']}: correct bin '{q['correct']}' is not a real bin"
             continue
+        if q.get("kind") == "matching":
+            # Lexicon pair ("The Lexicon"): a concept + a scenario + the scenario id
+            # it pairs with. The correct id must be this pair's own scenario id.
+            assert {"key", "concept", "scenario", "sid", "correct"} <= set(q), f"{loc}/{q['key']}: missing matching fields"
+            assert str(q["concept"]).strip() and str(q["scenario"]).strip(), f"{loc}/{q['key']}: empty concept/scenario"
+            assert q["correct"] == q["sid"], f"{loc}/{q['key']}: a concept must pair with its OWN scenario id"
+            continue
         assert {"key", "question", "options", "correct"} <= set(q), f"{loc}: missing fields"
         opts = q["options"]
         assert isinstance(opts, dict) and set(opts) == {"A", "B", "C", "D"}, f"{loc}/{q['key']}: options must be A–D"

@@ -69,7 +69,8 @@ def _recent_mistake_stems(user_id, location):
     stripped), de-duplicated by question, most-recent first."""
     if not location:
         return []
-    stems_by_key = {q["key"]: q["question"] for q in QUIZZES.get(location, [])}
+    # A stem is the question text (MCQ/order/sort) or the concept label (matching).
+    stems_by_key = {q["key"]: (q.get("question") or q.get("concept", "")) for q in QUIZZES.get(location, [])}
     rows = (
         QuizAttempt.query.filter_by(user_id=user_id, location=location, is_correct=False)
         .order_by(QuizAttempt.created_at.desc())

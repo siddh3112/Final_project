@@ -6136,3 +6136,192 @@ html.reduce-motion .tskin-star.current { animation: none; }
 .result-sort.is-wrong { border-color: rgba(224,92,92,0.45); }
 .rs-line { font-size: 0.9rem; }
 .rs-wrong { color: #e0a0a0; margin-top: 0.2rem; }
+
+/* ══════════════════════════════════════════════════════════════════
+   The Lexicon — the Library's click-to-ink matching board. Concept index cards
+   (left) ruled to catalogue slips (right) with amber lines drawn on an SVG
+   overlay. Library-only, so the amber accent (#d4a84b) is safe. Presentation
+   only; the correct pairings are never in the markup.
+   ══════════════════════════════════════════════════════════════════ */
+/* High-contrast DARK INK on parchment — the Library Trial panel is light, so
+   cards are solid tan/cream with dark-brown ink (crisp, readable), not the dark
+   translucent cards used on the other realms' dark trials. */
+.lex-howto {
+  display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;
+  margin: 0.2rem auto 0.9rem; max-width: 720px; padding: 0.55rem 0.9rem;
+  background: #efdcb0; border: 1.5px solid #b8823a; border-radius: 9px;
+  color: #4a3212; font-family: 'Inter', sans-serif; font-size: 0.86rem; line-height: 1.45;
+}
+.lex-howto > i { color: #9c6a2c; font-size: 1.1rem; flex-shrink: 0; }
+.lex-howto b { color: #2f1e08; }
+.lex-readout { text-align: center; font-family: 'Rye', serif; color: #8a5f2c; font-size: 0.95rem; letter-spacing: 0.04em; margin-bottom: 1rem; }
+.lex-readout b { color: #7a3f14; }
+
+.lex-board { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 2.4rem; align-items: stretch; }
+.lex-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 3; pointer-events: none; }
+.lex-line { stroke: #9c6a2c; stroke-width: 2.6; stroke-linecap: round; filter: drop-shadow(0 1px 1px rgba(60,36,10,0.35)); pointer-events: none; }
+.lex-line-hit { stroke: transparent; stroke-width: 16; pointer-events: auto; cursor: pointer; }
+.lex-line-g:hover .lex-line { stroke: #7a3f14; stroke-width: 3.2; }
+
+.lex-col { display: flex; flex-direction: column; gap: 0.55rem; position: relative; z-index: 1; }
+/* 4 concepts vs 6 slips: centre the shorter concept column against the taller slip
+   column so the board reads as balanced instead of top-heavy with dead space. */
+.lex-concepts { justify-content: center; }
+.lex-card {
+  position: relative; width: 100%; text-align: left; cursor: pointer;
+  padding: 0.6rem 0.85rem; border-radius: 9px; color: #33230f;
+  background: #f3e7c9; border: 1.5px solid #c69a5a;
+  box-shadow: 0 2px 6px rgba(60,36,10,0.18);
+  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s, transform 0.12s;
+  font-family: 'Source Serif 4', serif; font-size: 0.88rem; line-height: 1.4;
+}
+.lex-card:hover { border-color: #9c6a2c; transform: translateY(-1px); box-shadow: 0 5px 14px rgba(60,36,10,0.28); }
+.lex-card:focus-visible { outline: 3px solid #9c6a2c; outline-offset: 2px; }
+
+/* Concept index cards — a warmer tan with a ruled left margin, dark display ink. */
+.lex-concept {
+  font-family: 'Rye', serif; font-size: 0.94rem; color: #2f1d09; text-align: center;
+  padding: 0.75rem 0.9rem 0.75rem 1.2rem; background: #e7d09a; border-color: #b8823a;
+}
+.lex-concept::before {
+  content: ""; position: absolute; left: 0.55rem; top: 0.6rem; bottom: 0.6rem; width: 2px;
+  background: rgba(156,106,44,0.5); border-radius: 2px;
+}
+.lex-concept.selected {
+  background: #eebf63; border-color: #7a3f14;
+  box-shadow: 0 0 0 3px rgba(184,130,58,0.55), 0 4px 14px rgba(60,36,10,0.35);
+}
+.lex-concept.linked { border-color: #9c6a2c; }
+
+/* Catalogue slips — pale parchment, dark ink; once ruled, tinted + "filed" (still fully readable). */
+.lex-scenario { background: #f6eed6; }
+.lex-scenario.spent {
+  cursor: default; background: #ead9a6; border-color: #9c6a2c;
+  box-shadow: inset 3px 0 0 #9c6a2c, 0 2px 6px rgba(60,36,10,0.18);
+}
+.lex-scenario.spent:hover { transform: none; }
+
+.lex-node {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #f3e7c9; border: 2.5px solid #9c6a2c; z-index: 2;
+  box-shadow: 0 1px 2px rgba(60,36,10,0.3);
+}
+.lex-node-r { right: -7px; }
+.lex-node-l { left: -7px; }
+.lex-concept.selected .lex-node { background: #7a3f14; border-color: #4a2810; }
+.lex-concept.linked .lex-node, .lex-scenario.spent .lex-node { background: #9c6a2c; border-color: #5e3f18; }
+
+.lex-actions { display: flex; justify-content: center; margin-top: 1.3rem; }
+.lex-submit {
+  background: linear-gradient(180deg, #d69f4c, #a5642f); color: #241708; border: 1px solid #7a3f14;
+  border-radius: 10px; padding: 0.62rem 1.7rem; font-weight: 700;
+  font-family: 'Rye', serif; font-size: 0.95rem; cursor: pointer; box-shadow: 0 5px 14px rgba(60,36,10,0.4);
+}
+.lex-submit:hover:not(:disabled) { filter: brightness(1.06); }
+.lex-submit:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+.lex-note { text-align: center; color: #7a5f34; font-size: 0.78rem; margin-top: 0.7rem; }
+
+@media (max-width: 620px) {
+  .lex-board { gap: 1.5rem; }
+  .lex-card { font-size: 0.86rem; }
+}
+
+/* results page — the correct case for a matching pair */
+.result-sort .rs-correct-case { color: #ecd7b2; font-style: italic; margin-top: 0.15rem; }
+
+/* ── Lexicon: trim vertical chrome so the tall 6-slip board needs minimal scroll ── */
+.trial-skin-body-library .trial-skin-hero { margin-bottom: 0.12rem; }
+.trial-skin-body-library .trial-skin-kicker { margin-bottom: 0.1rem; font-size: 0.68rem; }
+.trial-skin-library .trial-card { padding: 0.9rem 1.4rem 1rem; margin-top: 0.25rem; }
+.lex-howto { margin: 0.1rem auto 0.55rem; padding: 0.45rem 0.8rem; font-size: 0.82rem; }
+.lex-readout { margin-bottom: 0.65rem; font-size: 0.9rem; }
+.lex-col { gap: 0.48rem; }
+.lex-card { padding: 0.5rem 0.8rem; font-size: 0.85rem; line-height: 1.34; }
+.lex-concept { padding: 0.58rem 0.85rem 0.58rem 1.1rem; }
+.lex-actions { margin-top: 0.9rem; }
+
+/* Lexicon uses the full page width so the 6 case slips wrap to fewer lines and the
+   whole board fits one screen (the other trials stay their narrower width). */
+.trial-skin-body-library .trial-shell { max-width: 1060px; }
+.trial-skin-library .trial-card { max-width: 1000px; }
+.lex-board { gap: 3.4rem; }
+
+/* Final squeeze so the Lexicon fits an ~800px window with room to spare. */
+.trial-skin-body-library .trial-skin-title { font-size: clamp(1.4rem, 2.6vw, 1.85rem); }
+.trial-skin-library .trial-card { padding: 0.8rem 1.4rem 0.9rem; }
+.lex-howto { font-size: 0.8rem; margin-bottom: 0.45rem; padding: 0.4rem 0.75rem; }
+.lex-readout { margin-bottom: 0.55rem; }
+.lex-col { gap: 0.42rem; }
+.lex-card { padding: 0.45rem 0.8rem; }
+.lex-actions { margin-top: 0.7rem; }
+.lex-note { margin-top: 0.45rem; font-size: 0.74rem; }
+
+/* Trial pages are document-flow and can be taller than the viewport (e.g. the
+   Lexicon board, or any Trial + an open Atlas hint), so they MUST scroll. This
+   overrides the immersive `.theme-archive { overflow: hidden }` (used by the
+   Library's fixed bookshelf SCENE, which is not a trial-skin-body page). */
+body.trial-skin-body { overflow-y: auto; overflow-x: hidden; }
+
+/* ── Lexicon palette — harmonise with the Library's parchment/sepia trial skin
+   (soft tans, warm #a97e2f accent, dark sepia ink) — the earlier tones were too
+   saturated/orange and clashed with the parchment panel. ── */
+.lex-howto { background: #ead9b0; border-color: #c3a35f; color: #4d3a1a; }
+.lex-howto > i { color: #8a6522; }
+.lex-howto b { color: #33260f; }
+.lex-readout { color: #9a7b3a; }
+.lex-readout b { color: #7a5a1f; }
+.lex-line { stroke: #a97e2f; filter: drop-shadow(0 1px 1px rgba(74,45,10,0.3)); }
+.lex-line-g:hover .lex-line { stroke: #8a6522; }
+.lex-card { background: #f4ead0; border-color: #cdb587; color: #40311a; }
+.lex-card:hover { border-color: #a97e2f; box-shadow: 0 5px 14px rgba(74,45,10,0.22); }
+.lex-card:focus-visible { outline-color: #a97e2f; }
+.lex-concept { background: #e6d6ac; border-color: #bfa055; color: #33260f; }
+.lex-concept::before { background: rgba(154,123,58,0.5); }
+.lex-concept.selected { background: rgba(207,155,58,0.34); border-color: #a97e2f; box-shadow: 0 0 0 3px rgba(169,126,47,0.5), 0 4px 14px rgba(74,45,10,0.3); }
+.lex-concept.linked { border-color: #a97e2f; }
+.lex-scenario { background: #f6efd9; }
+.lex-scenario.spent { background: rgba(207,155,58,0.16); border-color: #bfa055; box-shadow: inset 3px 0 0 #a97e2f, 0 2px 6px rgba(74,45,10,0.16); }
+.lex-node { background: #f2e7cd; border-color: #a97e2f; }
+.lex-concept.selected .lex-node { background: #7a5a1f; border-color: #4d3a1a; }
+.lex-concept.linked .lex-node, .lex-scenario.spent .lex-node { background: #a97e2f; border-color: #5e451c; }
+.lex-submit { background: linear-gradient(180deg, #d9ad52, #b9862f); border-color: #a97e2f; color: #33260f; }
+.lex-note { color: #7a5f34; }
+
+/* Open a clear central channel for the ink lines. The two node columns were only
+   ~40px apart (just the grid gap), so any crossing links collapsed into one
+   unreadable vertical knot. Cap each card's width and pull the concept column to
+   the left edge and the slip column to the right edge, so the anchors sit ~200px
+   apart and the lines fan out legibly. */
+.lex-concepts { align-items: flex-start; }
+.lex-scenarios { align-items: flex-end; }
+.lex-concept { max-width: 19rem; }
+.lex-scenario { max-width: 25rem; }
+@media (max-width: 620px) {
+  /* On a narrow screen the channel would squeeze the slips too far; let cards use
+     the full column again (lines stay short, but nothing overflows). */
+  .lex-concept, .lex-scenario { max-width: none; }
+}
+
+/* Results page: the fixed "Return to Map" lives inside .loc-topbar, whose stacking
+   context (z-index:1 from `.location-page > *`) is a sibling of the later-in-DOM
+   <main> (also z-index:1) — so main painted over the button and swallowed its
+   clicks (it only showed through because main is transparent). Lift the topbar
+   above main so "Return to Map" is actually clickable. */
+.results-page .loc-topbar { position: relative; z-index: 210; }
+
+/* ══════════════════════════════════════════════════════════════════
+   Per-realm RESULTS skin — the score page wears its Trial's name + accent
+   (via --accent set inline), instead of a generic dark "The Trial". Pass/fail
+   stay green/red (a universal signal); only the realm ACCENT is per-level.
+   ══════════════════════════════════════════════════════════════════ */
+.results-skin .loc-name { color: var(--accent); text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 42%, transparent); }
+.results-kicker { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 72%, #ffffff 12%); opacity: 0.9; margin-top: 0.35rem; }
+.results-skin .loc-icon { filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 45%, transparent)); }
+.results-skin .result-question .q-number { background: color-mix(in srgb, var(--accent) 20%, transparent); border: 1px solid var(--accent); color: var(--accent); }
+.results-skin .gold-divider { background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.75; }
+/* subtle accent-tinted backdrop so each realm's results feel like its own place */
+.results-skin::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(120% 80% at 50% -12%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 62%);
+}

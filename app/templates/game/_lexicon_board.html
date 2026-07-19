@@ -1,0 +1,62 @@
+{# ══════════════════════════════════════════════════════════════════
+   The Lexicon — the Library's click-to-ink matching board. Click a concept, then
+   the case that proves it; an amber line inks between them. NO dragging.
+   Server-authoritative: the correct pairings are never in this markup — concept
+   cards carry only their key, scenario slips only an opaque `sid` + the case text,
+   and the 2 decoys are indistinguishable from the 4 correct slips. lexicon.js binds
+   to these ids/classes; grading is the shared submit_quiz / grade_quiz core.
+   ══════════════════════════════════════════════════════════════════ #}
+<form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
+      class="lexicon-form" id="lexicon-form" data-location="{{ loc.key }}" data-attempt="{{ attempt_id }}">
+  <input type="hidden" name="consulted" id="consulted" value="" />
+  <input type="hidden" name="attempt_id" value="{{ attempt_id }}" />
+  {# One hidden field per concept; lexicon.js writes the inked scenario id. The
+     correct scenario is NEVER rendered — grading is server-side. #}
+  {% for q in quiz %}<input type="hidden" name="{{ q.key }}" class="lex-answer" data-concept="{{ q.key }}" value="" />{% endfor %}
+
+  <div class="lex-howto">
+    <i class="bi bi-vector-pen" aria-hidden="true"></i>
+    <span>Click a <b>concept</b>, then the <b>case</b> that proves it — a line inks between them; click a line to erase. Two slips are decoys. Ink at least <b>3 of 4</b> to seal the Concordance.{% if show_npc %} Unsure? Consult Professor Atlas.{% endif %}</span>
+  </div>
+  <div class="lex-readout">ENTRIES INDEXED <b id="lex-count">0</b> / {{ quiz|length }}</div>
+
+  <div class="lex-board" id="lex-board">
+    <svg class="lex-lines" id="lex-lines" aria-hidden="true" preserveAspectRatio="none"></svg>
+
+    <div class="lex-col lex-concepts" role="list" aria-label="Concepts">
+      {% for q in quiz %}
+      <button type="button" class="lex-card lex-concept" role="listitem"
+              id="lc-{{ q.key }}" data-concept="{{ q.key }}"
+              data-hint="{{ q.hint | default('') }}" data-question="{{ q.concept }}">
+        <span class="lex-card-text">{{ q.concept }}</span>
+        <span class="lex-node lex-node-r" aria-hidden="true"></span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <div class="lex-col lex-scenarios" role="list" aria-label="Cases">
+      {% for scn in scenarios|shuffle_board %}
+      <button type="button" class="lex-card lex-scenario" role="listitem"
+              id="ls-{{ scn.sid }}" data-scenario="{{ scn.sid }}">
+        <span class="lex-node lex-node-l" aria-hidden="true"></span>
+        <span class="lex-card-text">{{ scn.text }}</span>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="lex-actions">
+    <button type="button" class="lex-submit" id="lex-submit" disabled>Seal the Concordance <i class="bi bi-award ms-1"></i></button>
+  </div>
+  <p class="lex-note">Click a concept, then a case — or use Tab and Enter. Seal once all {{ quiz|length }} are ruled.</p>
+
+  {% if show_npc %}
+  <div class="hint-row">
+    <button type="button" class="hint-btn" id="lex-hint"><span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> {{ atlas_label }}</button>
+  </div>
+  <div class="hint-box" hidden>
+    <span class="hint-avatar"><span class="atlas-glyph" aria-hidden="true"></span></span>
+    <p class="hint-text"></p>
+  </div>
+  {% endif %}
+</form>

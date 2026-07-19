@@ -5,6 +5,13 @@
 
 {% block body %}
 
+{# Each realm's Trial has its own NAME + accent — the results page wears them too,
+   instead of a generic "The Trial". (AI Lab uses its CRT blue-grey interior accent,
+   not the brighter hub-pin cyan.) #}
+{% set trial_names = {'library': 'The Lexicon', 'chronicle': 'The Reckoning of Ages', 'ai_lab': 'Data Classification', 'observatory': 'Reading the Sky'} %}
+{% set trial_name = trial_names.get(loc.key, 'The Trial') %}
+{% set res_accent = '#8ab4d4' if loc.key == 'ai_lab' else loc.accent %}
+
 {% if passed %}
 <div class="celebration" id="celebration">
   <div class="celebration-particles" id="celebration-particles"></div>
@@ -40,7 +47,7 @@
 </div>
 {% endif %}
 
-<div class="location-page results-page">
+<div class="location-page results-page results-skin results-skin-{{ loc.key }}" style="--accent: {{ res_accent }};">
 
   <nav class="loc-topbar">
     <a href="{{ url_for('game.hub') }}" class="back-link">
@@ -53,7 +60,8 @@
     <!-- Score banner -->
     <header class="text-center loc-header">
       <div class="loc-icon">{{ loc.icon }}</div>
-      <h1 class="loc-name">The Trial — Results</h1>
+      <h1 class="loc-name">{{ trial_name }}</h1>
+      <div class="results-kicker">{{ loc.name }} — Results</div>
 
       <div class="score-display {{ 'pass' if passed else 'fail' }}">
         {{ score }} / {{ total }}
@@ -97,6 +105,15 @@
             <div class="rs-line">Correct bin: <b>{{ r.correct_label }}</b></div>
             {% if not r.is_correct %}
             <div class="rs-line rs-wrong">You placed it in: {{ r.selected_label or '—' }}</div>
+            {% endif %}
+          </div>
+          {% elif r.kind == 'matching' %}
+          {# Matching pair: the concept's correct case, and (on a miss) what was inked. #}
+          <div class="result-sort {{ 'is-correct' if r.is_correct else 'is-wrong' }}">
+            <div class="rs-line"><b>{{ r.concept }}</b> pairs with:</div>
+            <div class="rs-line rs-correct-case">“{{ r.correct_text }}”</div>
+            {% if not r.is_correct %}
+            <div class="rs-line rs-wrong">You inked: {{ '“' ~ r.selected_text ~ '”' if r.selected_text else '— (unlinked)' }}</div>
             {% endif %}
           </div>
           {% else %}
