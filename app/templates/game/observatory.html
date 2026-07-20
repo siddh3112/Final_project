@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block title %}{{ loc.name }}, Atlas Quest{% endblock %}
 {% block body_class %}obs-body theme-cosmos{% endblock %}
 
 {% block body %}
@@ -24,20 +24,20 @@
   <header class="obs-header">
     <h1 class="obs-title">{{ loc.name }}</h1>
     <p class="obs-tagline">{{ loc.tagline }}</p>
-    <div class="obs-counter">CONCEPT <span id="obs-count">0</span> / <span id="obs-total">10</span> DISCOVERED</div>
+    <div class="obs-counter">CONCEPT <span id="obs-count">0</span> / <span id="obs-total">{{ hooks|length }}</span> DISCOVERED</div>
     <div class="obs-progress"><div class="obs-progress-fill" id="obs-progress-fill"></div></div>
   </header>
 
   <!-- ── The living sky (parallax + nebulae + meteors + stardust) ── -->
   <div class="sky-wrap">
     <canvas id="sky-canvas" class="sky-canvas"></canvas>
-    <div class="sky-hint" id="sky-hint">Click the glowing star to begin — each concept lights the next</div>
+    <div class="sky-hint" id="sky-hint">Click the glowing star to begin. Each concept lights the next</div>
     <div class="obs-tooltip" id="obs-tooltip" hidden></div>
 
     <!-- Cinematic intro, played directly on the star sky (no modal) -->
     <div class="obs-cinematic" id="obs-cinematic">
       <div class="obs-cine-lines">
-        <p class="obs-cine-line" id="obs-cine-1">Ten stars hang hidden in this sky.</p>
+        <p class="obs-cine-line" id="obs-cine-1">{{ hooks|length }} stars hang hidden in this sky.</p>
         <p class="obs-cine-line" id="obs-cine-2">Each holds one secret of how machines learn.</p>
         <p class="obs-cine-line" id="obs-cine-3">Trace them in order. Connect the constellation.</p>
         <p class="obs-cine-line" id="obs-cine-4">Only then will the Atlas be complete.</p>
@@ -97,7 +97,7 @@
   <section class="obs-trial">
     <div class="obs-trial-gate" id="obs-trial-gate">
       <i class="bi bi-lock-fill"></i>
-      <span>Light all 10 stars of the constellation to unlock <strong>The Trial</strong></span>
+      <span>Light all {{ hooks|length }} stars of the constellation to unlock <strong>The Trial</strong></span>
     </div>
     <div class="obs-trial-ready" id="obs-trial-ready" hidden>
       <div class="obs-trial-ready-icon"><i class="bi bi-unlock-fill"></i></div>
@@ -129,7 +129,7 @@
       </div>
       <div class="atlas-chat-log" id="atlas-log">
         <div class="atlas-msg atlas-msg-bot">
-          Ask me about anything in {{ loc.name }}, explorer — though I shall never hand you a Trial answer outright.
+          Ask me about anything in {{ loc.name }}, explorer, though I shall never hand you a Trial answer outright.
         </div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">

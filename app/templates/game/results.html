@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Results — {{ loc.name }}{% endblock %}
+{% block title %}Results, {{ loc.name }}{% endblock %}
 {% block body_class %}{% if loc.interaction == 'terminal' %}results-terminal{% endif %}{% endblock %}
 
 {% block body %}
@@ -11,14 +11,17 @@
 {% set trial_names = {'library': 'The Lexicon', 'chronicle': 'The Reckoning of Ages', 'ai_lab': 'Data Classification', 'observatory': 'Reading the Sky'} %}
 {% set trial_name = trial_names.get(loc.key, 'The Trial') %}
 {% set res_accent = '#8ab4d4' if loc.key == 'ai_lab' else loc.accent %}
+{# PRACTICE replay of an already-passed Trial: graded for feedback only, recorded
+   NOTHING. No completion celebration, no reflection, and a clear "not recorded" note. #}
+{% set practice = practice | default(false) %}
 
-{% if passed %}
+{% if passed and not practice %}
 <div class="celebration" id="celebration">
   <div class="celebration-particles" id="celebration-particles"></div>
   <div class="celebration-card">
     <div class="celebration-emblem">🏆</div>
     <h1 class="celebration-title">Location Complete!</h1>
-    <p class="celebration-sub">{{ loc.name }} mastered — {{ score }} / {{ total }}</p>
+    <p class="celebration-sub">{{ loc.name }} mastered ({{ score }} / {{ total }})</p>
 
     {% if reflection_prompt %}
     <!-- Post-Trial reflection (ungraded, skippable; saved as qualitative data).
@@ -61,15 +64,23 @@
     <header class="text-center loc-header">
       <div class="loc-icon">{{ loc.icon }}</div>
       <h1 class="loc-name">{{ trial_name }}</h1>
-      <div class="results-kicker">{{ loc.name }} — Results</div>
+      <div class="results-kicker">{{ loc.name }}, {{ 'Practice' if practice else 'Results' }}</div>
+
+      {% if practice %}
+      <div class="results-practice-badge"><i class="bi bi-arrow-repeat me-1"></i>Practice run, not recorded</div>
+      {% endif %}
 
       <div class="score-display {{ 'pass' if passed else 'fail' }}">
         {{ score }} / {{ total }}
       </div>
 
-      {% if passed %}
+      {% if practice %}
+        <p class="score-verdict practice">
+          <i class="bi bi-info-circle-fill me-2"></i>Practice run. Nothing was recorded; your earlier result stands.
+        </p>
+      {% elif passed %}
         <p class="score-verdict pass">
-          <i class="bi bi-check-circle-fill me-2"></i>Passed — well done, explorer.
+          <i class="bi bi-check-circle-fill me-2"></i>Passed. Well done, explorer.
         </p>
       {% else %}
         <p class="score-verdict fail">
@@ -104,7 +115,7 @@
           <div class="result-sort {{ 'is-correct' if r.is_correct else 'is-wrong' }}">
             <div class="rs-line">Correct bin: <b>{{ r.correct_label }}</b></div>
             {% if not r.is_correct %}
-            <div class="rs-line rs-wrong">You placed it in: {{ r.selected_label or '—' }}</div>
+            <div class="rs-line rs-wrong">You placed it in: {{ r.selected_label or '-' }}</div>
             {% endif %}
           </div>
           {% elif r.kind == 'matching' %}
@@ -113,7 +124,7 @@
             <div class="rs-line"><b>{{ r.concept }}</b> pairs with:</div>
             <div class="rs-line rs-correct-case">“{{ r.correct_text }}”</div>
             {% if not r.is_correct %}
-            <div class="rs-line rs-wrong">You inked: {{ '“' ~ r.selected_text ~ '”' if r.selected_text else '— (unlinked)' }}</div>
+            <div class="rs-line rs-wrong">You inked: {{ '“' ~ r.selected_text ~ '”' if r.selected_text else '(unlinked)' }}</div>
             {% endif %}
           </div>
           {% else %}
@@ -149,7 +160,15 @@
 
         <!-- Action buttons -->
         <div class="text-center mt-4">
-          {% if passed %}
+          {% if practice %}
+            {% set practice_url = (url_for('game.location', key=loc.key) ~ '?mode=practice') if loc.interaction == 'terminal' else url_for('game.trial', key=loc.key) %}
+            <a href="{{ practice_url }}" class="btn-try-again">
+              <i class="bi bi-arrow-clockwise me-1"></i> Practice again
+            </a>
+            <a href="{{ url_for('game.hub') }}" class="btn-continue">
+              Back to the Map <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          {% elif passed %}
             <a href="{{ url_for('game.hub') }}" class="btn-continue">
               Continue to Hub <i class="bi bi-arrow-right ms-1"></i>
             </a>
@@ -168,7 +187,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if passed %}
+{% if passed and not practice %}
 <script src="{{ url_for('static', filename='js/celebration.js') }}"></script>
 {% if reflection_prompt %}
 <script src="{{ url_for('static', filename='js/reflection.js') }}"></script>

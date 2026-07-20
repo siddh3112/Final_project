@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block title %}{{ loc.name }}, Atlas Quest{% endblock %}
 {% block body_class %}darkdata-body{% endblock %}
 
 {% block body %}
@@ -39,7 +39,7 @@
   <!-- ── Quiz (revealed once the grid forms) ── -->
   <section class="dd-quiz" id="dd-quiz" hidden>
     <div class="dd-quiz-inner">
-      <h2 class="dd-quiz-title">The Trial — {{ loc.name }}</h2>
+      <h2 class="dd-quiz-title">The Trial, {{ loc.name }}</h2>
       <p class="quiz-intro text-center">Score at least <strong>3 of 4</strong> to unlock the next location.{% if show_npc %} Stuck? Ask Professor Atlas.{% endif %}</p>
 
       <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post"
@@ -91,7 +91,7 @@
         <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
       </div>
       <div class="atlas-chat-log" id="atlas-log">
-        <div class="atlas-msg atlas-msg-bot">Ask me about {{ loc.name }}, explorer — I shall never hand you a Trial answer outright.</div>
+        <div class="atlas-msg atlas-msg-bot">Ask me about {{ loc.name }}, explorer. I shall never hand you a Trial answer outright.</div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">
         <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="Ask Professor Atlas…" autocomplete="off" />

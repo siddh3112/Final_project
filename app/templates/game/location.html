@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block title %}{{ loc.name }}, Atlas Quest{% endblock %}
 {% block body_class %}loc-body theme-{{ loc.theme }}{% endblock %}
 
 {% block body %}
@@ -117,7 +117,7 @@
         </div>
         <div class="core-info">
           <div class="core-title"><i class="bi bi-gem me-1"></i>The Knowledge Core</div>
-          <p class="shelf-hint" id="shelf-hint">Among the countless volumes, {{ books|length }} <strong>glowing tomes</strong> hold the knowledge you seek. Read each and pass its quick check to charge the Core — fill it to unlock <strong>The Trial</strong>.</p>
+          <p class="shelf-hint" id="shelf-hint">Among the countless volumes, {{ books|length }} <strong>glowing tomes</strong> hold the knowledge you seek. Read each and pass its quick check to charge the Core. Fill it to unlock <strong>The Trial</strong>.</p>
           <div class="core-bar"><div class="core-bar-fill" id="core-fill"></div></div>
         </div>
       </section>
@@ -288,7 +288,7 @@
       </div>
       <div class="atlas-chat-log" id="atlas-log">
         <div class="atlas-msg atlas-msg-bot">
-          Ask me about anything in {{ loc.name }}, explorer — though I shall never hand you a Trial answer outright.
+          Ask me about anything in {{ loc.name }}, explorer, though I shall never hand you a Trial answer outright.
         </div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">

@@ -15,6 +15,7 @@ DEFAULT_PREFS = {
     "voice": True,          # Professor Atlas read-aloud (AtlasVoice) on/off
     "reduce_motion": False, # calm animations / particles / parallax
     "large_text": False,    # bump base font size for readability
+    "skip_hooks": False,    # skip the guess-first hook prompts, straight to lessons
     "voice_name": "",       # chosen read-aloud voice by name; "" = automatic/best
     "theme": "midnight",    # shared-frame colour theme (reskins chrome only)
 }

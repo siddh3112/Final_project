@@ -17,10 +17,10 @@
 
   const LABELS = {
     0: "",
-    1: "DARK DATA DETECTED — 2.5 BILLION RECORDS UNPROCESSED",
+    1: "DARK DATA DETECTED: 2.5 BILLION RECORDS UNPROCESSED",
     2: "PATTERN RECOGNITION INITIALISING…",
-    3: "STRUCTURE EMERGING — AI PROCESSING",
-    4: "DARK DATA STRUCTURED — READY FOR ANALYSIS",
+    3: "STRUCTURE EMERGING: AI PROCESSING",
+    4: "DARK DATA STRUCTURED: READY FOR ANALYSIS",
   };
 
   let COUNT = 200;
@@ -199,7 +199,7 @@
 
   function revealQuiz() {
     const quiz = document.getElementById("dd-quiz");
-    if (labelEl) labelEl.textContent = "ANALYSIS COMPLETE — INITIATING ASSESSMENT";
+    if (labelEl) labelEl.textContent = "ANALYSIS COMPLETE: INITIATING ASSESSMENT";
     setTimeout(function () {
       if (quiz) {
         quiz.hidden = false;

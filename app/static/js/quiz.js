@@ -199,6 +199,16 @@
     if (!btn) return;
     const box = q.querySelector(".hint-box");
     const textEl = box ? box.querySelector(".hint-text") : null;
+    const srcEl = box ? box.querySelector(".hint-source") : null;
+    // Label which engine answered, keyed on the accurate server `source` (never
+    // is_fallback), so a rule-based hint never reads as Granite.
+    function setSource(source) {
+      if (!srcEl) return;
+      const granite = source === "granite";
+      srcEl.textContent = granite ? "Granite generated" : "System generated";
+      srcEl.className = "hint-source src-" + (granite ? "granite" : "rules");
+      srcEl.hidden = false;
+    }
 
     btn.addEventListener("click", async function () {
       const qkey = q.dataset.qkey;
@@ -220,10 +230,12 @@
         });
         const data = await res.json();
         const useAtlas = data && data.response && !data.is_fallback;
-        const fallbackHint = q.dataset.hint || "Consider what the question is really testing — rule out the options that don't fit.";
+        const fallbackHint = q.dataset.hint || "Consider what the question is really testing; rule out the options that don't fit.";
         if (textEl) textEl.textContent = useAtlas ? data.response : fallbackHint;
+        setSource(data && data.source === "granite" ? "granite" : "rules");
       } catch (e) {
-        if (textEl) textEl.textContent = q.dataset.hint || "Consider what the question is really testing — rule out the options that don't fit.";
+        if (textEl) textEl.textContent = q.dataset.hint || "Consider what the question is really testing; rule out the options that don't fit.";
+        setSource("rules");
       } finally {
         btn.innerHTML = '<span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> Hint given';
         btn.disabled = false;

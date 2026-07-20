@@ -150,7 +150,17 @@
   if (hintBtn) {
     const box = form.querySelector(".hint-box");
     const textEl = box ? box.querySelector(".hint-text") : null;
+    const srcEl = box ? box.querySelector(".hint-source") : null;
     const consultedEl = document.getElementById("consulted");
+    // Label which engine answered, keyed on the accurate server `source` (never
+    // is_fallback), so a rule-based hint never reads as Granite.
+    function setSource(source) {
+      if (!srcEl) return;
+      const granite = source === "granite";
+      srcEl.textContent = granite ? "Granite generated" : "System generated";
+      srcEl.className = "hint-source src-" + (granite ? "granite" : "rules");
+      srcEl.hidden = false;
+    }
     hintBtn.addEventListener("click", async function () {
       if (consultedEl && selected) {
         const set = new Set((consultedEl.value || "").split(",").filter(Boolean));
@@ -161,7 +171,7 @@
       if (textEl) textEl.textContent = "Professor Atlas ponders…";
       hintBtn.disabled = true;
       const topic = selected ? selected.dataset.question : "telling these AI concepts apart";
-      const fallback = "Match each concept to the case that shows it in action — and rule out the cases that fit a different concept.";
+      const fallback = "Match each concept to the case that shows it in action, and rule out the cases that fit a different concept.";
       try {
         const res = await fetch("/npc/chat", {
           method: "POST",
@@ -171,8 +181,10 @@
         const data = await res.json();
         const good = data && data.response && !data.is_fallback;
         if (textEl) textEl.textContent = good ? data.response : fallback;
+        setSource(data && data.source === "granite" ? "granite" : "rules");
       } catch (e) {
         if (textEl) textEl.textContent = fallback;
+        setSource("rules");
       } finally {
         hintBtn.disabled = false;
         if (box) box.scrollIntoView({ behavior: "smooth", block: "end" });  // keep the whole hint on-screen

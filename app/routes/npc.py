@@ -38,7 +38,7 @@ def chat():
     history = _recent_history(current_user.id, location)
 
     start = time.time()
-    response, is_fallback = get_response(
+    response, is_fallback, source = get_response(
         location,
         message,
         ollama_enabled=current_app.config.get("OLLAMA_ENABLED", False),
@@ -57,11 +57,12 @@ def chat():
             npc_response=response,
             response_time_ms=elapsed_ms,
             is_fallback=is_fallback,
+            source=source,
         )
     )
     db.session.commit()
 
-    return jsonify({"response": response, "is_fallback": is_fallback})
+    return jsonify({"response": response, "is_fallback": is_fallback, "source": source})
 
 
 def _recent_mistake_stems(user_id, location):

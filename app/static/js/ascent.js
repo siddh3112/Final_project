@@ -135,7 +135,7 @@
       var unanswered = questions.filter(function (q) { return !answers[q.getAttribute("data-key")]; }).length;
       if (unanswered > 0) {
         var ok = window.confirm("You have " + unanswered + " unanswered question" +
-          (unanswered > 1 ? "s" : "") + " — submit anyway?");
+          (unanswered > 1 ? "s" : "") + ". Submit anyway?");
         if (!ok) { enterMs = Date.now(); return; }  // stay put, keep timing
       }
       submitting = true;

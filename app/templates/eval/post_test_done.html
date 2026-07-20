@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}The Final Ascent — Complete{% endblock %}
+{% block title %}The Final Ascent (Complete){% endblock %}
 {% block body_class %}ascent-body ascent-results-body{% endblock %}
 
 {% block body %}
@@ -18,7 +18,7 @@
 
   <!-- Phase 2/3 — the reveal -->
   <div class="rv-stage" id="rv-stage" hidden>
-    <div class="rv-kicker">{% if passed %}THE FINAL ASCENT — CONQUERED{% else %}THE FINAL ASCENT{% endif %}</div>
+    <div class="rv-kicker">{% if passed %}THE FINAL ASCENT (CONQUERED){% else %}THE FINAL ASCENT{% endif %}</div>
 
     <div class="rv-score {{ 'is-fail' if not passed }}">
       <span class="rv-score-num" id="rv-score-num">0</span>
@@ -31,7 +31,7 @@
     <div class="rv-fail" id="rv-fail" hidden>
       <div class="rv-fail-icon"><i class="bi bi-check2-circle"></i></div>
       <div class="rv-fail-title">Assessment complete</div>
-      <p class="rv-fail-sub">You scored below the <b>{{ pass_mark }} of {{ total }}</b> pass mark. Your responses have been recorded — the Final Assessment is a single graded attempt, so there is no retake. You can still review your answers below.</p>
+      <p class="rv-fail-sub">You scored below the <b>{{ pass_mark }} of {{ total }}</b> pass mark. Your responses have been recorded. The Final Assessment is a single graded attempt, so there is no retake. You can still review your answers below.</p>
     </div>
     {% endif %}
 

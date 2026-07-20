@@ -255,13 +255,25 @@ def location(key):
 
     if interaction == "terminal":
         # The terminal embeds the graded Trial. The SERVER draws + stores this
-        # attempt's questions (pinning the sorting diagnostic); the page gets
-        # only the attempt id, never a trusted shown-keys list.
+        # attempt's questions; the page gets only the attempt id, never a trusted
+        # shown-keys list.
+        #
+        # REVISIT of a PASSED lab is read-only for the record: a passive reread
+        # creates NO TrialAttempt at all (nothing is written). A board attempt is
+        # started only for the first-time / not-yet-passed flow, or an explicit
+        # "?mode=practice" run (which submit_quiz grades but records nothing).
+        want_practice = request.args.get("mode") == "practice"
+        if lp.passed and not want_practice:
+            return render_template(
+                "game/terminal.html", loc=loc, quiz=[], attempt_id="",
+                hooks=hooks, explored=library_read_ids(key), lab_passed=True,
+                practice=False, data_bins=DATA_BINS,
+            )
         aid, quiz = _start_trial_attempt(key)
         return render_template(
             "game/terminal.html", loc=loc, quiz=quiz, attempt_id=aid,
             hooks=hooks, explored=library_read_ids(key), lab_passed=bool(lp.passed),
-            data_bins=DATA_BINS,
+            practice=bool(lp.passed and want_practice), data_bins=DATA_BINS,
         )
 
     if interaction == "constellation":
@@ -560,6 +572,22 @@ def submit_quiz(key):
         submitted[q["key"]] = val
     results, score, total, passed = grade_quiz(key, submitted, shown_keys=stored_keys)
 
+    lp = get_or_create_progress(current_user, key)
+
+    # ── PRACTICE REPLAY: a Trial the learner has ALREADY passed is replayable for
+    # practice, but READ-ONLY for the record. Grade it and show feedback, but write
+    # NOTHING: no QuizAttempt, no attempts_count/best_score change, no run_history,
+    # no achievements, no GameSession close, and no TrialAttempt left behind (the
+    # transient attempt is deleted). First-time flow, and a not-yet-passed retry
+    # BEFORE the first pass, are recorded exactly once by the branch below. ──
+    if lp.passed:
+        db.session.delete(att)      # transient attempt: leave nothing persisted
+        db.session.commit()
+        return render_template(
+            "game/results.html", loc=loc, results=results, score=score,
+            total=total, passed=passed, reflection_prompt=None, practice=True,
+        )
+
     # One grading per attempt (durable) — flip 'open' -> 'submitted' so a replayed
     # POST is refused, and record the outcome on the attempt row.
     att.status = "submitted"
@@ -567,7 +595,6 @@ def submit_quiz(key):
     att.passed = passed
     att.submitted_at = datetime.utcnow()
 
-    lp = get_or_create_progress(current_user, key)
     attempt_number = lp.attempts_count + 1
 
     # Which questions the user took a Professor Atlas hint on (per-question).
@@ -632,6 +659,7 @@ def submit_quiz(key):
         total=total,
         passed=passed,
         reflection_prompt=reflection_prompt,
+        practice=False,
     )
 
 

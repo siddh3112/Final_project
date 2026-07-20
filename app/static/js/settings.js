@@ -182,7 +182,7 @@
     if (P && P.osReduce) {              // OS forces it — reflect & lock the control
       motion.checked = true;
       motion.disabled = true;
-      if (motionNote) motionNote.textContent = "On — forced by your system settings";
+      if (motionNote) motionNote.textContent = "On, forced by your system settings";
     }
     motion.addEventListener("change", function () {
       if (P) P.set("reduce_motion", motion.checked);
@@ -193,6 +193,12 @@
   var text = document.getElementById("set-text");
   if (text) text.addEventListener("change", function () {
     if (P) P.set("large_text", text.checked);
+  });
+
+  // ── GAME: skip the guess-first hook prompts (presentation only, never gating) ──
+  var skipHooks = document.getElementById("set-skip-hooks");
+  if (skipHooks) skipHooks.addEventListener("change", function () {
+    if (P) P.set("skip_hooks", skipHooks.checked);
   });
 
   // ── GAME: replay the how-to-play tutorial (reuse existing wiring) ──

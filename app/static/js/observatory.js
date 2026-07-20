@@ -33,35 +33,35 @@
   ];
 
   const CONCEPTS = [
-    { heading: "How Machines Learn & Answer", era: "CONCEPT 1 — FOUNDATION",
-      content: "Machine learning is how AI makes sense of the messy, unstructured majority of real-world data. Two ideas help: how a system learns, and how it answers. On answering — a deterministic system gives the same output for the same input every time (a calculator always returns 56 for 7 × 8; a car's emergency-braking logic behaves identically each time), which makes it predictable and easy to audit. A probabilistic system instead expresses confidence, like a medical AI saying '78% likelihood of a tumour' rather than a flat yes or no. That ability to weigh uncertainty is what lets machine learning handle ambiguity, predict outcomes, and improve on its own over time.",
+    { heading: "How Machines Learn & Answer", era: "CONCEPT 1 · FOUNDATION",
+      content: "Machine learning is how AI makes sense of the messy, unstructured majority of real-world data. Two ideas help: how a system learns, and how it answers. On answering, a deterministic system gives the same output for the same input every time (a calculator always returns 56 for 7 × 8; a car's emergency-braking logic behaves identically each time), which makes it predictable and easy to audit. A probabilistic system instead expresses confidence, like a medical AI saying '78% likelihood of a tumour' rather than a flat yes or no. That ability to weigh uncertainty is what lets machine learning handle ambiguity, predict outcomes, and improve on its own over time.",
       type: "normal" },
-    { heading: "Supervised Learning", era: "CONCEPT 2 — LABELLED DATA",
-      content: "Supervised learning trains on labelled data — examples where the correct answer is already known. Feed it 50,000 emails each tagged 'spam' or 'not spam' and it learns the input→label relationship, then predicts the label for new, unseen emails. It covers classification (sorting into categories, like spam / not-spam or a photo labelled 'dog') and regression (predicting a number). It's the engine behind spam filters, image recognition, and medical-diagnosis tools.",
+    { heading: "Supervised Learning", era: "CONCEPT 2 · LABELLED DATA",
+      content: "Supervised learning trains on labelled data, examples where the correct answer is already known. Feed it 50,000 emails each tagged 'spam' or 'not spam' and it learns the input→label relationship, then predicts the label for new, unseen emails. It covers classification (sorting into categories, like spam / not-spam or a photo labelled 'dog') and regression (predicting a number). It's the engine behind spam filters, image recognition, and medical-diagnosis tools.",
       type: "breakthrough" },
-    { heading: "Unsupervised Learning", era: "CONCEPT 3 — FINDING PATTERNS",
-      content: "Unsupervised learning works on unlabelled data with no correct answers provided — it finds hidden structure on its own. A streaming service that wants to group viewers with similar tastes, without anyone defining the groups in advance, is a classic case: the model clusters similar people together (customer segmentation). The same idea powers exploratory analysis and anomaly detection.",
+    { heading: "Unsupervised Learning", era: "CONCEPT 3 · FINDING PATTERNS",
+      content: "Unsupervised learning works on unlabelled data with no correct answers provided; it finds hidden structure on its own. A streaming service that wants to group viewers with similar tastes, without anyone defining the groups in advance, is a classic case: the model clusters similar people together (customer segmentation). The same idea powers exploratory analysis and anomaly detection.",
       type: "normal" },
-    { heading: "Reinforcement Learning", era: "CONCEPT 4 — TRIAL AND ERROR",
+    { heading: "Reinforcement Learning", era: "CONCEPT 4 · TRIAL AND ERROR",
       content: "Reinforcement learning has no answer key at all. An agent learns by trial and error, earning rewards for good actions and penalties for bad ones as it interacts with an environment. Amazon's warehouse robots learn to pick and move goods this way, and game-playing AIs (chess, Go) master their games through the same reward-and-consequence loop. Over time the agent's decisions improve automatically, without human intervention.",
       type: "breakthrough" },
-    { heading: "The Three Levels of AI", era: "CONCEPT 5 — THE BIG PICTURE",
-      content: "Now the three levels of AI make deeper sense. Narrow AI specialises in one task and can't transfer it elsewhere — almost every AI you meet is narrow. Broad AI, IBM's term for what's available today, integrates several narrow components into one business process: a self-driving car combines vision, route-planning and decision-making — often improved through reinforcement learning — into a single system. General AI, still only a research goal, would reason and learn across any domain like a human. It does not exist yet.",
+    { heading: "The Three Levels of AI", era: "CONCEPT 5 · THE BIG PICTURE",
+      content: "Now the three levels of AI make deeper sense. Narrow AI specialises in one task and can't transfer it elsewhere; almost every AI you meet is narrow. Broad AI, IBM's term for what's available today, integrates several narrow components into one business process: a self-driving car combines vision, route-planning and decision-making (often improved through reinforcement learning) into a single system. General AI, still only a research goal, would reason and learn across any domain like a human. It does not exist yet.",
       type: "present" },
-    { heading: "When Learning Goes Wrong", era: "CONCEPT 6 — PITFALLS",
-      content: "Learning from data can misfire in two ways. OVERFITTING is when a model memorises its training examples instead of the general pattern — it scores brilliantly on data it has seen but fails on anything new, like a student who memorised past papers word-for-word. BIAS is subtler: a model absorbs whatever bias sits in its training data. Train a hiring model on years of biased human decisions and it will faithfully repeat that bias. So varied, fair data matters as much as a clever algorithm.",
+    { heading: "When Learning Goes Wrong", era: "CONCEPT 6 · PITFALLS",
+      content: "Learning from data can misfire in two ways. OVERFITTING is when a model memorises its training examples instead of the general pattern; it scores brilliantly on data it has seen but fails on anything new, like a student who memorised past papers word-for-word. BIAS is subtler: a model absorbs whatever bias sits in its training data. Train a hiring model on years of biased human decisions and it will faithfully repeat that bias. So varied, fair data matters as much as a clever algorithm.",
       type: "normal" },
-    { heading: "Machines That Read & Write", era: "CONCEPT 7 — LANGUAGE AI",
-      content: "Natural Language Processing (NLP) is how machines work with human language — understanding what we write or say, and generating language back. It powers translation, voice assistants, spam detection and chatbots. Turning messy, ambiguous human words into something a machine can reason about is one of AI's hardest and most useful tricks.",
+    { heading: "Machines That Read & Write", era: "CONCEPT 7 · LANGUAGE AI",
+      content: "Natural Language Processing (NLP) is how machines work with human language. That means understanding what we write or say, and generating language back. It powers translation, voice assistants, spam detection and chatbots. Turning messy, ambiguous human words into something a machine can reason about is one of AI's hardest and most useful tricks.",
       type: "breakthrough" },
-    { heading: "Large Language Models", era: "CONCEPT 8 — LLMs",
-      content: "A Large Language Model (LLM) is trained on enormous amounts of text and learns to predict language so well it can answer questions, summarise, and hold a conversation. Professor Atlas — the guide who has walked this whole journey with you — is itself an LLM. It has no true understanding; it predicts the most likely next words from patterns in the text it was trained on.",
+    { heading: "Large Language Models", era: "CONCEPT 8 · LLMs",
+      content: "A Large Language Model (LLM) is trained on enormous amounts of text and learns to predict language so well it can answer questions, summarise, and hold a conversation. Professor Atlas, the guide who has walked this whole journey with you, is itself an LLM. It has no true understanding; it predicts the most likely next words from patterns in the text it was trained on.",
       type: "present" },
-    { heading: "When AI Makes Things Up", era: "CONCEPT 9 — HALLUCINATION",
-      content: "Because an LLM predicts plausible-sounding text rather than checking facts, it can produce a HALLUCINATION — a confident, fluent answer that is simply false. It can invent a citation, a date, or a quote and state it with total certainty. That is why you should verify important answers from any AI — including Professor Atlas.",
+    { heading: "When AI Makes Things Up", era: "CONCEPT 9 · HALLUCINATION",
+      content: "Because an LLM predicts plausible-sounding text rather than checking facts, it can produce a HALLUCINATION, a confident, fluent answer that is simply false. It can invent a citation, a date, or a quote and state it with total certainty. That is why you should verify important answers from any AI, including Professor Atlas.",
       type: "normal" },
-    { heading: "Steering an LLM", era: "CONCEPT 10 — PROMPTING",
-      content: "You guide an LLM through its PROMPT — the instructions and context you give it. FEW-SHOT PROMPTING means adding a few worked examples of the input→output you want before your real question, so the model copies the pattern. Showing two or three examples of 'review → sentiment' steers it far better than asking cold. How you prompt is a genuine skill of modern AI literacy.",
+    { heading: "Steering an LLM", era: "CONCEPT 10 · PROMPTING",
+      content: "You guide an LLM through its PROMPT, the instructions and context you give it. FEW-SHOT PROMPTING means adding a few worked examples of the input→output you want before your real question, so the model copies the pattern. Showing two or three examples of 'review → sentiment' steers it far better than asking cold. How you prompt is a genuine skill of modern AI literacy.",
       type: "breakthrough" },
   ];
 
@@ -84,7 +84,7 @@
       options: ["A model that memorises training data and then fails on new, unseen data", "A model trained on too little data", "A model with no training data at all"], correct: 0 },
     { q: "What does Natural Language Processing let machines do?",
       options: ["Only work with numbers", "Understand and generate human language", "Run ordinary calculations faster"], correct: 1 },
-    { q: "What is a Large Language Model — like Professor Atlas?",
+    { q: "What is a Large Language Model, like Professor Atlas?",
       options: ["A database of every sentence ever written", "A model trained on huge amounts of text that predicts language", "A human answering in real time"], correct: 1 },
     { q: "What is an AI 'hallucination'?",
       options: ["A confident answer that is actually false", "A picture an AI draws", "A hardware failure"], correct: 0 },
@@ -99,9 +99,9 @@
   const obsHooksShown = new Set();
 
   const INTRO_SLIDES = [
-    "The Observatory holds a single hidden constellation — the architecture of machine learning, traced star by star. Each star is one concept that lets machines learn, predict, and improve without being reprogrammed.",
-    "The constellation builds in order. Click the one glowing star to discover its concept; a line then reaches out to the next star, and so on, until all ten connect into one complete shape.",
-    "Only one star is ever ready at a time — it pulses with a ring to show you where to click next. Discover all ten to complete the constellation and unlock the Final Assessment. Professor Atlas is here if you need guidance.",
+    "The Observatory holds a single hidden constellation, the architecture of machine learning, traced star by star. Each star is one concept that lets machines learn, predict, and improve without being reprogrammed.",
+    "The constellation builds in order. Click the one glowing star to discover its concept; a line then reaches out to the next star, and so on, until all " + CONSTELLATION_STARS.length + " connect into one complete shape.",
+    "Only one star is ever ready at a time. It pulses with a ring to show you where to click next. Discover all " + CONSTELLATION_STARS.length + " to complete the constellation and unlock the Final Assessment. Professor Atlas is here if you need guidance.",
   ];
 
   const PENTA = [261.63, 293.66, 329.63, 392.0, 440.0]; // hover notes
@@ -564,23 +564,48 @@
     const dx = px - stx(i), dy = py - sty(i);
     return (dx * dx + dy * dy < 42 * 42) ? i : -1;
   }
+  // A done star (i < discoveredCount) can be reopened READ-ONLY: content only, no
+  // check re-asked, nothing recorded. Only when no star is active and not intro.
+  function doneHit(px, py) {
+    if (introActive || activeStar !== null || reviewing) return -1;
+    for (let i = 0; i < discoveredCount && i < CONSTELLATION_STARS.length; i++) {
+      const dx = px - stx(i), dy = py - sty(i);
+      if (dx * dx + dy * dy < 42 * 42) return i;
+    }
+    return -1;
+  }
   canvas.addEventListener("mousemove", function (e) {
     const r = canvas.getBoundingClientRect();
     const px = e.clientX - r.left, py = e.clientY - r.top;
     const i = nextHit(px, py);
     hoverIdx = i;
-    canvas.style.cursor = i >= 0 ? "pointer" : "default";
     if (i >= 0) {
+      canvas.style.cursor = "pointer";
       hoverTone(i);
       tooltip.hidden = false; tooltip.textContent = CONCEPTS[i].era;
       tooltip.style.left = px + "px"; tooltip.style.top = (py - 30) + "px";
       tooltip.classList.add("show");
-    } else { hoverTone(-1); tooltip.classList.remove("show"); tooltip.hidden = true; }
+    } else {
+      hoverTone(-1);
+      const dh = doneHit(px, py);   // hovering a completed star: offer a re-read
+      if (dh >= 0) {
+        canvas.style.cursor = "pointer";
+        tooltip.hidden = false; tooltip.textContent = "Re-read: " + CONCEPTS[dh].era;
+        tooltip.style.left = px + "px"; tooltip.style.top = (py - 30) + "px";
+        tooltip.classList.add("show");
+      } else {
+        canvas.style.cursor = "default";
+        tooltip.classList.remove("show"); tooltip.hidden = true;
+      }
+    }
   });
   canvas.addEventListener("mouseleave", function () { hoverIdx = -1; hoverTone(-1); tooltip.classList.remove("show"); tooltip.hidden = true; });
   canvas.addEventListener("click", function (e) {
     const r = canvas.getBoundingClientRect();
-    if (nextHit(e.clientX - r.left, e.clientY - r.top) >= 0) discover();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    if (nextHit(px, py) >= 0) { discover(); return; }
+    const d = doneHit(px, py);
+    if (d >= 0) openPanel(d, true);   // reopen an already-discovered star, read-only
   });
 
   // ───────────────────────── DISCOVERY ─────────────────────────
@@ -635,11 +660,15 @@
     if (progFill) progFill.style.width = (discoveredCount / CONSTELLATION_STARS.length * 100) + "%";
 
     const cx = stx(i), cy = sty(i);
-    if (concept.type === "present") {
+    // The finale (sound + aurora) fires ONCE, at true completion, derived from the
+    // FULL star count (the same single source as the unlock gate) and never from a
+    // concept type. The type "present" stars (a 5-star-era marker on stars 5 and 8)
+    // no longer trigger it; they get the milestone cue like any breakthrough star.
+    if (discoveredCount >= CONSTELLATION_STARS.length) {
       soundFinal();
       setTimeout(function () { fx.push({ type: "shock", x: cx, y: cy, color: "#ffffff", t0: performance.now(), dur: 700, maxR: 350, width: 3 }); spawnParts(cx, cy, 12, 90, 600, "#ffffff"); }, 150);
       brightenBoost = 1; fx.push({ type: "aurora", t0: performance.now(), dur: 3000 });
-    } else if (concept.type === "breakthrough") {
+    } else if (concept.type === "breakthrough" || concept.type === "present") {
       soundBreakthrough();
       setTimeout(function () { fx.push({ type: "shock", x: cx, y: cy, color: "#ffffff", t0: performance.now(), dur: 700, maxR: 350, width: 3 }); spawnParts(cx, cy, 12, 90, 600, "#ffffff"); }, 150);
     } else {
@@ -654,6 +683,18 @@
     activeStar = null; // star now fully discovered (i < discoveredCount)
   }
 
+  // Fisher-Yates: a fresh, unseeded, uncached random order on every call, so the
+  // correct option's on-screen position is never predictable across renders. The
+  // ORIGINAL index is passed to answerCheck(), so grading is unaffected.
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
   // The check UI answer handler.
   function answerCheck(i, k, btn, optsEl, fbEl, closeBtn) {
     if (checkPassed) return;
@@ -662,14 +703,14 @@
       btn.classList.add("correct");
       const lt = btn.querySelector(".oc-letter"); if (lt) lt.textContent = "✓";
       optsEl.querySelectorAll(".obs-check-opt").forEach((o) => (o.disabled = true));
-      fbEl.hidden = false; fbEl.className = "obs-check-fb ok"; fbEl.textContent = "✓ Correct — the star is charged";
+      fbEl.hidden = false; fbEl.className = "obs-check-fb ok"; fbEl.textContent = "✓ Correct. The star is charged";
       panel.classList.add("passed");
       passCheck(i);
       if (closeBtn) closeBtn.hidden = false;
     } else {
       btn.classList.add("wrong");
       checkBad();
-      fbEl.hidden = false; fbEl.className = "obs-check-fb bad"; fbEl.textContent = "Not quite — re-read the passage above and try again";
+      fbEl.hidden = false; fbEl.className = "obs-check-fb bad"; fbEl.textContent = "Not quite. Re-read the passage above and try again";
       setTimeout(function () { btn.classList.remove("wrong"); }, 600);
     }
   }
@@ -690,6 +731,7 @@
   const checkOptsEl = document.getElementById("obs-check-opts");
   const checkFbEl = document.getElementById("obs-check-fb");
   let checkPassed = false;
+  let reviewing = false;   // a read-only reopen of an already-discovered star (content only, no record)
   const miniCanvas = document.getElementById("obs-mini");
   const miniCtx = miniCanvas.getContext("2d");
   let miniMax = 0, miniOpen = false, miniRAF = null, miniAngle = 0;
@@ -720,7 +762,7 @@
     miniCtx.shadowBlur = 0; miniCtx.restore();
     miniRAF = requestAnimationFrame(drawMini);
   }
-  function openPanel(i) {
+  function openPanel(i, readOnly) {
     const concept = CONCEPTS[i];
     document.getElementById("obs-panel-inner").style.setProperty("--era", colorFor(concept.type));
     document.getElementById("obs-era").textContent = concept.era;
@@ -732,22 +774,30 @@
       starsBg.dataset.filled = "1";
       for (let s = 0; s < 15; s++) { const d = document.createElement("span"); d.className = "obs-pstar"; d.style.left = (Math.random() * 100) + "%"; d.style.top = (Math.random() * 100) + "%"; starsBg.appendChild(d); }
     }
-    // render the inline check question (gate before the star locks in)
-    checkPassed = false;
-    panel.classList.remove("passed");
-    if (closeBtn) closeBtn.hidden = true;
-    const chk = CHECKS[i];
-    checkQEl.textContent = chk.q;
-    checkFbEl.hidden = true; checkFbEl.textContent = ""; checkFbEl.className = "obs-check-fb";
-    checkOptsEl.innerHTML = "";
-    const letters = ["A", "B", "C", "D"];
-    chk.options.forEach(function (opt, k) {
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "obs-check-opt";
-      b.innerHTML = '<span class="oc-letter">' + letters[k] + '</span><span class="oc-text">' + escapeHtml(opt) + '</span>';
-      b.addEventListener("click", function () { answerCheck(i, k, b, checkOptsEl, checkFbEl, closeBtn); });
-      checkOptsEl.appendChild(b);
-    });
+    // A read-only REVISIT of an already-discovered star shows the concept content
+    // ONLY: no quick-check is re-asked and nothing is recorded. First-time discovery
+    // (readOnly falsey) renders the gated check exactly as before.
+    if (readOnly) {
+      reviewing = true;
+    } else {
+      // render the inline check question (gate before the star locks in)
+      checkPassed = false;
+      panel.classList.remove("passed");
+      const chk = CHECKS[i];
+      checkQEl.textContent = chk.q;
+      checkFbEl.hidden = true; checkFbEl.textContent = ""; checkFbEl.className = "obs-check-fb";
+      checkOptsEl.innerHTML = "";
+      const letters = ["A", "B", "C", "D"];
+      shuffled(chk.options.map(function (opt, k) { return { opt: opt, k: k }; }))
+        .forEach(function (o, d) {
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "obs-check-opt";
+          b.innerHTML = '<span class="oc-letter">' + letters[d] + '</span><span class="oc-text">' + escapeHtml(o.opt) + '</span>';
+          b.addEventListener("click", function () { answerCheck(i, o.k, b, checkOptsEl, checkFbEl, closeBtn); });
+          checkOptsEl.appendChild(b);
+        });
+    }
+    if (closeBtn) closeBtn.hidden = !readOnly;   // a reread can be closed immediately
 
     // wire read-aloud to THIS concept's text (respects the observatory mute)
     if (ttsBtn) {
@@ -777,21 +827,25 @@
     const readRow = document.getElementById("obs-read-row");
     if (readRow) readRow.style.display = "";
     if (toCheckBtn) {
-      toCheckBtn.style.display = "";
-      toCheckBtn.onclick = function () {
-        stopVoice(); // stop any read-aloud when leaving the concept
-        if (conceptPage) conceptPage.hidden = true;
-        if (checkPage) {
-          checkPage.hidden = false;
-          checkPage.classList.remove("obs-page-in"); void checkPage.offsetWidth;
-          if (!REDUCE) checkPage.classList.add("obs-page-in");
-        }
-      };
+      if (readOnly) {
+        toCheckBtn.style.display = "none";   // no check to move on to on a reread
+      } else {
+        toCheckBtn.style.display = "";
+        toCheckBtn.onclick = function () {
+          stopVoice(); // stop any read-aloud when leaving the concept
+          if (conceptPage) conceptPage.hidden = true;
+          if (checkPage) {
+            checkPage.hidden = false;
+            checkPage.classList.remove("obs-page-in"); void checkPage.offsetWidth;
+            if (!REDUCE) checkPage.classList.add("obs-page-in");
+          }
+        };
+      }
     }
 
     // Guess-first hook beat: hide the concept + its controls until the learner
-    // makes a quick guess, then reveal. Nothing recorded.
-    const hk = OBS_HOOKS[i];
+    // makes a quick guess, then reveal. Skipped on a read-only reread. Nothing recorded.
+    const hk = readOnly ? null : OBS_HOOKS[i];
     if (hk && !obsHooksShown.has(i) && window.AtlasHook) {
       obsHooksShown.add(i);
       if (contentEl) contentEl.style.display = "none";
@@ -812,6 +866,17 @@
     }
   }
   function closePanel() {
+    if (reviewing) {
+      // Read-only reopen: just close, leaving all progress/flow state untouched.
+      reviewing = false;
+      stopVoice();
+      if (muteBtn && muteBtn.classList.contains("in-card")) {
+        muteBtn.classList.remove("in-card");
+        if (root) root.appendChild(muteBtn);
+      }
+      panel.classList.remove("show"); panel.hidden = true; miniOpen = false; cancelAnimationFrame(miniRAF);
+      return;
+    }
     if (!checkPassed) return; // gated — must pass the check before leaving
     stopVoice(); // leaving the concept — stop read-aloud
     // Return the mute control to the sky (fixed top-right).

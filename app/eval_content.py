@@ -44,7 +44,7 @@ POST_TEST = [
             "D": "is just faster hardware for running ordinary calculations",
         },
         "correct": "B",
-        "explanation": "AI learns patterns from data and makes predictions, adding to human judgement rather than replacing it — unlike ordinary software that only follows fixed, hand-written rules.",
+        "explanation": "AI learns patterns from data and makes predictions, adding to human judgement rather than replacing it, unlike ordinary software that only follows fixed, hand-written rules.",
     },
     {
         "key": "p2", "chapter": 1, "concept": "three_levels",
@@ -56,7 +56,7 @@ POST_TEST = [
             "D": "General AI is what powers today's self-driving cars",
         },
         "correct": "C",
-        "explanation": "Narrow AI does one task; Broad AI (IBM's term) integrates several narrow components and is what's used today; General AI — human-level across any domain — does not exist yet.",
+        "explanation": "Narrow AI does one task; Broad AI (IBM's term) integrates several narrow components and is what's used today; General AI (human-level across any domain) does not exist yet.",
     },
     {
         "key": "p3", "chapter": 1, "concept": "augmented_intelligence",
@@ -68,7 +68,7 @@ POST_TEST = [
             "D": "A deterministic rule-based system",
         },
         "correct": "A",
-        "explanation": "Augmented intelligence supports human judgement rather than replacing it. The AI analyses the data, but a person makes the final decision and holds the accountability.",
+        "explanation": "Augmented intelligence supports human judgement rather than replacing it. The AI analyses the data, but a person makes the final decision and is accountable for it.",
     },
     {
         "key": "p4", "chapter": 1, "concept": "eras_and_winters",
@@ -104,19 +104,19 @@ POST_TEST = [
             "D": "A database with fixed rows and columns",
         },
         "correct": "C",
-        "explanation": "Unstructured data has no rows-and-columns schema — emails, images, audio. Structured data fits neat, SQL-queryable tables.",
+        "explanation": "Unstructured data has no rows-and-columns schema (emails, images, audio). Structured data fits neat, SQL-queryable tables.",
     },
     {
         "key": "p7", "chapter": 2, "concept": "unstructured_data",
         "question": "An estimated 80–90% of enterprise data is unstructured. Why is that hard for traditional, rule-based computers?",
         "options": {
             "A": "Unstructured data doesn't really exist",
-            "B": "It has no fixed schema, so conventional programs can't query it directly — AI (e.g. natural-language processing) is needed to make sense of it",
+            "B": "It has no fixed schema, so conventional programs can't query it directly; AI (e.g. natural-language processing) is needed to make sense of it",
             "C": "Traditional computers can only read images",
             "D": "Structured data cannot be analysed at all",
         },
         "correct": "B",
-        "explanation": "Without a fixed schema, legacy tools (built for the structured ~10–20%) can't process the unstructured majority — machine learning/AI is what finally makes it usable.",
+        "explanation": "Without a fixed schema, legacy tools (built for the structured ~10–20%) can't process the unstructured majority; machine learning/AI is what finally makes it usable.",
     },
     {
         "key": "p8", "chapter": 3, "concept": "ml_methods",
@@ -136,7 +136,7 @@ POST_TEST = [
         "options": {
             "A": "Underfitting",
             "B": "Overfitting",
-            "C": "Nothing — it is perfectly trained",
+            "C": "Nothing, it is perfectly trained",
             "D": "Reinforcement learning",
         },
         "correct": "B",
@@ -160,7 +160,7 @@ POST_TEST = [
 # ── Closing cinematic (epilogue) — resolves the opening's "the Atlas has faded"
 # arc after the player earns Atlas Sage. Presentation only; never scored. ──
 EPILOGUE_LINES = [
-    "The realms are restored. Foundations, data, and learning machines — all mapped.",
+    "The realms are restored. Foundations, data, and learning machines, all mapped.",
     "You crossed every trial, and the Atlas is whole again.",
     "You are no longer an explorer. You are an Atlas Sage.",
 ]

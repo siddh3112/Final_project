@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}The Trial — {{ loc.name }}{% endblock %}
+{% block title %}The Trial, {{ loc.name }}{% endblock %}
 {% block body_class %}loc-body theme-{{ loc.theme }} trial-skin-body trial-skin-body-{{ loc.key }}{% endblock %}
 
 {% block body %}
@@ -11,20 +11,20 @@
 {% set skin = {
   'library':     {'icon': '📖', 'kicker': 'The Lexicon',           'title': 'The Lexicon',           'tagline': 'Rule a line from each concept to the case that proves it',
                   'atlas_label': 'Consult Professor Atlas',
-                  'intro_line': 'Rule a line, scholar — connect each concept to the real-world case that proves it. Ink at least <strong>3 of 4</strong> correctly to seal the Concordance.',
+                  'intro_line': 'Rule a line, scholar. Connect each concept to the real-world case that proves it. Ink at least <strong>3 of 4</strong> correctly to seal the Concordance.',
                   'intro_hint': 'Unsure of a passage? Consult Professor Atlas.'},
   'chronicle':   {'icon': '⏳', 'kicker': 'The Reckoning of Ages', 'title': 'The Reckoning of Ages', 'tagline': 'Consult the records and seal each entry',
                   'atlas_label': 'Consult the Records-keeper', 'counter_noun': 'Record',
-                  'intro_line': 'Consult the records, keeper — restore the broken timelines and seal at least <strong>3 of 4</strong> entries correctly to pass the Reckoning.',
+                  'intro_line': 'Consult the records, keeper. Restore the broken timelines and seal at least <strong>3 of 4</strong> entries correctly to pass the Reckoning.',
                   'intro_hint': 'Uncertain of an age? Consult the Records-keeper Atlas.'},
   'observatory': {'icon': '🔭', 'kicker': 'Reading the Sky',       'title': 'Reading the Sky',       'tagline': 'Four readings each round, one is a hallucination. Catch it.',
                   'atlas_label': 'Ask the Star-reader', 'counter_noun': 'Reading',
                   'intro_line': 'I am a language model, navigator, and a language model can voice a falsehood with total confidence. Each round I give you four readings and exactly one is a hallucination. Catch the false one in at least <strong>3 of 4</strong> rounds to pass.',
                   'intro_hint': ''},
 } %}
-{% set s = skin.get(loc.key, {'icon': '⚔️', 'kicker': 'The Trial', 'title': 'The Trial', 'tagline': loc.name ~ ' — ' ~ loc.topic,
+{% set s = skin.get(loc.key, {'icon': '⚔️', 'kicker': 'The Trial', 'title': 'The Trial', 'tagline': loc.name ~ ', ' ~ loc.topic,
                               'atlas_label': 'Ask Professor Atlas for a hint',
-                              'intro_line': 'Choose wisely, explorer — score at least <strong>3 of 4</strong> to pass.',
+                              'intro_line': 'Choose wisely, explorer. Score at least <strong>3 of 4</strong> to pass.',
                               'intro_hint': 'Stuck? Ask Professor Atlas for a hint.'}) %}
 {% set atlas_label = s.atlas_label %}
 {% set intro_line  = s.intro_line %}

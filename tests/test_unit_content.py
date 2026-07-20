@@ -157,10 +157,16 @@ def test_observatory_star_count_consistent_across_sources():
     n_concepts = len(re.findall(r"\bheading:", js))   # CONCEPTS entries (one per star)
     n_checks = len(re.findall(r"\bcorrect:", js))     # CHECKS entries (one per star)
     n_hooks = len(get_hooks("observatory"))           # server per-star hooks (H1 source)
-    assert n_concepts == n_checks == n_hooks, (
-        f"Observatory counts diverge: concepts={n_concepts} checks={n_checks} hooks={n_hooks}"
+    # the 4th list: CONSTELLATION_STARS coordinates (one { x:, y: } per star), the
+    # array whose .length every JS count (completion, gate, progress, finale) derives from.
+    stars_block = re.search(r"const CONSTELLATION_STARS\s*=\s*\[(.*?)\];", js, re.S)
+    assert stars_block, "CONSTELLATION_STARS array not found"
+    n_stars = len(re.findall(r"\{\s*x:", stars_block.group(1)))
+    assert n_stars == n_concepts == n_checks == n_hooks, (
+        f"Observatory counts diverge: stars={n_stars} concepts={n_concepts} "
+        f"checks={n_checks} hooks={n_hooks}"
     )
-    assert n_concepts == 10, f"Observatory should have 10 stars, found {n_concepts}"
+    assert n_stars == 10, f"Observatory should have 10 stars, found {n_stars}"
 
 
 # ── Observatory Trial gate opens ONLY after ALL N stars (not a partial beat) ─
@@ -176,6 +182,27 @@ def test_observatory_trial_unlocks_only_after_all_stars():
     assert re.search(r"discoveredCount\s*>=\s*CONSTELLATION_STARS\.length", pending[0]), (
         "the Trial unlock must derive from the FULL star count (all N stars), "
         "not a concept type or a partial number"
+    )
+
+
+# ── the finale SOUND fires ONCE at completion, never on the type=='present' path ─
+def test_observatory_finale_sound_gated_by_completion_not_present():
+    """Regression (Problem 7, the recurring 5-vs-10 family): the finale fanfare
+    (soundFinal) must fire ONCE at true completion, gated by the FULL star count, and
+    must NOT be reachable via the mid-journey concept type 'present' (a 5-star-era
+    marker that still sits on stars 5 and 8). Source-level guard so it can't regress."""
+    js = _observatory_js()
+    # soundFinal appears exactly twice: its definition + exactly ONE call site.
+    assert len(re.findall(r"soundFinal\s*\(", js)) == 2, "expected exactly one soundFinal() call site"
+    # the call fires inside the completion-count gate (the SAME single source as the
+    # unlock gate), so it agrees with the readout and the gate.
+    assert re.search(r"discoveredCount\s*>=\s*CONSTELLATION_STARS\.length\s*\)\s*\{\s*soundFinal\s*\(", js), (
+        "soundFinal() must be gated by the FULL star count (>= CONSTELLATION_STARS.length), "
+        "not fired at a partial count"
+    )
+    # it must NOT be triggered by concept.type === 'present' (stars 5 and 8).
+    assert not re.search(r'type\s*===\s*"present"[^{}]*\{\s*soundFinal', js), (
+        "soundFinal() must not be triggered by concept.type === 'present'"
     )
 
 

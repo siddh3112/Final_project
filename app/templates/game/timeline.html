@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block title %}{{ loc.name }}, Atlas Quest{% endblock %}
 {% block body_class %}timeline-body theme-chronicle{% endblock %}
 
 {% block body %}
@@ -69,7 +69,7 @@
       </button>
       {% endfor %}
     </div>
-    <p class="tl-hint" id="tl-hint">Travel the timeline — click the glowing era to study it. Each you complete lights the next.</p>
+    <p class="tl-hint" id="tl-hint">Travel the timeline. Click the glowing era to study it. Each you complete lights the next.</p>
   </div>
 
   <!-- ── Learn panel (opens for the active era) ── -->
@@ -133,7 +133,7 @@
       </div>
       <div class="atlas-chat-log" id="atlas-log">
         <div class="atlas-msg atlas-msg-bot">
-          Ask me about anything in {{ loc.name }}, explorer — though I shall never hand you a Trial answer outright.
+          Ask me about anything in {{ loc.name }}, explorer, though I shall never hand you a Trial answer outright.
         </div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">

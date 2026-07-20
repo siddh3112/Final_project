@@ -141,7 +141,7 @@
       // re-read affordance discoverable.
       if (i < lit) { n.classList.add("lit"); n.title = "Re-read this era"; }
       else if (i === lit) { n.classList.add("ready"); n.title = "Study this era"; }
-      else { n.classList.add("locked"); n.title = "Locked — complete the earlier eras first"; }
+      else { n.classList.add("locked"); n.title = "Locked, complete the earlier eras first"; }
     });
     if (hintEl) hintEl.style.opacity = lit > 0 ? "0" : "";   // only shown before the first era
   }
@@ -227,14 +227,27 @@
     if (checkFb) { checkFb.hidden = true; checkFb.textContent = ""; }
     if (checkOpts) {
       checkOpts.innerHTML = "";
-      (beat.check.options || []).forEach(function (opt, k) {
-        var b = document.createElement("button");
-        b.type = "button"; b.className = "tl-check-opt";
-        b.innerHTML = '<span class="tl-check-letter">' + String.fromCharCode(65 + k) + "</span><span>" + opt + "</span>";
-        b.addEventListener("click", function () { answer(k, b); });
-        checkOpts.appendChild(b);
-      });
+      shuffled((beat.check.options || []).map(function (opt, k) { return { opt: opt, k: k }; }))
+        .forEach(function (o, d) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "tl-check-opt";
+          b.innerHTML = '<span class="tl-check-letter">' + String.fromCharCode(65 + d) + "</span><span>" + o.opt + "</span>";
+          b.addEventListener("click", function () { answer(o.k, b); });
+          checkOpts.appendChild(b);
+        });
     }
+  }
+
+  // Fisher-Yates: a fresh, unseeded, uncached random order on every call, so the
+  // correct option's on-screen position is never predictable across renders. The
+  // ORIGINAL index is passed to answer(), so grading is unaffected.
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
   }
 
   // Back from the quick-check to the passage — read-only page flip, no reset.
@@ -251,12 +264,12 @@
       btn.classList.add("correct");
       var lt = btn.querySelector(".tl-check-letter"); if (lt) lt.textContent = "✓";
       checkOpts.querySelectorAll(".tl-check-opt").forEach(function (o) { o.disabled = true; });
-      if (checkFb) { checkFb.hidden = false; checkFb.className = "tl-check-fb ok"; checkFb.textContent = "✓ Recorded — this era is now part of your Chronicle."; }
+      if (checkFb) { checkFb.hidden = false; checkFb.className = "tl-check-fb ok"; checkFb.textContent = "✓ Recorded. This era is now part of your Chronicle."; }
       lightEra(activeIndex);
       if (closeBtn) closeBtn.hidden = false;
     } else {
       btn.classList.add("wrong");
-      if (checkFb) { checkFb.hidden = false; checkFb.className = "tl-check-fb bad"; checkFb.textContent = "Not quite — revisit the passage above and try again."; }
+      if (checkFb) { checkFb.hidden = false; checkFb.className = "tl-check-fb bad"; checkFb.textContent = "Not quite. Revisit the passage above and try again."; }
       setTimeout(function () { btn.classList.remove("wrong"); }, 600);
     }
   }

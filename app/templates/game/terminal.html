@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ loc.name }} — Atlas Quest{% endblock %}
+{% block title %}{{ loc.name }}, Atlas Quest{% endblock %}
 {% block body_class %}terminal-body{% endblock %}
 
 {% block body %}
@@ -8,7 +8,7 @@
 
 <div class="crt-dim" id="crt-dim" aria-hidden="true"></div>
 
-<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}" data-passed="{{ '1' if lab_passed else '0' }}" style="--accent: {{ loc.accent }};">
+<div class="terminal-page" data-location="{{ loc.key }}" data-npc="{{ '1' if show_npc else '0' }}" data-passed="{{ '1' if lab_passed else '0' }}" data-practice="{{ '1' if practice | default(false) else '0' }}" style="--accent: {{ loc.accent }};">
 
 <!-- Guess-first hook per sector (never logged/graded) -->
 <script type="application/json" id="term-hooks">{{ hooks | default([]) | tojson }}</script>
@@ -50,11 +50,29 @@
            the whole screen. Direct child of .crt-screen so it fills the CRT. ── -->
       <section class="term-mastered" id="term-mastered" hidden>
         <div class="tm-glyph">✓</div>
-        <div class="tm-head">&gt; SECTOR AI_LAB — ALL SYSTEMS VERIFIED</div>
-        <p class="tm-sub">Diagnostic complete. Every data sector is cleared — you have mastered the AI Lab.</p>
+        <div class="tm-head">&gt; SECTOR AI_LAB (ALL SYSTEMS VERIFIED)</div>
+        <p class="tm-sub">Diagnostic complete. Every data sector is cleared. You have mastered the AI Lab.</p>
         <div class="tm-actions">
+          <button type="button" class="term-mastered-btn" id="term-review-btn"><i class="bi bi-journal-text me-1"></i> REVIEW SECTORS</button>
+          <a href="{{ url_for('game.location', key=loc.key) }}?mode=practice" class="term-mastered-btn"><i class="bi bi-arrow-repeat me-1"></i> PRACTICE RUN <span class="tm-note">not recorded</span></a>
           <a href="{{ url_for('game.hub') }}" class="term-mastered-btn tm-primary"><i class="bi bi-chevron-left me-1"></i> RETURN_TO_MAP</a>
-          <button type="button" class="term-mastered-btn" id="term-rerun">RE-RUN DIAGNOSTIC <i class="bi bi-arrow-repeat ms-1"></i></button>
+        </div>
+      </section>
+
+      <!-- ── Read-only sector review (revisit): reread the taught content, with no
+           practice bench, no board, no grading, and nothing written. Built from the
+           AI Lab's learn cards so it always matches the taught sectors. ── -->
+      <section class="term-review" id="term-review" hidden>
+        <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR ARCHIVE (READ-ONLY)</div>
+        <hr class="term-hr" />
+        {% for c in loc.learn_cards %}
+        <article class="term-review-sector">
+          <h3 class="term-review-head">&gt; {{ c.heading }}</h3>
+          <p class="term-review-text">{{ c.text }}</p>
+        </article>
+        {% endfor %}
+        <div class="tm-actions">
+          <button type="button" class="term-mastered-btn tm-primary" id="term-review-back"><i class="bi bi-chevron-left me-1"></i> BACK</button>
         </div>
       </section>
 
@@ -69,10 +87,10 @@
           <p class="brief-intro">&gt; Welcome, researcher. Before you operate this terminal, read your orders:</p>
           <ul class="brief-list" id="brief-list">
             <li><span class="brief-key">[1]</span> Review each <b>SECTOR</b> of declassified data. Read it, then press <b>&gt; CONTINUE</b>.</li>
-            <li><span class="brief-key">[2]</span> One sector is a <b>PRACTICE</b> classification bench — drag each data item onto the correct bin to warm up (this run isn't graded).</li>
+            <li><span class="brief-key">[2]</span> One sector is a <b>PRACTICE</b> classification bench. Drag each data item onto the correct bin to warm up (this run isn't graded).</li>
             <li><span class="brief-key">[3]</span> The four switches above the monitor (<b>SECT-1…4</b>) light up as you clear each sector.</li>
-            <li><span class="brief-key">[4]</span> When all sectors are cleared, the system reboots into <b>ASSESSMENT MODE</b> — sort <b>four data specimens</b> into their correct bins. Score <b>3 / 4</b> to pass.</li>
-            <li><span class="brief-key">[5]</span> Stuck? Open <b>PROFESSOR_ATLAS</b> (bottom-right) for a hint — he will never hand you an answer.</li>
+            <li><span class="brief-key">[4]</span> When all sectors are cleared, the system reboots into <b>ASSESSMENT MODE</b>. Sort <b>four data specimens</b> into their correct bins. Score <b>3 / 4</b> to pass.</li>
+            <li><span class="brief-key">[5]</span> Stuck? Open <b>PROFESSOR_ATLAS</b> (bottom-right) for a hint. He will never hand you an answer.</li>
           </ul>
           <div class="term-actions">
             <button class="term-continue" type="button" id="brief-begin">&gt; BEGIN MISSION [ENTER]</button>
@@ -87,7 +105,7 @@
               <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: AI_LAB | CLEARANCE: LEVEL_1<span class="term-load">LOADING... 0%</span></div>
               <hr class="term-hr" />
               <h2 class="term-head" data-text="> LOADING SECTOR: ERA_OF_TABULATION"></h2>
-              <p class="term-text" data-text="For centuries, people struggled to understand the meaning hidden in large amounts of data. Early attempts involved manual counting and tabulation — organising numbers into tables by hand. This was slow, limited, and exhausting. The challenge of extracting meaning from vast amounts of data has always existed. Something had to change."></p>
+              <p class="term-text" data-text="For centuries, people struggled to understand the meaning hidden in large amounts of data. Early attempts involved manual counting and tabulation, organising numbers into tables by hand. This was slow, limited, and exhausting. The challenge of extracting meaning from vast amounts of data has always existed. Something had to change."></p>
               <div class="term-actions">
                 <button class="term-continue" type="button" disabled>&gt; CONTINUE [ENTER]</button>
                 <button class="term-skip" type="button">[skip animation]</button>
@@ -98,7 +116,7 @@
               <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: AI_LAB | CLEARANCE: LEVEL_1<span class="term-load">LOADING... 0%</span></div>
               <hr class="term-hr" />
               <h2 class="term-head" data-text="> LOADING SECTOR: ERA_OF_PROGRAMMING"></h2>
-              <p class="term-text" data-text="In the 1940s, scientists built electronic computers like ENIAC at the University of Pennsylvania that could run multiple instructions — what we now call programs. Programmable computers guided astronauts to the moon and were reprogrammed during Apollo 13 to bring astronauts safely home. But modern businesses now generate so much data that even the finest programmable supercomputer cannot analyse it all. A new approach was needed."></p>
+              <p class="term-text" data-text="In the 1940s, scientists built electronic computers like ENIAC at the University of Pennsylvania that could run multiple instructions (what we now call programs). Programmable computers guided astronauts to the moon and were reprogrammed during Apollo 13 to bring astronauts safely home. But modern businesses now generate so much data that even the finest programmable supercomputer cannot analyse it all. A new approach was needed."></p>
               <div class="term-actions">
                 <button class="term-continue" type="button" disabled>&gt; CONTINUE [ENTER]</button>
                 <button class="term-skip" type="button">[skip animation]</button>
@@ -121,7 +139,7 @@
               <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR: DATA_CLASSIFICATION | DIAGNOSTIC<span class="term-load">CONVEYOR: ONLINE</span></div>
               <hr class="term-hr" />
               <h2 class="term-head static">&gt; SECTOR: DATA_CLASSIFICATION</h2>
-              <p class="machine-intro">&gt; DATA comes in three forms. STRUCTURED fits neat rows and columns — a spreadsheet of names, ages and balances, easily queried with SQL. UNSTRUCTURED has no schema and is stored raw: emails, images, audio, chat logs. SEMI-STRUCTURED sits between the two — tags or keys give partial order without a rigid table (JSON, XML).<br />&gt; An estimated 80–90% of enterprise data is unstructured, yet most legacy tools were built for the structured ~10–20% — so dashboards often show only a thin slice. Watch for DARK DATA too: information collected but never used (it can even be tidy, structured records).<br />&gt; Drag each item on the conveyor into the correct bin. This is a PRACTICE run — a warm-up for the graded classification that follows the reboot.</p>
+              <p class="machine-intro">&gt; DATA comes in three forms. STRUCTURED fits neat rows and columns (a spreadsheet of names, ages and balances, easily queried with SQL). UNSTRUCTURED has no schema and is stored raw: emails, images, audio, chat logs. SEMI-STRUCTURED sits between the two. Tags or keys give partial order without a rigid table (JSON, XML).<br />&gt; An estimated 80–90% of enterprise data is unstructured, yet most legacy tools were built for the structured ~10–20%, so dashboards often show only a thin slice. Watch for DARK DATA too: information collected but never used (it can even be tidy, structured records).<br />&gt; Drag each item on the conveyor into the correct bin. This is a PRACTICE run, a warm-up for the graded classification that follows the reboot.</p>
 
               <div class="sorting-game sorting-practice">
                 <!-- Conveyor belt feed -->
@@ -160,6 +178,7 @@
 
         <!-- ── Quiz: ticker-tape assessment ── -->
         <section class="term-quiz" id="term-quiz" hidden>
+          {% if practice | default(false) %}<div class="term-practice-note"><i class="bi bi-arrow-repeat me-1"></i>Practice run. This result is not recorded.</div>{% endif %}
           <form action="{{ url_for('game.submit_quiz', key=loc.key) }}" method="post" id="terminal-quiz" data-location="{{ loc.key }}" data-attempt="{{ attempt_id }}">
             <input type="hidden" name="consulted" id="consulted" value="" />
             <!-- Server-authoritative attempt id (never a trusted shown-keys list). -->
@@ -169,13 +188,13 @@
             {% for q in quiz %}<input type="hidden" name="{{ q.key }}" class="obj-answer" data-obj="{{ q.key }}" value="" />{% endfor %}
 
             <div class="quiz-head">
-              <span class="quiz-head-title">&gt; ASSESSMENT MODE — DATA CLASSIFICATION</span>
+              <span class="quiz-head-title">&gt; ASSESSMENT MODE (DATA CLASSIFICATION)</span>
               <span class="quiz-head-count">SPECIMENS SORTED <b id="sorted-count">0</b>/<span id="sorted-total">{{ quiz|length }}</span></span>
             </div>
 
             <div class="sort-board" id="sort-board">
               <div class="board-intake">
-                <div class="intake-label">&gt; INTAKE — drag each specimen to its bin</div>
+                <div class="intake-label">&gt; INTAKE. Drag each specimen to its bin</div>
                 <div class="intake-items" id="intake-items">
                   {% for q in quiz|shuffle_board %}
                   <div class="board-obj" draggable="true" data-obj="{{ q.key }}" tabindex="0" role="button"
@@ -201,7 +220,7 @@
             <div class="term-actions board-actions">
               <button type="button" class="term-continue" id="board-submit" disabled>&gt; SUBMIT CLASSIFICATION [ENTER]</button>
             </div>
-            <p class="board-note">Drag a specimen to a bin — or tap it, then tap a bin. Submit once all {{ quiz|length }} are placed.</p>
+            <p class="board-note">Drag a specimen to a bin, or tap it, then tap a bin. Submit once all {{ quiz|length }} are placed.</p>
             {% if show_npc %}
             <div class="hint-row"><button type="button" class="hint-btn term-btn-sm" id="board-hint">&gt; ATLAS.hint()</button></div>
             <div class="hint-box term-note" id="board-hint-box" hidden></div>
@@ -216,7 +235,7 @@
   <!-- ── Monitor base: power LED + brand label ── -->
   <div class="crt-base">
     <span class="power-led" id="power-led" title="POWER"></span>
-    <span class="crt-brand">ATLAS-SYSTEMS MODEL 2.3 — RESEARCH TERMINAL</span>
+    <span class="crt-brand">ATLAS-SYSTEMS MODEL 2.3 (RESEARCH TERMINAL)</span>
   </div>
 
   {% if show_npc %}
@@ -230,7 +249,7 @@
         <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
       </div>
       <div class="atlas-chat-log" id="atlas-log">
-        <div class="atlas-msg atlas-msg-bot">&gt; ATLAS ONLINE. Query the {{ loc.name }} archives — I will not output Trial answers.</div>
+        <div class="atlas-msg atlas-msg-bot">&gt; ATLAS ONLINE. Query the {{ loc.name }} archives. I will not output Trial answers.</div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">
         <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="query atlas…" autocomplete="off" />

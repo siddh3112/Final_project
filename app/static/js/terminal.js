@@ -10,6 +10,7 @@
   if (!page) return;
   const location = page.dataset.location || "";
   const labPassed = page.dataset.passed === "1";   // Trial already conquered
+  const practiceMode = page.dataset.practice === "1";  // replaying the board for practice (records nothing)
 
   // ───────────────────────── AUDIO ─────────────────────────
   // Start muted if the hub "Master sound" preference is off (the local mute
@@ -404,11 +405,11 @@
       items.forEach((it) => { it.setAttribute("draggable", "false"); if (placement[it.dataset.id] !== it.dataset.bin) it.classList.add("err"); });
       const ans = document.getElementById("q3-answer");
       if (correct >= 4) {
-        result.textContent = "> CLASSIFICATION COMPLETE — ACCURACY " + correct + "/6 ✓\n> PROCEED TO NEXT SECTOR";
+        result.textContent = "> CLASSIFICATION COMPLETE: ACCURACY " + correct + "/6 ✓\n> PROCEED TO NEXT SECTOR";
         if (ans) ans.value = game.dataset.correctval;   // real correct answer → graded correct
         correctChime();
       } else {
-        result.textContent = "> CLASSIFICATION INCORRECT — ACCURACY " + correct + "/6 ✗\n> ANSWER LOGGED — PROCEED TO NEXT SECTOR";
+        result.textContent = "> CLASSIFICATION INCORRECT: ACCURACY " + correct + "/6 ✗\n> ANSWER LOGGED, PROCEED TO NEXT SECTOR";
         if (ans) ans.value = "";                        // no answer earned → graded WRONG
         wrongBuzz();
       }
@@ -524,6 +525,16 @@
     const hintBtn = document.getElementById("board-hint");
     const box = document.getElementById("board-hint-box");
     if (!hintBtn || !box) return;
+    // Fill the terminal hint box and label which engine answered (accurate server
+    // `source`, never is_fallback), so a rule-based hint never reads as Granite.
+    function setBoardHint(text, source) {
+      box.textContent = text;
+      const granite = source === "granite";
+      const tag = document.createElement("span");
+      tag.className = "hint-source src-" + (granite ? "granite" : "rules");
+      tag.textContent = granite ? "Granite generated" : "System generated";
+      box.appendChild(tag);
+    }
     hintBtn.addEventListener("click", async function () {
       atlasFace(true);
       box.hidden = false; box.textContent = "> ATLAS: processing query…";
@@ -536,8 +547,9 @@
         });
         const data = await res.json();
         const good = data && data.response && !data.is_fallback;
-        box.textContent = "> ATLAS: " + (good ? data.response : fallback);
-      } catch (e) { box.textContent = "> ATLAS: " + fallback; }
+        setBoardHint("> ATLAS: " + (good ? data.response : fallback),
+                     data && data.source === "granite" ? "granite" : "rules");
+      } catch (e) { setBoardHint("> ATLAS: " + fallback, "rules"); }
       finally { hintBtn.disabled = false; setTimeout(() => atlasFace(false), 1200); }
     });
   }
@@ -650,6 +662,11 @@
   // straight to the sorting card (sectors already read) so the graded Q3 mechanic
   // runs fresh — grading/logging unchanged.
   function rerunDiagnostic() {
+    // Self-contained so it doubles as the practice-run entry on boot (the screen may
+    // still be powered off): reveal the screen first, then jump to the board.
+    if (powerOn) powerOn.hidden = true;
+    if (screenContent) screenContent.hidden = false;
+    if (powerLed) powerLed.classList.add("on");
     const m = document.getElementById("term-mastered"); if (m) m.hidden = true;
     const stage = document.getElementById("term-stage"); if (stage) stage.style.display = "";
     const sortIdx = cards.length - 1;
@@ -664,13 +681,26 @@
     cards[sortIdx].classList.add("active");
     typeCard(cards[sortIdx]);
   }
-  const rerunBtn = document.getElementById("term-rerun");
-  if (rerunBtn) rerunBtn.addEventListener("click", rerunDiagnostic);
+  // Read-only "Review sectors": reread the taught content with no board, no grading
+  // and nothing written. Toggles between the mastered summary and the archive panel.
+  const reviewBtn = document.getElementById("term-review-btn");
+  const reviewBack = document.getElementById("term-review-back");
+  const reviewSection = document.getElementById("term-review");
+  const masteredSection = document.getElementById("term-mastered");
+  if (reviewBtn && reviewSection) reviewBtn.addEventListener("click", function () {
+    if (masteredSection) masteredSection.hidden = true;
+    reviewSection.hidden = false;
+  });
+  if (reviewBack && reviewSection) reviewBack.addEventListener("click", function () {
+    reviewSection.hidden = true;
+    if (masteredSection) masteredSection.hidden = false;
+  });
 
   // ───────────────── BOOT ─────────────────
   atlasFace(false);
   if (cards.length) {
-    if (labPassed) showMastered();                     // Trial done → completed view
+    if (practiceMode) rerunDiagnostic();               // practice run → straight to the board (records nothing)
+    else if (labPassed) showMastered();                // completed → read-only mastered view
     else if (!restoreExploration()) runPowerOn();      // partial → resume; fresh → full intro
   }
   window.addEventListener("pagehide", stopHum);

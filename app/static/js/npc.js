@@ -110,10 +110,19 @@
     setTimeout(open, ATLAS_OPEN_DELAY_MS);
   })();
 
-  function addMessage(text, who) {
+  function addMessage(text, who, source) {
     const el = document.createElement("div");
     el.className = "atlas-msg atlas-msg-" + who;
     el.textContent = text;
+    // On a real Atlas reply, label which engine produced it (keyed on the accurate
+    // server `source`, never is_fallback, so a rule-based hint never reads as Granite).
+    if (source) {
+      const granite = source === "granite";
+      const tag = document.createElement("span");
+      tag.className = "atlas-msg-source src-" + (granite ? "granite" : "rules");
+      tag.textContent = granite ? "Granite generated" : "System generated";
+      el.appendChild(tag);
+    }
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
     return el;
@@ -138,7 +147,8 @@
       });
       const data = await res.json();
       typing.remove();
-      addMessage(data.response || "…the Professor seems distracted. Try again.", "bot");
+      addMessage(data.response || "…the Professor seems distracted. Try again.", "bot",
+                 data.response ? data.source : null);
     } catch (err) {
       typing.remove();
       addMessage("…a connection to the Professor could not be made.", "bot");

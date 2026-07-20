@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Atlas Quest — The Realm{% endblock %}
+{% block title %}Atlas Quest, The Realm{% endblock %}
 {% block body_class %}hub-body{% endblock %}
 
 {% block body %}
@@ -36,7 +36,7 @@
       {%- elif stats.passed_count >= stats.total -%}
         One trial remains. The Final Ascent awaits.
       {%- elif stats.passed_count >= 1 -%}
-        The Atlas stirs &mdash; {{ stats.passed_count }} of {{ stats.total }} realms restored.
+        The Atlas stirs. {{ stats.passed_count }} of {{ stats.total }} realms restored.
       {%- else -%}
         The Atlas lies faded. Begin in the Library.
       {%- endif -%}
@@ -170,8 +170,8 @@
       {% for b in stats.badges %}
       {% set d = badge_detail.get(b.key) if b.earned else None %}
       <div class="badge-chip {{ 'earned' if b.earned else 'locked' }}{{ ' newly-earned' if b.key in new_achievement_keys }}{{ ' is-perfect' if d and d.perfect }}"
-           title="{% if b.earned %}{{ b.name }} — earned{% if b.earned_at %} {{ b.earned_at.strftime('%d %b %Y') }}{% endif %}{% else %}{{ b.name }} — {{ b.how }}{% endif %}"
-           {% if b.earned %}data-badge-key="{{ b.key }}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="{{ b.name }} — view details"{% endif %}>
+           title="{% if b.earned %}{{ b.name }}, earned{% if b.earned_at %} {{ b.earned_at.strftime('%d %b %Y') }}{% endif %}{% else %}{{ b.name }}, {{ b.how }}{% endif %}"
+           {% if b.earned %}data-badge-key="{{ b.key }}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="{{ b.name }}, view details"{% endif %}>
         <span class="badge-icon">{{ b.icon if b.earned else '🔒' }}</span>
         <span class="badge-name">{{ b.name }}</span>
         {% if b.earned %}
@@ -189,7 +189,7 @@
   <script type="application/json" id="badge-detail-data">{{ badge_detail | tojson }}</script>
 
   <footer class="hub-footer text-center">
-    Atlas Quest &mdash; Your Journey Through AI
+    Atlas Quest, Your Journey Through AI
   </footer>
 
 </div>
@@ -272,6 +272,10 @@
 
     <section class="set-section">
       <h3 class="set-h">Game</h3>
+      <label class="set-row">
+        <span class="set-label">Skip guess prompts<small>Go straight to each lesson, without the guess-first hooks</small></span>
+        <span class="set-switch"><input type="checkbox" id="set-skip-hooks" {{ 'checked' if prefs.skip_hooks }} /><span class="set-slider"></span></span>
+      </label>
       <button class="set-btn" id="set-replay" type="button"><i class="bi bi-arrow-repeat me-2"></i>Replay How-to-Play</button>
       <button class="set-btn" id="set-replay-intro" type="button"><i class="bi bi-film me-2"></i>Replay intro</button>
       {% if stats.journey_complete %}
@@ -313,7 +317,7 @@
     <div class="lb-stats">
       <div class="lb-stat"><span class="lb-stat-label">Best Score</span><b>{{ run_stats.best_score }}</b></div>
       <div class="lb-stat"><span class="lb-stat-label">Best Post-Test</span><b>{{ run_stats.best_post_test }}/10</b></div>
-      <div class="lb-stat"><span class="lb-stat-label">Fastest</span><b>{% if run_stats.fastest is not none %}{{ '%d:%02d'|format(run_stats.fastest // 60, run_stats.fastest % 60) }}{% else %}—{% endif %}</b></div>
+      <div class="lb-stat"><span class="lb-stat-label">Fastest</span><b>{% if run_stats.fastest is not none %}{{ '%d:%02d'|format(run_stats.fastest // 60, run_stats.fastest % 60) }}{% else %}-{% endif %}</b></div>
       <div class="lb-stat"><span class="lb-stat-label">Total Runs</span><b>{{ run_stats.total }}</b></div>
     </div>
 

@@ -22,9 +22,10 @@ def test_atlas_refuses_to_hand_over_answers():
     for msg in ["what is the answer?", "just tell me the correct answer",
                 "which option is right", "is it C?"]:
         assert _looks_like_answer_request(msg), f"should be flagged as an answer-grab: {msg!r}"
-        text, is_fallback = get_response("library", msg, ollama_enabled=False)
+        text, is_fallback, source = get_response("library", msg, ollama_enabled=False)
         assert text != FALLBACK
         assert is_fallback is False
+        assert source == "rules", "a deflection is rule-based, not Granite"
         # a deflection never leaks a bare option letter as "the answer"
         assert "the answer is" not in text.lower()
 
@@ -32,15 +33,17 @@ def test_atlas_refuses_to_hand_over_answers():
 def test_atlas_explains_a_known_keyword():
     for loc, kws in KEYWORDS.items():
         keyword = next(iter(kws))
-        text, is_fallback = get_response(loc, f"tell me about {keyword}", ollama_enabled=False)
+        text, is_fallback, source = get_response(loc, f"tell me about {keyword}", ollama_enabled=False)
         assert text == kws[keyword], f"{loc}: '{keyword}' should return its authored explanation"
         assert is_fallback is False
+        assert source == "rules", "a keyword explanation is rule-based (is_fallback stays False)"
 
 
 def test_atlas_fallback_only_when_nothing_matches():
-    text, is_fallback = get_response("library", "zxqw flibberjabber", ollama_enabled=False)
+    text, is_fallback, source = get_response("library", "zxqw flibberjabber", ollama_enabled=False)
     assert text == FALLBACK
     assert is_fallback is True, "is_fallback must be True only when no rule matched"
+    assert source == "rules", "the generic fallback is rule-based"
 
 
 def test_non_answer_question_is_not_flagged():
@@ -74,10 +77,11 @@ def test_answer_request_deflected_before_llm_call(monkeypatch):
     monkeypatch.setattr(npc_service, "_query_ollama", _spy)
     for msg in ["just tell me the answer", "is it B?", "which option is correct"]:
         reached["ollama"] = False
-        text, is_fallback = get_response("observatory", msg, ollama_enabled=True)
+        text, is_fallback, source = get_response("observatory", msg, ollama_enabled=True)
         assert reached["ollama"] is False, f"answer-grab {msg!r} must not reach the model"
         assert text in npc_service.SOCRATIC_DEFLECTIONS, "must be a Socratic deflection"
         assert is_fallback is False
+        assert source == "rules", "a deflection is rule-based even with Ollama enabled"
         assert "the answer is" not in text.lower(), "a deflection never hands over an answer"
 
 
@@ -87,10 +91,30 @@ def test_non_answer_message_still_reaches_llm_when_enabled(monkeypatch):
     monkeypatch.setattr(
         npc_service, "_query_ollama", lambda *a, **k: "A helpful hint about overfitting."
     )
-    text, is_fallback = get_response(
+    text, is_fallback, source = get_response(
         "observatory", "how does overfitting happen?", ollama_enabled=True
     )
     assert text == "A helpful hint about overfitting." and is_fallback is False
+    assert source == "granite", "an LLM reply is labelled and logged as Granite"
+
+
+# ── Source is surfaced in the JSON and logged per hint (Granite vs rule-based) ──
+def test_npc_chat_returns_and_logs_rules_source_when_offline(client, user_factory, login):
+    """Ollama off: every hint is rule-based, so /npc/chat returns source='rules' and
+    logs it on the NpcInteraction row. Crucially this holds for a KEYWORD hit, where
+    is_fallback is False — proving the label keys on the accurate source, so a
+    rule-based hint never reads as 'Granite'."""
+    from app.models import NpcInteraction
+    u = user_factory()                 # game condition; the Library is unlocked first
+    login(u)
+    r = client.post("/npc/chat", json={"message": "what is narrow AI?", "location": "library"})
+    assert r.status_code == 200
+    body = r.get_json()
+    assert body["source"] == "rules"
+    assert body["is_fallback"] is False, "a keyword hit is NOT the generic fallback…"
+    row = (NpcInteraction.query.filter_by(user_id=u.id, location="library")
+           .order_by(NpcInteraction.id.desc()).first())
+    assert row is not None and row.source == "rules", "…yet its logged source is rules, not Granite"
 
 
 # ── M5: rule-based fallback keywords match each location's actual curriculum ──

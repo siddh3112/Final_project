@@ -41,11 +41,19 @@ def _assign_condition():
 
 def _reset_presentation_session():
     """Drop per-browser session state so a freshly authenticated user starts
-    clean: their own one-time map reveals (fog recede / path draw / pin ignite)
-    and their own reading progress, not the previous user's. Never touches
-    progress tables or research data."""
+    clean: their own one-time map reveals (fog recede / path draw / pin ignite),
+    their own reading progress, and their own front-of-house SETTINGS, not the
+    previous user's.
+
+    Settings (theme, sound, voice, reduce_motion, large_text, voice_name,
+    skip_hooks) live only in session["prefs"] (no browser storage), so popping that
+    key makes current_prefs() fall back to DEFAULT_PREFS on the next render. This
+    runs ONLY at login/registration, so mid-session setting changes still apply
+    until the next login. Never touches progress tables or research data (progress,
+    BookRead, run_history, achievements are all in the DB, not the session)."""
     session.pop("seen", None)
     session.pop("read_books", None)
+    session.pop("prefs", None)
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])

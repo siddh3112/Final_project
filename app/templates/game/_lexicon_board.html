@@ -16,7 +16,7 @@
 
   <div class="lex-howto">
     <i class="bi bi-vector-pen" aria-hidden="true"></i>
-    <span>Click a <b>concept</b>, then the <b>case</b> that proves it — a line inks between them; click a line to erase. Two slips are decoys. Ink at least <b>3 of 4</b> to seal the Concordance.{% if show_npc %} Unsure? Consult Professor Atlas.{% endif %}</span>
+    <span>Click a <b>concept</b>, then the <b>case</b> that proves it. A line inks between them; click a line to erase. Two slips are decoys. Ink at least <b>3 of 4</b> to seal the Concordance.{% if show_npc %} Unsure? Consult Professor Atlas.{% endif %}</span>
   </div>
   <div class="lex-readout">ENTRIES INDEXED <b id="lex-count">0</b> / {{ quiz|length }}</div>
 
@@ -48,7 +48,7 @@
   <div class="lex-actions">
     <button type="button" class="lex-submit" id="lex-submit" disabled>Seal the Concordance <i class="bi bi-award ms-1"></i></button>
   </div>
-  <p class="lex-note">Click a concept, then a case — or use Tab and Enter. Seal once all {{ quiz|length }} are ruled.</p>
+  <p class="lex-note">Click a concept, then a case, or use Tab and Enter. Seal once all {{ quiz|length }} are ruled.</p>
 
   {% if show_npc %}
   <div class="hint-row">
@@ -56,7 +56,10 @@
   </div>
   <div class="hint-box" hidden>
     <span class="hint-avatar"><span class="atlas-glyph" aria-hidden="true"></span></span>
-    <p class="hint-text"></p>
+    <div class="hint-body">
+      <p class="hint-text"></p>
+      <span class="hint-source" hidden></span>
+    </div>
   </div>
   {% endif %}
 </form>

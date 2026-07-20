@@ -127,13 +127,13 @@ def test_submit_to_locked_location_is_refused(client, user_factory, login):
 def test_best_score_is_monotonic(client, user_factory, login):
     u = user_factory()
     login(u)
-    _submit(client, "library", 4)   # 4/4 pass
-    _submit(client, "library", 2)   # a worse retake
+    _submit(client, "library", 4)   # 4/4 pass — recorded (attempt 1)
+    _submit(client, "library", 2)   # a worse REPLAY after passing is a practice run: records nothing
     _fresh()
     lp = LocationProgress.query.filter_by(user_id=u.id, location="library").first()
     assert lp.best_score == 4, "best score must not drop on a worse attempt"
     assert lp.passed is True, "a pass is not revoked"
-    assert lp.attempts_count == 2, "both attempts are counted"
+    assert lp.attempts_count == 1, "a replay after passing is practice and is NOT counted"
 
 
 # ══════════════ SERVER-AUTHORITATIVE grading — tamper resistance ═════════════

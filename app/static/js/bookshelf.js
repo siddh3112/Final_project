@@ -42,7 +42,7 @@
   }
 
   const FLAVOURS = [
-    "A handsome binding — but its pages have long since faded to blank.",
+    "A handsome binding, but its pages have long since faded to blank.",
     "Dust and cobwebs. This volume holds nothing for you today.",
     "An old novel, charming but quite unrelated to your studies.",
     "The ink has run; not a single word survives.",
@@ -175,7 +175,7 @@
             '</div>' +
             '<div class="leaf leaf-right">' +
               '<div class="bp-options" id="bp-options">' +
-              q.options.map((opt, k) => '<button type="button" class="bp-option" data-k="' + k + '"><span class="bp-badge">' + ["A", "B", "C", "D", "E", "F"][k] + '</span><span class="bp-opt-text">' + escapeHtml(opt) + "</span></button>").join("") +
+              shuffled(q.options.map((opt, k) => ({ opt: opt, k: k }))).map((o, d) => '<button type="button" class="bp-option" data-k="' + o.k + '"><span class="bp-badge">' + ["A", "B", "C", "D", "E", "F"][d] + '</span><span class="bp-opt-text">' + escapeHtml(o.opt) + "</span></button>").join("") +
               '</div>' +
               '<div class="bp-feedback" id="bp-feedback"></div>' +
             '</div>' +
@@ -233,6 +233,18 @@
     turnPage(1, render);
   }
 
+  // Fisher-Yates: a fresh, unseeded, uncached random order on every call, so the
+  // correct option's on-screen position is never predictable across renders. Each
+  // option keeps its ORIGINAL index in data-k, so grading is unaffected.
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
   // Quick-check (unlogged learning gate): correct → reveal the bottom-centre
   // Claim Reward; wrong → try again / re-read. Compares to book.quiz.answer by
   // the option's stable data-k index, so shuffling never breaks the check.
@@ -266,7 +278,7 @@
           opts.forEach(function (o) { o.disabled = true; });
           if (fb) {
             fb.innerHTML =
-              '<span class="fb-no"><i class="bi bi-x-lg me-1"></i>Not quite — ' + escapeHtml(book.quiz.explanation) + '</span>' +
+              '<span class="fb-no"><i class="bi bi-x-lg me-1"></i>Not quite. ' + escapeHtml(book.quiz.explanation) + '</span>' +
               '<button type="button" class="bp-reread" id="bp-reread"><i class="bi bi-arrow-counterclockwise"></i> Read the Book Again</button>';
             const rr = fb.querySelector("#bp-reread");
             if (rr) rr.addEventListener("click", function () { quizPassed = false; page = 0; turnPage(-1, render); });
@@ -278,13 +290,18 @@
 
   function updateNav() {
     const quizPage = book.pages.length;
+    const doneBook = completed.has(bookIndex);   // a re-read of a completed book skips the quiz
     // Page indicator becomes an ink notation: "— 2 —"
-    indicator.textContent = "— " + (page + 1) + " —";
+    indicator.textContent = "· " + (page + 1) + " ·";
     prevBtn.disabled = page === 0;
     prevBtn.style.visibility = page >= quizPage ? "hidden" : "visible";
     if (page < quizPage) {
       nextBtn.hidden = false;
-      nextBtn.innerHTML = page === 0 ? "Begin Discovery <i class='bi bi-chevron-right'></i>" : "Next <i class='bi bi-chevron-right'></i>";
+      if (doneBook && page === quizPage - 1) {
+        nextBtn.innerHTML = "Close <i class='bi bi-check2'></i>";   // no quick-check on a re-read
+      } else {
+        nextBtn.innerHTML = page === 0 ? "Begin Discovery <i class='bi bi-chevron-right'></i>" : "Next <i class='bi bi-chevron-right'></i>";
+      }
     } else if (page === quizPage) {
       // The reward is claimed via the bottom-centre "Claim Reward" button that
       // appears only after a correct answer — no right-margin nav pill here.
@@ -473,7 +490,7 @@
       if (trialGate) trialGate.hidden = true;
       if (trialContent) trialContent.hidden = false;
       if (hint) {
-        hint.innerHTML = "Every tome has been mastered. <strong>The Trial</strong> awaits — or revisit any volume at your leisure.";
+        hint.innerHTML = "Every tome has been mastered. <strong>The Trial</strong> awaits, or revisit any volume at your leisure.";
         hint.classList.add("all-done");
       }
     } else if (core) {
@@ -495,6 +512,12 @@
     if (typing) { finishTyping(); return; }
     const quizPage = book.pages.length;
     if (page < quizPage) {
+      // A re-read of a COMPLETED book shows content only: at the last page there is
+      // no quick-check to re-ask, so Continue simply closes the reader (no record).
+      if (completed.has(bookIndex) && page === quizPage - 1) {
+        closeReader();
+        return;
+      }
       if (window.LibFX) window.LibFX.pageTurn();
       page++;
       turnPage(1, render);

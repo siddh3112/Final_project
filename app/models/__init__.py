@@ -58,6 +58,11 @@ class NpcInteraction(db.Model):
     npc_response = db.Column(db.Text, nullable=False)
     response_time_ms = db.Column(db.Integer, nullable=True)
     is_fallback = db.Column(db.Boolean, default=False)
+    # Which engine produced the reply: "granite" (local LLM) or "rules" (a Socratic
+    # deflection, a keyword explanation, or the generic fallback). This is the
+    # accurate source for the UI label and research data; is_fallback is a narrower
+    # flag (generic catch-all only) and must NOT be used to infer Granite-vs-rules.
+    source = db.Column(db.String(16), default="rules")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 

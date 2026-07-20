@@ -57,9 +57,9 @@ LIBRARY_BOOKS = [
         "xp": 100,
         "pages": [
             {"type": "intro", "title": "The Book of Artificial Intelligence",
-             "body": "Welcome to the Atlas Archive. Before you venture onward, you must grasp the foundation of it all — what we truly mean by 'artificial intelligence'."},
+             "body": "Welcome to the Atlas Archive. Before you venture onward, you must grasp the foundation of it all. What do we truly mean by 'artificial intelligence'?"},
             {"type": "concept", "title": "What is AI?",
-             "body": "Artificial intelligence is the ability of a machine to learn patterns from data and make predictions. It does not replace human judgement — it adds to it.",
+             "body": "Artificial intelligence is the ability of a machine to learn patterns from data and make predictions. It does not replace human judgement; it adds to it.",
              "keywords": ["learn patterns", "data", "predictions", "human judgement"]},
             {"type": "example", "title": "In the Real World",
              "body": "AI is mostly invisible. It quietly powers search engines, recommendations, and the voice assistant that understands your words.",
@@ -74,7 +74,7 @@ LIBRARY_BOOKS = [
         "flashcard": {"type": "Core Concept", "rarity": "Common",
             "meaning": "A machine's ability to learn patterns from data and make predictions.",
             "example": "Search engines, recommendations, voice assistants.",
-            "remember": "AI adds to human judgement — it doesn't replace it."},
+            "remember": "AI adds to human judgement; it doesn't replace it."},
     },
     {
         "id": "augmented",
@@ -86,17 +86,17 @@ LIBRARY_BOOKS = [
             {"type": "intro", "title": "The Book of Augmented Intelligence",
              "body": "Two ideas are often confused, explorer. Let me show you the difference between true AI and its humbler cousin."},
             {"type": "concept", "title": "AI vs Augmented Intelligence",
-             "body": "Augmented intelligence helps humans with impractical tasks — like reading 1000 pages in an hour. Its defining trait is that it amplifies human judgement rather than replacing it: a person always keeps the final call and the accountability. True AI aims higher — to mimic human thinking itself.",
+             "body": "Augmented intelligence helps humans with impractical tasks, like reading 1000 pages in an hour. Its defining trait is that it amplifies human judgement rather than replacing it: a person always keeps the final call and the accountability. True AI aims higher, to mimic human thinking itself.",
              "keywords": ["augmented", "amplifies judgement", "human keeps accountability"]},
             {"type": "example", "title": "In the Real World",
-             "body": "A bank might use AI to pre-screen loan applications and flag risk factors, but a human officer makes the final decision. That 'AI + human' arrangement — the most common and responsible pattern in the real world — is augmented intelligence.",
-             "hint": "Think of augmented intelligence as a powerful assistant that keeps a human in charge — not a replacement."},
+             "body": "A bank might use AI to pre-screen loan applications and flag risk factors, but a human officer makes the final decision. That 'AI + human' arrangement (the most common and responsible pattern in the real world) is augmented intelligence.",
+             "hint": "Think of augmented intelligence as a powerful assistant that keeps a human in charge, not a replacement."},
         ],
         "quiz": {
             "question": "A doctor uses a tool that reads 1,000 scans in minutes and flags unusual ones for review. This is best described as:",
             "options": ["General AI replacing the doctor", "Augmented intelligence assisting the doctor", "A simple search engine", "Reinforcement learning"],
             "answer": 1,
-            "explanation": "It assists the human expert with an impractical task rather than replacing them — that is augmented intelligence.",
+            "explanation": "It assists the human expert with an impractical task rather than replacing them. That is augmented intelligence.",
         },
         "flashcard": {"type": "Core Concept", "rarity": "Common",
             "meaning": "AI that assists humans with impractical tasks rather than replacing them.",
@@ -116,7 +116,7 @@ LIBRARY_BOOKS = [
              "body": "AI does two things. First it analyses huge amounts of data to find hidden patterns. Then it predicts an outcome from those patterns.",
              "keywords": ["analysis", "patterns", "prediction"]},
             {"type": "example", "title": "In the Real World",
-             "body": "From a flood of bank transactions, AI spots the pattern of fraud — then predicts which new charge is likely stolen.",
+             "body": "From a flood of bank transactions, AI spots the pattern of fraud, then predicts which new charge is likely stolen.",
              "hint": "Analysis finds the pattern; prediction acts on it."},
         ],
         "quiz": {
@@ -144,7 +144,7 @@ LIBRARY_BOOKS = [
              "keywords": ["vision recognition", "fraud detection", "customer service"]},
             {"type": "example", "title": "In the Real World",
              "body": "An AI vision system helps doctors catch a disease early; another reads a stop sign so a car can brake in time.",
-             "hint": "The same skill — prediction — solves very different problems."},
+             "hint": "The same skill (prediction) solves very different problems."},
         ],
         "quiz": {
             "question": "Your bank texts to ask if a sudden, unusual purchase was really you. Which AI skill is at work?",
@@ -167,17 +167,17 @@ LIBRARY_BOOKS = [
             {"type": "intro", "title": "The Book of the Three Levels",
              "body": "Finally, gaze toward the horizon. Artificial intelligence grows in three great stages."},
             {"type": "concept", "title": "Narrow, Broad & General",
-             "body": "Think of AI on a spectrum. Narrow AI is built for one task and can't step outside it — spam filters, face unlock and chess engines are all narrow. Broad AI, IBM's term for today's systems, integrates several narrow components into one business process trained on an organisation's own data. General AI — reasoning across any domain like a human — does not exist yet; it remains a long-term research goal.",
+             "body": "Think of AI on a spectrum. Narrow AI is built for one task and can't step outside it. Spam filters, face unlock and chess engines are all narrow. Broad AI, IBM's term for today's systems, integrates several narrow components into one business process trained on an organisation's own data. General AI (reasoning across any domain like a human) does not exist yet; it remains a long-term research goal.",
              "keywords": ["Narrow AI", "Broad AI (integrated)", "General AI (not yet)"]},
             {"type": "example", "title": "In the Real World",
-             "body": "A self-driving car is Broad AI: it combines separate systems for vision, route-planning and decision-making into one integrated whole. A single spam filter is Narrow AI. A machine that could teach itself any new task the way a person does would be General AI — which no one has built.",
+             "body": "A self-driving car is Broad AI: it combines separate systems for vision, route-planning and decision-making into one integrated whole. A single spam filter is Narrow AI. A machine that could teach itself any new task the way a person does would be General AI, which no one has built.",
              "hint": "Narrow and Broad are real today. A self-driving car is Broad AI; General AI lies in the future."},
         ],
         "quiz": {
             "question": "A program plays chess brilliantly but can do nothing else. Which level of AI is it?",
             "options": ["General AI", "Narrow AI", "Broad AI", "Not AI at all"],
             "answer": 1,
-            "explanation": "Excelling at a single task is Narrow AI — it cannot apply its skill elsewhere.",
+            "explanation": "Excelling at a single task is Narrow AI; it cannot apply its skill elsewhere.",
         },
         "flashcard": {"type": "Core Concept", "rarity": "Rare",
             "meaning": "Narrow (one task), Broad (many domains), General (human-level, future).",
@@ -196,10 +196,10 @@ CINEMATIC_LINES = [
 
 # Professor Atlas's overall-game tutorial, shown as a focused overlay on the hub.
 GAME_INTRO_STEPS = [
-    "Greetings, traveller. I am Professor Atlas — and this is Atlas Quest, your journey through the world of Artificial Intelligence.",
+    "Greetings, traveller. I am Professor Atlas, and this is Atlas Quest, your journey through the world of Artificial Intelligence.",
     "This is your map. Each glowing waypoint is a place to explore. You begin at the Library; new regions reveal themselves as you prove yourself.",
     "Within each location you will study its knowledge, then face a Trial of four questions. Score at least 3 of 4 to open the road onward.",
-    "As you learn, you earn XP and badges, and your rank rises — keep an eye on the banner above the map.",
+    "As you learn, you earn XP and badges, and your rank rises. Keep an eye on the banner above the map.",
     "Master all four locations to reveal the final assessment at the journey's end. I shall guide you the whole way. Onward, explorer!",
 ]
 
@@ -210,31 +210,31 @@ LOCATIONS = {
         "icon": "📚",
         "tagline": "Where knowledge begins",
         "topic": "What is Artificial Intelligence?",
-        "description": "Ancient tomes line the walls of this vast chamber. Candlelight flickers across shelves that stretch beyond sight. This is where the story of intelligence begins — not human intelligence, but the kind we build. Professor Atlas waits by the fireplace, ready to guide you through the foundations of AI.",
+        "description": "Ancient tomes line the walls of this vast chamber. Candlelight flickers across shelves that stretch beyond sight. This is where the story of intelligence begins, not human intelligence, but the kind we build. Professor Atlas waits by the fireplace, ready to guide you through the foundations of AI.",
         "order": 1,
         "stub": False,
         "accent": "#d4a84b",
         "theme": "archive",
         "interaction": "bookshelf",
         "books": LIBRARY_BOOKS,
-        "guide_intro": "Welcome, seeker. Before any grand experiment or distant star, an explorer must first know what intelligence we seek to build. Turn each page with care — I shall be at your side.",
+        "guide_intro": "Welcome, seeker. Before any grand experiment or distant star, an explorer must first know what intelligence we seek to build. Turn each page with care. I shall be at your side.",
         "atlas_steps": [
-            "Welcome to the Library, explorer. I am Professor Atlas. Knowledge hides among these shelves — most volumes are mere decoration, but a precious few glow with what you truly seek.",
-            "Click each glowing tome to open and read it. Every one you study grants a Concept Card and charges the Knowledge Core — fill the Core to unlock the Trial.",
+            "Welcome to the Library, explorer. I am Professor Atlas. Knowledge hides among these shelves. Most volumes are mere decoration, but a precious few glow with what you truly seek.",
+            "Click each glowing tome to open and read it. Every one you study grants a Concept Card and charges the Knowledge Core. Fill the Core to unlock the Trial.",
             "The Trial is four questions, asked one at a time; score 3 of 4 to journey onward. Need me? Tap the owl anytime. Now… begin your reading!",
         ],
         "learn_cards": [
             {
                 "heading": "What is AI?",
-                "text": "Artificial intelligence (AI) refers to the ability of a machine to learn patterns and make predictions. AI does not replace human decisions — instead, AI adds value to human judgment. In its simplest form, AI is a field that combines computer science and robust datasets to enable problem-solving. AI plays an often invisible role in everyday life, powering search engines, recommendations, and speech recognition systems."
+                "text": "Artificial intelligence (AI) refers to the ability of a machine to learn patterns and make predictions. AI does not replace human decisions. Instead, AI adds value to human judgement. In its simplest form, AI is a field that combines computer science and robust datasets to enable problem-solving. AI plays an often invisible role in everyday life, powering search engines, recommendations, and speech recognition systems."
             },
             {
                 "heading": "AI vs Augmented Intelligence",
-                "text": "When learning about AI, you will come across the term augmented intelligence. Both share the same objective but have different approaches. Augmented intelligence has a modest goal of helping humans with tasks that are not practical to do — for example, reading 1000 pages in an hour. Crucially, it amplifies human judgement rather than replacing it: a bank might use AI to pre-screen loan applications and flag risks, but a human officer makes the final call and keeps accountability. This 'AI + human' pattern is the most common, responsible use of AI in the real world. In contrast, full AI has a loftier goal of mimicking human thinking and processes, and today it is not mature enough to perform independent tasks such as diagnosing cancer."
+                "text": "When learning about AI, you will come across the term augmented intelligence. Both share the same objective but have different approaches. Augmented intelligence has a modest goal of helping humans with tasks that are not practical to do (for example, reading 1000 pages in an hour). Crucially, it amplifies human judgement rather than replacing it: a bank might use AI to pre-screen loan applications and flag risks, but a human officer makes the final call and keeps accountability. This 'AI + human' pattern is the most common, responsible use of AI in the real world. In contrast, full AI has a loftier goal of mimicking human thinking and processes, and today it is not mature enough to perform independent tasks such as diagnosing cancer."
             },
             {
                 "heading": "What Does AI Do?",
-                "text": "How do AI services work? Let us break it down into two parts. First, Analysis — AI examines large amounts of data to find hidden patterns. Second, Prediction — based on that analysis, AI predicts an outcome. It might not seem like much, but that analysis and those predictions can have an enormous impact on human life, from diagnosing illness to detecting fraud."
+                "text": "How do AI services work? Let us break it down into two parts. First, Analysis. AI examines large amounts of data to find hidden patterns. Second, Prediction. Based on that analysis, AI predicts an outcome. It might not seem like much, but that analysis and those predictions can have an enormous impact on human life, from diagnosing illness to detecting fraud."
             },
             {
                 "heading": "What Predictions Can AI Make?",
@@ -242,7 +242,7 @@ LOCATIONS = {
             },
             {
                 "heading": "How is AI Evolving?",
-                "text": "It helps to picture AI on a spectrum of capability. Narrow AI is built for one specific task and can't step outside it — spam filters, face-unlock and chess engines are all narrow, and almost every AI you meet today is too. Broad AI, IBM's term for the middle of the spectrum, integrates several narrow components into one business process trained on an organisation's own data — a self-driving car, for instance, combines vision, route-planning and decision-making into one integrated system. General AI would reason and transfer knowledge across any domain the way a human does, but it does not exist yet; it remains a long-term research goal. Both Narrow AI and Broad AI are available right now."
+                "text": "It helps to picture AI on a spectrum of capability. Narrow AI is built for one specific task and can't step outside it. Spam filters, face-unlock and chess engines are all narrow, and almost every AI you meet today is too. Broad AI, IBM's term for the middle of the spectrum, integrates several narrow components into one business process trained on an organisation's own data. A self-driving car, for instance, combines vision, route-planning and decision-making into one integrated system. General AI would reason and transfer knowledge across any domain the way a human does, but it does not exist yet; it remains a long-term research goal. Both Narrow AI and Broad AI are available right now."
             }
         ],
         "learning_objectives": [
@@ -260,17 +260,17 @@ LOCATIONS = {
         "icon": "⏳",
         "tagline": "Where the story of thinking machines is kept",
         "topic": "The Three Eras of Computing & the AI Winters",
-        "description": "A long hall of clocks, star-charts and dust-jacketed ledgers, where a single luminous timeline runs from wall to wall. Here the history of AI is recorded — three great eras, two long winters, and the milestones that thawed them. Travel the timeline era by era, and watch how humanity arrived at the age of intelligent machines.",
+        "description": "A long hall of clocks, star-charts and dust-jacketed ledgers, where a single luminous timeline runs from wall to wall. Here the history of AI is recorded. Three great eras, two long winters, and the milestones that thawed them. Travel the timeline era by era, and watch how humanity arrived at the age of intelligent machines.",
         "order": 2,
         "stub": False,
         "accent": "#c1824a",
         "theme": "timeline",
         "interaction": "timeline",
-        "guide_intro": "Every discovery has a history, explorer — and AI's is the richest of all. Walk the timeline with me: from machines that merely sorted, to the two long winters, to the day a machine outplayed the world's finest mind.",
+        "guide_intro": "Every discovery has a history, explorer, and AI's is the richest of all. Walk the timeline with me: from machines that merely sorted, to the two long winters, to the day a machine outplayed the world's finest mind.",
         "atlas_steps": [
-            "Welcome to the Chronicle, explorer. I am Professor Atlas. Before us stretches the timeline of thinking machines — six eras, each a lantern waiting to be lit.",
+            "Welcome to the Chronicle, explorer. I am Professor Atlas. Before us stretches the timeline of thinking machines. Six eras, each a lantern waiting to be lit.",
             "Travel left to right through time. Click the glowing era to study its story; answer its quick-check and the era lights, drawing the timeline forward to the next.",
-            "Light all six eras to unlock the Trial — four questions, score 3 of 4 to journey on. Tap the owl if you need me. Now… let us begin at the beginning.",
+            "Light all six eras to unlock the Trial. Four questions; score 3 of 4 to journey on. Tap the owl if you need me. Now… let us begin at the beginning.",
         ],
         # The 6 timeline era-beats (taught content + an ungraded quick-check each).
         # Facts checked against the IBM course: Dartmouth 1956 (McCarthy & Minsky),
@@ -280,7 +280,7 @@ LOCATIONS = {
             {
                 "title": "The Era of Tabulation",
                 "era": "ANTIQUITY – 1930s",
-                "text": "For centuries, people drowned in numbers they could not read. The first breakthrough was not a thinking machine but a sorting one — tabulating machines that organised raw data into structured tables so patterns could finally surface. This was the leap beyond mere counting: from a heap of figures to a sum that revealed insight. Data had begun to speak, if only in a whisper.",
+                "text": "For centuries, people drowned in numbers they could not read. The first breakthrough was not a thinking machine but a sorting one, tabulating machines that organised raw data into structured tables so patterns could finally surface. This was the leap beyond mere counting: from a heap of figures to a sum that revealed insight. Data had begun to speak, if only in a whisper.",
                 "keywords": ["tabulation", "sorting", "structured data", "tables", "counting"],
                 "check": {
                     "q": "What was the key idea of the Era of Tabulation?",
@@ -291,7 +291,7 @@ LOCATIONS = {
             {
                 "title": "The Era of Programming",
                 "era": "1940s – 1950s",
-                "text": "In the 1940s came machines that could follow many instructions — programs. ENIAC, built at the University of Pennsylvania, computed wartime artillery firing tables and ran an early thermonuclear feasibility study. Programmable computers later guided astronauts to the Moon, and were reprogrammed mid-crisis to bring Apollo 13 safely home. Yet the world soon generated more data than any program could ever process — the dark-data problem was born, and it would outgrow even the fastest supercomputer.",
+                "text": "In the 1940s came machines that could follow many instructions (programs). ENIAC, built at the University of Pennsylvania, computed wartime artillery firing tables and ran an early thermonuclear feasibility study. Programmable computers later guided astronauts to the Moon, and were reprogrammed mid-crisis to bring Apollo 13 safely home. Yet the world soon generated more data than any program could ever process. The dark-data problem was born, and it would outgrow even the fastest supercomputer.",
                 "keywords": ["programming", "eniac", "apollo", "programs", "dark data"],
                 "check": {
                     "q": "Why couldn't programmable computers keep up in the end?",
@@ -300,9 +300,9 @@ LOCATIONS = {
                 },
             },
             {
-                "title": "The Dawn of AI — Dartmouth, 1956",
+                "title": "The Dawn of AI: Dartmouth, 1956",
                 "era": "1956",
-                "text": "In the summer of 1956, John McCarthy and Marvin Minsky gathered researchers at Dartmouth College and coined a new term: artificial intelligence. Their bold claim was that every feature of intelligence could be described so precisely that a machine could be made to simulate it. Early programs delivered on the promise — proving geometry theorems, conversing in simple English, and solving algebra word problems. Optimism soared.",
+                "text": "In the summer of 1956, John McCarthy and Marvin Minsky gathered researchers at Dartmouth College and coined a new term: artificial intelligence. Their bold claim was that every feature of intelligence could be described so precisely that a machine could be made to simulate it. Early programs delivered on the promise, proving geometry theorems, conversing in simple English, and solving algebra word problems. Optimism soared.",
                 "keywords": ["dartmouth", "mccarthy", "minsky", "1956", "coined"],
                 "check": {
                     "q": "What is the 1956 Dartmouth gathering remembered for?",
@@ -313,7 +313,7 @@ LOCATIONS = {
             {
                 "title": "The First Winter",
                 "era": "EARLY 1970s",
-                "text": "Optimism met hard walls. Two limits froze progress: limited calculating power — the machines were simply too slow — and limited information storage — they could not hold enough to reason about the real world. Grand promises went unmet, sponsors lost patience, and funding collapsed. The first AI Winter had begun.",
+                "text": "Optimism met hard walls. Two limits froze progress: limited calculating power (the machines were simply too slow) and limited information storage (they could not hold enough to reason about the real world). Grand promises went unmet, sponsors lost patience, and funding collapsed. The first AI Winter had begun.",
                 "keywords": ["first winter", "calculating power", "storage", "funding", "limits"],
                 "check": {
                     "q": "Which two limits caused the First Winter of AI?",
@@ -335,7 +335,7 @@ LOCATIONS = {
             {
                 "title": "The Thaw",
                 "era": "1997 – TODAY",
-                "text": "By the mid-1990s, processing power finally caught up with ambition. In 1997, IBM's Deep Blue — searching some 200 million chess positions per second — defeated the reigning world chess champion. In 2005, a Stanford robot drove 131 miles of unrehearsed desert road on its own. In 2011, IBM's Watson beat the champions of Jeopardy! The two Winters had ended, and AI has proven itself across fields ever since.",
+                "text": "By the mid-1990s, processing power finally caught up with ambition. In 1997, IBM's Deep Blue (searching some 200 million chess positions per second) defeated the reigning world chess champion. In 2005, a Stanford robot drove 131 miles of unrehearsed desert road on its own. In 2011, IBM's Watson beat the champions of Jeopardy! The two Winters had ended, and AI has proven itself across fields ever since.",
                 "keywords": ["thaw", "deep blue", "1997", "stanford", "watson", "2011"],
                 "check": {
                     "q": "Which IBM system defeated the world chess champion in 1997?",
@@ -359,29 +359,29 @@ LOCATIONS = {
         "icon": "🔬",
         "tagline": "Where theory becomes application",
         "topic": "The Three Eras of Computing and Data",
-        "description": "Banks of humming machines fill the room. Screens display cascading streams of data. This is where you discover how humanity arrived at the age of AI — the history of computing, the problem of dark data, and why AI was the only answer.",
+        "description": "Banks of humming machines fill the room. Screens display cascading streams of data. This is where you discover how humanity arrived at the age of AI, through the history of computing, the problem of dark data, and why AI was the only answer.",
         "order": 2,
         "stub": False,
         "accent": "#3fd0e0",
         "theme": "lab",
         "interaction": "terminal",
-        "guide_intro": "Mind the cables, explorer. In this lab, theory meets the world. Read on, and witness how machines learned to see, to listen, and to choose — and what we owe them in return.",
+        "guide_intro": "Mind the cables, explorer. In this lab, theory meets the world. Read on, and witness how machines learned to see, to listen, and to choose, and what we owe them in return.",
         "learn_cards": [
             {
                 "heading": "The Era of Tabulation",
-                "text": "People have analysed data for centuries. For centuries, humans struggled to understand the meaning hidden in large amounts of data. Early attempts involved manual counting and tabulation — organising numbers into tables by hand. This was slow, limited, and exhausting. The challenge of extracting meaning from vast amounts of data has always existed. Something had to change."
+                "text": "People have worked with data for a very long time. For centuries, humans struggled to understand the meaning hidden in large amounts of data. Early attempts involved manual counting and tabulation, organising numbers into tables by hand. This was slow, limited, and exhausting. The challenge of extracting meaning from vast amounts of data has always existed. Something had to change."
             },
             {
                 "heading": "The Era of Programming",
-                "text": "Data analysis changed in the 1940s. Scientists began building electronic computers like ENIAC at the University of Pennsylvania that could run more than one kind of instruction — what we now call programs. Programmable computers guided astronauts from Earth to the moon and were reprogrammed during Apollo 13 to bring astronauts safely home. But modern businesses and technology now generate so much data that even the finest programmable supercomputer cannot analyse it all before the heat-death of the universe. A new approach was needed."
+                "text": "Data analysis changed in the 1940s. Scientists began building electronic computers like ENIAC at the University of Pennsylvania that could run more than one kind of instruction (what we now call programs). Programmable computers guided astronauts from Earth to the moon and were reprogrammed during Apollo 13 to bring astronauts safely home. But modern businesses and technology now generate so much data that even the finest programmable supercomputer cannot analyse it all before the heat-death of the universe. A new approach was needed."
             },
             {
                 "heading": "The Era of AI",
-                "text": "In the summer of 1956, researchers led by John McCarthy and Marvin Minsky gathered at Dartmouth College and coined the term artificial intelligence. They proposed that every aspect of learning or any feature of intelligence can be described precisely enough for a machine to simulate it. After two AI winters — periods when funding collapsed and hundreds of companies shut down — breakthroughs arrived. IBM's Deep Blue beat the world chess champion in 1997. Watson defeated Jeopardy! champions in 2011. Today AI has proven its ability across fields from cancer research to energy production. The winters of AI are over."
+                "text": "In the summer of 1956, researchers led by John McCarthy and Marvin Minsky gathered at Dartmouth College and coined the term artificial intelligence. They proposed that every aspect of learning or any feature of intelligence can be described precisely enough for a machine to simulate it. After two AI winters (periods when funding collapsed and hundreds of companies shut down), breakthroughs arrived. IBM's Deep Blue beat the world chess champion in 1997. Watson defeated Jeopardy! champions in 2011. Today AI has proven its ability across fields from cancer research to energy production. The winters of AI are over."
             },
             {
                 "heading": "Structured, Semi-Structured, and Unstructured Data",
-                "text": "Data can be organised into three types. Structured data is highly organised and stored in rows and columns — spreadsheets of names, ages, dates and account balances, easily queried with SQL. Unstructured data has no built-in schema and is kept in its native form — emails, PDFs, contracts, images, audio, video, chat logs and social media posts. Semi-structured data is the bridge between the two: it carries tags, keys or metadata that make it machine-readable without a rigid schema — JSON, XML and CSV are the classic examples (a video with hashtags is another). An estimated 80–90% of enterprise data is unstructured, yet most reporting tools were built for the structured 10–20%, so company dashboards often cover only a thin slice — AI is what finally makes the unstructured majority usable. Beware of dark data too: information that is collected and stored but never used. Dark data can be any type — even perfectly tidy structured records count as dark if they sit unqueried — and studies suggest it is more than half of all enterprise data."
+                "text": "Data can be organised into three types. Structured data is highly organised and stored in rows and columns, such as spreadsheets of names, ages, dates and account balances, easily queried with SQL. Unstructured data has no built-in schema and is kept in its native form, such as emails, PDFs, contracts, images, audio, video, chat logs and social media posts. Semi-structured data is the bridge between the two: it carries tags, keys or metadata that make it machine-readable without a rigid schema. JSON, XML and CSV are the classic examples (a video with hashtags is another). An estimated 80–90% of enterprise data is unstructured, yet most reporting tools were built for the structured 10–20%, so company dashboards often cover only a thin slice. AI is what finally makes the unstructured majority usable. Beware of dark data too: information that is collected and stored but never used. Dark data can be any type (even perfectly tidy structured records count as dark if they sit unqueried), and studies suggest it is more than half of all enterprise data."
             }
         ],
         "learning_objectives": [
@@ -399,17 +399,17 @@ LOCATIONS = {
         "icon": "🔭",
         "tagline": "Where you look beyond the horizon",
         "topic": "Machine Learning",
-        "description": "A vast glass dome opens to a sky full of stars. Every constellation is a pattern waiting to be recognised. This is where you learn how machines actually learn — not through rules written by humans, but through data, probability, and the remarkable process of teaching a machine to think.",
+        "description": "A vast glass dome opens to a sky full of stars. Every constellation is a pattern waiting to be recognised. This is where you learn how machines actually learn, not through rules written by humans, but through data, probability, and the remarkable process of teaching a machine to think.",
         "order": 3,
         "stub": False,
         "accent": "#3ab8d8",
         "theme": "cosmos",
         "interaction": "constellation",
-        "guide_intro": "You have climbed high indeed. Beyond this glass lies the frontier — machines that create from pattern alone. Study closely, and learn to weigh their wonders against their flaws.",
+        "guide_intro": "You have climbed high indeed. Beyond this glass lies the frontier, machines that create from pattern alone. Study closely, and learn to weigh their wonders against their flaws.",
         "learn_cards": [
             {
                 "heading": "What is Machine Learning?",
-                "text": "Machine learning is the way AI solves the unstructured data problem. Traditional programmable computers are deterministic — they say yes or no based on pre-written rules. Machine learning is probabilistic — it never says yes or no. Instead it says something like I am 84% confident this is the fastest route. It constructs every possible answer and compares them in real time, including all changing variables. Most importantly, machine learning can predict outcomes and it can learn and improve by itself over time without being reprogrammed."
+                "text": "Machine learning is the way AI solves the unstructured data problem. Traditional programmable computers are deterministic. They say yes or no based on pre-written rules. Machine learning is probabilistic. It never says yes or no. Instead it says something like I am 84% confident this is the fastest route. It constructs every possible answer and compares them in real time, including all changing variables. Most importantly, machine learning can predict outcomes and it can learn and improve by itself over time without being reprogrammed."
             },
             {
                 "heading": "Supervised Learning",
@@ -417,11 +417,11 @@ LOCATIONS = {
             },
             {
                 "heading": "Unsupervised and Reinforcement Learning",
-                "text": "In unsupervised learning, a machine is fed a large amount of unlabelled data and asked to find patterns entirely by itself — no right or wrong answers are provided. A bank could feed customer financial data to an unsupervised algorithm and it would discover natural groupings of similar customers without being told what categories to create. Reinforcement learning works through trial and error. The algorithm learns by receiving positive rewards for correct predictions and penalties for incorrect ones. Over time its predictions grow more accurate automatically, without any human intervention."
+                "text": "In unsupervised learning, a machine is fed a large amount of unlabelled data and asked to find patterns entirely by itself. No right or wrong answers are provided. A bank could feed customer financial data to an unsupervised algorithm and it would discover natural groupings of similar customers without being told what categories to create. Reinforcement learning works through trial and error. The algorithm learns by receiving positive rewards for correct predictions and penalties for incorrect ones. Over time its predictions grow more accurate automatically, without any human intervention."
             },
             {
                 "heading": "The Three Levels of AI Revisited",
-                "text": "Now that you understand machine learning, the three levels of AI make deeper sense. Narrow AI specialises in one area — it can look up information it was trained on but cannot apply that knowledge elsewhere. Broad AI, available today, can structure vast amounts of unstructured data and find patterns to extend human expertise. General AI, expected perhaps 25 years from now, would be superintelligent — smarter than the best human brains in practically every field including scientific creativity, general wisdom, and social skills. It will give machines the ability to interact in genuinely human-like ways."
+                "text": "Now that you understand machine learning, the three levels of AI make deeper sense. Narrow AI specialises in one area. It can look up information it was trained on but cannot apply that knowledge elsewhere. Broad AI, available today, can structure vast amounts of unstructured data and find patterns to extend human expertise. General AI, expected perhaps 25 years from now, would be superintelligent, smarter than the best human brains in practically every field, including scientific creativity, general wisdom, and social skills. It will give machines the ability to interact in genuinely human-like ways."
             }
         ],
         "learning_objectives": [
@@ -455,10 +455,10 @@ QUIZZES = {
             "key": "lex_narrow", "kind": "matching", "concept_tag": "three_levels",
             "concept": "Narrow AI",
             "sid": "sc_a7", "correct": "sc_a7",
-            "scenario": "A spam filter that flags junk mail it has never seen before — yet it can do nothing else.",
-            "feedback_correct": "Narrow AI — built for one task and unable to step outside it, exactly like a spam filter.",
+            "scenario": "A spam filter that flags junk mail it has never seen before, yet it can do nothing else.",
+            "feedback_correct": "Narrow AI, built for one task and unable to step outside it, exactly like a spam filter.",
             "feedback_wrong": "This case is Narrow AI: built for one specific task (filtering spam) and unable to do anything else.",
-            "explanation": "Narrow AI is built for one specific task and can't generalise — spam filters, face-unlock and chess engines are all narrow.",
+            "explanation": "Narrow AI is built for one specific task and can't generalise. Spam filters, face-unlock and chess engines are all narrow.",
             "hint": "One job, done well, and nothing beyond it. Which level is locked to a single task?",
         },
         {
@@ -466,29 +466,29 @@ QUIZZES = {
             "concept": "Broad AI",
             "sid": "sc_b3", "correct": "sc_b3",
             "scenario": "A delivery company fuses its own vision, route-planning and scheduling systems into one integrated platform, trained on its own delivery data.",
-            "feedback_correct": "Broad AI — several narrow components integrated into one business process on the organisation's own data.",
+            "feedback_correct": "Broad AI, several narrow components integrated into one business process on the organisation's own data.",
             "feedback_wrong": "This case is Broad AI (IBM's term): several narrow systems integrated into one business process, trained on the organisation's own data.",
             "explanation": "Broad AI integrates several narrow components into one business process trained on an organisation's own data.",
-            "hint": "Several narrow systems combined into one business process on a company's own data — IBM's middle of the spectrum.",
+            "hint": "Several narrow systems combined into one business process on a company's own data, IBM's middle of the spectrum.",
         },
         {
             "key": "lex_general", "kind": "matching", "concept_tag": "three_levels",
             "concept": "General AI",
             "sid": "sc_c1", "correct": "sc_c1",
-            "scenario": "A machine that could take on any intellectual task a person can — which no one has built yet.",
-            "feedback_correct": "General AI — human-level across any domain, and it does not exist yet.",
-            "feedback_wrong": "This case is General AI: reasoning across any domain like a human. It remains a research goal — it doesn't exist yet.",
+            "scenario": "A machine that could take on any intellectual task a person can, which no one has built yet.",
+            "feedback_correct": "General AI, human-level across any domain, and it does not exist yet.",
+            "feedback_wrong": "This case is General AI: reasoning across any domain like a human. It remains a research goal; it doesn't exist yet.",
             "explanation": "General AI would reason and transfer knowledge across any domain like a human, but it does not exist yet.",
-            "hint": "Any task a human can do — but no one has built it. Which level is still a research goal?",
+            "hint": "Any task a human can do, but no one has built it. Which level is still a research goal?",
         },
         {
             "key": "lex_augmented", "kind": "matching", "concept_tag": "augmented_intelligence",
             "concept": "Augmented Intelligence",
             "sid": "sc_d9", "correct": "sc_d9",
             "scenario": "AI pre-screens loan applications and flags the risky ones, but a human officer makes the final decision.",
-            "feedback_correct": "Augmented intelligence — the AI assists, the human keeps the final call and the accountability.",
+            "feedback_correct": "Augmented intelligence, where the AI assists and the human keeps the final call and the accountability.",
             "feedback_wrong": "This case is augmented intelligence: the AI does the heavy lifting, but a human keeps the decision and the accountability.",
-            "explanation": "Augmented intelligence amplifies human judgement rather than replacing it — a human always keeps the final call.",
+            "explanation": "Augmented intelligence amplifies human judgement rather than replacing it; a human always keeps the final call.",
             "hint": "The AI flags, but a person decides. What do we call AI that assists rather than replaces?",
         },
         {
@@ -496,7 +496,7 @@ QUIZZES = {
             "concept": "Not AI at all",
             "sid": "sc_e5", "correct": "sc_e5",
             "scenario": "A thermostat that switches the heating on whenever the room drops below 18°C.",
-            "feedback_correct": "Not AI — it follows one fixed rule and never learns patterns from data.",
+            "feedback_correct": "Not AI. It follows one fixed rule and never learns patterns from data.",
             "feedback_wrong": "This case is not AI: it follows a single fixed rule (below 18°C → heat on) and learns nothing from data.",
             "explanation": "AI learns patterns from data to make predictions; a fixed if-then rule that never learns is not AI.",
             "hint": "The same fixed rule every time, with no learning from data. Is that AI at all?",
@@ -506,20 +506,20 @@ QUIZZES = {
             "concept": "Analysis (finding the pattern)",
             "sid": "sc_f2", "correct": "sc_f2",
             "scenario": "Combing through millions of past card transactions to surface the recurring pattern that marks fraud.",
-            "feedback_correct": "Analysis — examining large amounts of data to find the hidden pattern, the first of AI's two steps.",
-            "feedback_wrong": "This case is Analysis: AI examining large amounts of data to find a hidden pattern — before any prediction is made.",
+            "feedback_correct": "Analysis, examining large amounts of data to find the hidden pattern, the first of AI's two steps.",
+            "feedback_wrong": "This case is Analysis: AI examining large amounts of data to find a hidden pattern, before any prediction is made.",
             "explanation": "Analysis is AI's first step: examine large amounts of data to find hidden patterns.",
-            "hint": "Surfacing a hidden pattern from a mountain of data — which of AI's two steps is that?",
+            "hint": "Surfacing a hidden pattern from a mountain of data, which of AI's two steps is that?",
         },
         {
             "key": "lex_prediction", "kind": "matching", "concept_tag": "analysis_prediction",
             "concept": "Prediction (naming the outcome)",
             "sid": "sc_g8", "correct": "sc_g8",
             "scenario": "Forecasting how much rain will fall tomorrow from decades of weather records.",
-            "feedback_correct": "Prediction — using what was learned to name an outcome, AI's second step.",
-            "feedback_wrong": "This case is Prediction: AI's second step — using the learned pattern to predict an outcome (tomorrow's rainfall).",
+            "feedback_correct": "Prediction, using what was learned to name an outcome, AI's second step.",
+            "feedback_wrong": "This case is Prediction: AI's second step, using the learned pattern to predict an outcome (tomorrow's rainfall).",
             "explanation": "Prediction is AI's second step: based on the analysis, predict an outcome.",
-            "hint": "Naming tomorrow's outcome from past data — which of AI's two steps is that?",
+            "hint": "Naming tomorrow's outcome from past data, which of AI's two steps is that?",
         },
     ],
 
@@ -534,10 +534,10 @@ QUIZZES = {
                 "D": "The Industrial Revolution"
             },
             "correct": "B",
-            "feedback_correct": "Correct — tabulation was about sorting raw data into structure to reveal insight, long before machines could 'think'.",
-            "feedback_wrong": "Sorting raw data into structured tables to reveal insight is the hallmark of the Era of Tabulation — it came before programmable computers and before AI.",
-            "explanation": "The Era of Tabulation organised data into tables so patterns could surface — the leap beyond mere counting.",
-            "hint": "This era only organised data — it did not run programs or learn."
+            "feedback_correct": "Correct. Tabulation was about sorting raw data into structure to reveal insight, long before machines could 'think'.",
+            "feedback_wrong": "Sorting raw data into structured tables to reveal insight is the hallmark of the Era of Tabulation; it came before programmable computers and before AI.",
+            "explanation": "The Era of Tabulation organised data into tables so patterns could surface, the leap beyond mere counting.",
+            "hint": "This era only organised data; it did not run programs or learn."
         },
         {
             "key": "ch_s2",
@@ -549,7 +549,7 @@ QUIZZES = {
                 "D": "Tabulation → AI → Programming"
             },
             "correct": "C",
-            "feedback_correct": "Correct — first we sorted data (Tabulation), then we ran instructions (Programming), then machines began to learn (AI).",
+            "feedback_correct": "Correct. First we sorted data (Tabulation), then we ran instructions (Programming), then machines began to learn (AI).",
             "feedback_wrong": "The order runs Tabulation → Programming → AI: sort the data, then program instructions, then build machines that learn.",
             "explanation": "Tabulation (sorting) came first, then Programming (ENIAC, Apollo), then the Era of AI (Dartmouth 1956 onward).",
             "hint": "Start with the simplest capability (sorting) and end with the most advanced (learning)."
@@ -564,7 +564,7 @@ QUIZZES = {
                 "D": "The start of the First Winter"
             },
             "correct": "B",
-            "feedback_correct": "Correct — Dartmouth 1956 is where the term 'artificial intelligence' was coined.",
+            "feedback_correct": "Correct. Dartmouth 1956 is where the term 'artificial intelligence' was coined.",
             "feedback_wrong": "ENIAC was the 1940s; Deep Blue was 1997. The 1956 Dartmouth gathering is where the term 'artificial intelligence' itself was coined.",
             "explanation": "McCarthy and Minsky's Dartmouth workshop (1956) named the field and claimed intelligence could be described precisely enough for a machine to simulate it.",
             "hint": "This milestone gave the whole field its name."
@@ -579,10 +579,10 @@ QUIZZES = {
                 "D": "Computers were simply too expensive for labs to afford"
             },
             "correct": "A",
-            "feedback_correct": "Correct — machines were too slow (limited calculating power) and could not hold enough (limited storage).",
+            "feedback_correct": "Correct. Machines were too slow (limited calculating power) and could not hold enough (limited storage).",
             "feedback_wrong": "The First Winter came from two hard technical limits: limited calculating power (too slow) and limited information storage (too little memory to reason about the world).",
-            "explanation": "Early AI hit two walls — not enough compute and not enough storage — so promises went unmet and funding collapsed.",
-            "hint": "Both limits are about the machines themselves — speed and memory."
+            "explanation": "Early AI hit two walls (not enough compute and not enough storage), so promises went unmet and funding collapsed.",
+            "hint": "Both limits are about the machines themselves, speed and memory."
         },
         {
             "key": "ch_s5",
@@ -594,10 +594,10 @@ QUIZZES = {
                 "D": "The arrival of the internet and its flood of data"
             },
             "correct": "B",
-            "feedback_correct": "Correct — by the mid-1990s, processing power finally caught up with ambition, and the thaw began.",
-            "feedback_wrong": "The thaw came because processing power finally became fast enough for AI's ambitions — soon after, Deep Blue won at chess.",
+            "feedback_correct": "Correct. By the mid-1990s, processing power finally caught up with ambition, and the thaw began.",
+            "feedback_wrong": "The thaw came because processing power finally became fast enough for AI's ambitions. Soon after, Deep Blue won at chess.",
             "explanation": "The Second Winter ended when hardware caught up: fast enough processing made the old ambitions achievable (Deep Blue, 1997).",
-            "hint": "Think about what the machines had been lacking all along — raw speed."
+            "hint": "Think about what the machines had been lacking all along, raw speed."
         },
         {
             "key": "ch_s6",
@@ -609,7 +609,7 @@ QUIZZES = {
                 "D": "The Stanford self-driving robot"
             },
             "correct": "C",
-            "feedback_correct": "Correct — Deep Blue beat the world chess champion in 1997. (Watson won Jeopardy! in 2011.)",
+            "feedback_correct": "Correct. Deep Blue beat the world chess champion in 1997. (Watson won Jeopardy! in 2011.)",
             "feedback_wrong": "Watson won Jeopardy! in 2011 and ENIAC was a 1940s calculator. The chess victory of 1997 belonged to IBM's Deep Blue.",
             "explanation": "Deep Blue's 1997 chess win was a landmark of the thaw; Watson's Jeopardy! win followed in 2011.",
             "hint": "It played chess, not Jeopardy!."
@@ -627,12 +627,12 @@ QUIZZES = {
             "key": "chr_order_eras",
             "kind": "order",
             "concept": "eras_and_winters",
-            "question": "The archive's timeline has been corrupted. Restore these events to their true chronological order — earliest at the top.",
+            "question": "The archive's timeline has been corrupted. Restore these events to their true chronological order, earliest at the top.",
             "events": [
-                {"id": "ev_tabulation", "label": "The Era of Tabulation — sorting raw data into tables"},
-                {"id": "ev_programming", "label": "The Era of Programming — ENIAC runs stored instructions (1940s)"},
+                {"id": "ev_tabulation", "label": "The Era of Tabulation, sorting raw data into tables"},
+                {"id": "ev_programming", "label": "The Era of Programming, ENIAC runs stored instructions (1940s)"},
                 {"id": "ev_dartmouth", "label": "Dartmouth coins the term “artificial intelligence” (1956)"},
-                {"id": "ev_first_winter", "label": "The First AI Winter — funding collapses (1970s)"},
+                {"id": "ev_first_winter", "label": "The First AI Winter, funding collapses (1970s)"},
                 {"id": "ev_deep_blue", "label": "Deep Blue defeats the world chess champion (1997)"},
             ],
             "feedback_correct": "Restored. Tabulation gave way to Programming, then Dartmouth named the field in 1956; the First Winter froze it in the 1970s, and Deep Blue marked the thaw in 1997.",
@@ -644,7 +644,7 @@ QUIZZES = {
             "key": "chr_order_winter",
             "kind": "order",
             "concept": "eras_and_winters",
-            "question": "Reassemble the causal chain that led to an AI Winter — the first cause at the top.",
+            "question": "Reassemble the causal chain that led to an AI Winter, the first cause at the top.",
             "events": [
                 {"id": "ev_boom", "label": "Expert systems boom on million-dollar mainframes"},
                 {"id": "ev_pcs", "label": "Cheaper personal computers outpace those mainframes"},
@@ -670,79 +670,79 @@ QUIZZES = {
     "ai_lab": [
         {"key": "lab_o1", "kind": "sort", "concept": "data_types", "icon": "📊", "correct": "structured",
          "question": "A spreadsheet of customer names, ages and account balances in fixed columns",
-         "feedback_correct": "Structured — fixed fields in labelled columns, easily queried with SQL.",
+         "feedback_correct": "Structured. Fixed fields in labelled columns, easily queried with SQL.",
          "feedback_wrong": "This is STRUCTURED data: predefined columns (name, age, balance) that fit neat rows and are SQL-queryable.",
          "explanation": "Rows-and-columns with a fixed schema is the definition of structured data.",
          "hint": "It fits neat labelled rows and columns you could query with SQL."},
         {"key": "lab_o2", "kind": "sort", "concept": "data_types", "icon": "📈", "correct": "structured",
          "question": "A relational table of daily stock prices, one row per date",
-         "feedback_correct": "Structured — a fixed table schema, one row per date.",
+         "feedback_correct": "Structured. A fixed table schema, one row per date.",
          "feedback_wrong": "This is STRUCTURED data: a rigid table with one row per date and fixed columns.",
          "explanation": "A relational table with a fixed schema is structured data.",
-         "hint": "One row per date, fixed columns — what kind of data has a rigid table schema?"},
+         "hint": "One row per date, fixed columns. What kind of data has a rigid table schema?"},
         {"key": "lab_o3", "kind": "sort", "concept": "data_types", "icon": "🗃️", "correct": "structured",
          "question": "A payroll database with fixed fields for employee ID, salary and start date",
-         "feedback_correct": "Structured — predefined fields in a rigid schema.",
+         "feedback_correct": "Structured. Predefined fields in a rigid schema.",
          "feedback_wrong": "This is STRUCTURED data: fixed fields (ID, salary, start date) in a rigid, queryable schema.",
          "explanation": "Fixed, predefined fields in a database are structured data.",
-         "hint": "Predefined fields in a rigid schema — structured, semi or unstructured?"},
+         "hint": "Predefined fields in a rigid schema. Structured, semi or unstructured?"},
 
         {"key": "lab_o4", "kind": "sort", "concept": "data_types", "icon": "🏷️", "correct": "semi",
          "question": "A stream of JSON API logs, each tagged with keys but no fixed table schema",
-         "feedback_correct": "Semi-structured — tags and keys give partial order without a rigid table.",
+         "feedback_correct": "Semi-structured. Tags and keys give partial order without a rigid table.",
          "feedback_wrong": "This is SEMI-STRUCTURED data: JSON carries keys/tags that make it machine-readable without a fixed table schema.",
-         "explanation": "Tags/keys without a rigid schema (JSON, XML) is semi-structured — the bridge between structured and unstructured.",
+         "explanation": "Tags/keys without a rigid schema (JSON, XML) is semi-structured, the bridge between structured and unstructured.",
          "hint": "It has keys and tags but no rigid table. What sits between structured and unstructured?"},
         {"key": "lab_o5", "kind": "sort", "concept": "data_types", "icon": "🔖", "correct": "semi",
          "question": "An XML product feed where every entry carries its own descriptive tags",
-         "feedback_correct": "Semi-structured — XML tags give partial structure without a rigid schema.",
+         "feedback_correct": "Semi-structured. XML tags give partial structure without a rigid schema.",
          "feedback_wrong": "This is SEMI-STRUCTURED data: XML tags give partial organisation without a fixed table schema.",
          "explanation": "XML with self-describing tags is a classic semi-structured format.",
-         "hint": "Self-describing tags, but no fixed table — which category is that?"},
+         "hint": "Self-describing tags, but no fixed table. Which category is that?"},
         {"key": "lab_o6", "kind": "sort", "concept": "data_types", "icon": "📟", "correct": "semi",
          "question": "Sensor readings streamed as key–value pairs with no rigid table schema",
-         "feedback_correct": "Semi-structured — key–value pairs are machine-readable without a fixed schema.",
+         "feedback_correct": "Semi-structured. Key–value pairs are machine-readable without a fixed schema.",
          "feedback_wrong": "This is SEMI-STRUCTURED data: key–value pairs carry partial structure without a rigid table.",
          "explanation": "Key–value pairs with no fixed schema are semi-structured.",
-         "hint": "Key–value pairs, no rigid table — between structured and unstructured."},
+         "hint": "Key–value pairs, no rigid table. Between structured and unstructured."},
 
         {"key": "lab_o7", "kind": "sort", "concept": "data_types", "icon": "📧", "correct": "unstructured",
          "question": "Customer support emails and call recordings the support team works through daily",
-         "feedback_correct": "Unstructured — free-text and audio with no rows-and-columns schema.",
+         "feedback_correct": "Unstructured. Free-text and audio with no rows-and-columns schema.",
          "feedback_wrong": "This is UNSTRUCTURED data: emails and audio have no fixed schema (and the team actively uses them, so it isn't dark data).",
          "explanation": "Native-format text and audio with no schema is unstructured; it's in active use, so not dark.",
-         "hint": "Free-text and audio, no schema — and it's actively used. Which category?"},
+         "hint": "Free-text and audio, no schema, and it's actively used. Which category?"},
         {"key": "lab_o8", "kind": "sort", "concept": "data_types", "icon": "🖼️", "correct": "unstructured",
          "question": "The photo library of product images the marketing team publishes each week",
-         "feedback_correct": "Unstructured — images have no schema; and they're actively used, so not dark.",
+         "feedback_correct": "Unstructured. Images have no schema, and they're actively used, so not dark.",
          "feedback_wrong": "This is UNSTRUCTURED data: images have no rows-and-columns schema, and they're actively published (so not dark data).",
-         "explanation": "Images in native form have no schema — unstructured; actively used, so not dark.",
-         "hint": "Images with no schema, published weekly — which category (and it's not dark)?"},
+         "explanation": "Images in native form have no schema, so unstructured; actively used, so not dark.",
+         "hint": "Images with no schema, published weekly. Which category (and it's not dark)?"},
         {"key": "lab_o9", "kind": "sort", "concept": "data_types", "icon": "🎙️", "correct": "unstructured",
          "question": "Voicemail messages the call centre transcribes and acts on every day",
-         "feedback_correct": "Unstructured — raw audio with no schema; and it's used daily, so not dark.",
+         "feedback_correct": "Unstructured. Raw audio with no schema, and it's used daily, so not dark.",
          "feedback_wrong": "This is UNSTRUCTURED data: audio has no schema, and it's transcribed daily (so not dark data).",
-         "explanation": "Raw audio has no schema — unstructured; used daily, so not dark.",
-         "hint": "Raw audio, no schema, used every day — which category?"},
+         "explanation": "Raw audio has no schema, so unstructured; used daily, so not dark.",
+         "hint": "Raw audio, no schema, used every day. Which category?"},
 
         {"key": "lab_o10", "kind": "sort", "concept": "data_types", "icon": "📹", "correct": "dark",
          "question": "Six years of CCTV footage that no one has ever reviewed",
-         "feedback_correct": "Dark data — collected and stored, but never used. That's what makes it dark.",
-         "feedback_wrong": "This is DARK DATA: the defining trait is that it's collected but NEVER used or reviewed — regardless of its format.",
-         "explanation": "Dark data is information collected and stored but never used — here, footage nobody has reviewed.",
+         "feedback_correct": "Dark data. Collected and stored, but never used. That's what makes it dark.",
+         "feedback_wrong": "This is DARK DATA: the defining trait is that it's collected but NEVER used or reviewed, regardless of its format.",
+         "explanation": "Dark data is information collected and stored but never used. Here, footage nobody has reviewed.",
          "hint": "It's kept but NOBODY has ever looked at it. What do we call collected-but-unused data?"},
         {"key": "lab_o11", "kind": "sort", "concept": "data_types", "icon": "🗄️", "correct": "dark",
          "question": "Archived server logs the company keeps but never analyses",
-         "feedback_correct": "Dark data — stored but never analysed.",
-         "feedback_wrong": "This is DARK DATA: it's retained but never analysed — collected-but-unused is the signature of dark data.",
+         "feedback_correct": "Dark data. Stored but never analysed.",
+         "feedback_wrong": "This is DARK DATA: it's retained but never analysed. Collected-but-unused is the signature of dark data.",
          "explanation": "Kept but never analysed = dark data, whatever its underlying format.",
-         "hint": "Retained but never analysed — which category is defined by being unused?"},
+         "hint": "Retained but never analysed. Which category is defined by being unused?"},
         {"key": "lab_o12", "kind": "sort", "concept": "data_types", "icon": "💾", "correct": "dark",
          "question": "Old transaction records, neatly tabulated, sitting in a legacy system nobody queries",
-         "feedback_correct": "Dark data — even tidy, structured records are dark if they're never used.",
-         "feedback_wrong": "This is DARK DATA: though neatly structured, nobody queries it — dark data can be any type, including tidy tables.",
-         "explanation": "Dark data can be perfectly structured; what makes it dark is that it's never used — here, records nobody queries.",
-         "hint": "Tidy tables, but nobody queries them. Dark data can be any type — what defines it?"}
+         "feedback_correct": "Dark data. Even tidy, structured records are dark if they're never used.",
+         "feedback_wrong": "This is DARK DATA: though neatly structured, nobody queries it. Dark data can be any type, including tidy tables.",
+         "explanation": "Dark data can be perfectly structured; what makes it dark is that it's never used. Here, records nobody queries.",
+         "hint": "Tidy tables, but nobody queries them. Dark data can be any type. What defines it?"}
     ],
 
     "observatory": [
@@ -756,9 +756,9 @@ QUIZZES = {
                 "D": "Deterministic rule-based filtering"
             },
             "correct": "A",
-            "feedback_correct": "Right — labelled data with known answers is the hallmark of supervised learning.",
-            "feedback_wrong": "This is supervised learning — it trains on labelled examples (spam/not-spam) and learns to predict the label for new, unseen emails.",
-            "explanation": "Right — labelled data with known answers is the hallmark of supervised learning.",
+            "feedback_correct": "Right. Labelled data with known answers is the hallmark of supervised learning.",
+            "feedback_wrong": "This is supervised learning. It trains on labelled examples (spam/not-spam) and learns to predict the label for new, unseen emails.",
+            "explanation": "Right. Labelled data with known answers is the hallmark of supervised learning.",
             "hint": "The training data already carries the correct answers. Which method learns from labelled examples?"
         },
         {
@@ -771,10 +771,10 @@ QUIZZES = {
                 "D": "Sorting them with a fixed database query"
             },
             "correct": "B",
-            "feedback_correct": "Correct — with no predefined labels, the model discovers clusters on its own.",
-            "feedback_wrong": "This is unsupervised learning — it finds hidden structure in unlabelled data. Grouping viewers with no preset categories is a classic clustering (segmentation) task.",
-            "explanation": "Correct — with no predefined labels, the model discovers clusters on its own.",
-            "hint": "There are no predefined groups or labels — the model must find the patterns itself. Which method is that?"
+            "feedback_correct": "Correct. With no predefined labels, the model discovers clusters on its own.",
+            "feedback_wrong": "This is unsupervised learning. It finds hidden structure in unlabelled data. Grouping viewers with no preset categories is a classic clustering (segmentation) task.",
+            "explanation": "Correct. With no predefined labels, the model discovers clusters on its own.",
+            "hint": "There are no predefined groups or labels. The model must find the patterns itself. Which method is that?"
         },
         {
             "key": "obs_s3",
@@ -786,9 +786,9 @@ QUIZZES = {
                 "D": "Deterministic pre-programmed control"
             },
             "correct": "C",
-            "feedback_correct": "Yes — learning through rewards and feedback while interacting with an environment is reinforcement learning.",
-            "feedback_wrong": "This is reinforcement learning — an agent learns which actions maximise reward through trial and error, exactly like game-playing AIs and warehouse robots. There's no labelled answer key.",
-            "explanation": "Yes — learning through rewards and feedback while interacting with an environment is reinforcement learning.",
+            "feedback_correct": "Yes. Learning through rewards and feedback while interacting with an environment is reinforcement learning.",
+            "feedback_wrong": "This is reinforcement learning. An agent learns which actions maximise reward through trial and error, exactly like game-playing AIs and warehouse robots. There's no labelled answer key.",
+            "explanation": "Yes. Learning through rewards and feedback while interacting with an environment is reinforcement learning.",
             "hint": "The robot learns from rewards and penalties by trial and error. Which method uses feedback from an environment?"
         },
         {
@@ -801,24 +801,24 @@ QUIZZES = {
                 "D": "Deterministic systems"
             },
             "correct": "D",
-            "feedback_correct": "Right — same input, same output, no randomness. Ideal where predictability is critical.",
-            "feedback_wrong": "These are deterministic — they map the same input to the same output every time. That predictability is exactly what you want for braking or calculation.",
-            "explanation": "Right — same input, same output, no randomness. Ideal where predictability is critical.",
+            "feedback_correct": "Right. Same input, same output, no randomness. Ideal where predictability is critical.",
+            "feedback_wrong": "These are deterministic. They map the same input to the same output every time. That predictability is exactly what you want for braking or calculation.",
+            "explanation": "Right. Same input, same output, no randomness. Ideal where predictability is critical.",
             "hint": "Same input, same output, every single time. Is that predictable behaviour deterministic or probabilistic?"
         },
         {
             "key": "obs_s5",
             "question": "A medical AI outputs \"78% likelihood this scan shows a tumour\" instead of a flat yes/no. What kind of system is this, and why is it useful?",
             "options": {
-                "A": "Probabilistic — it expresses confidence/uncertainty, helping doctors prioritise",
-                "B": "Deterministic — it's always exact",
+                "A": "Probabilistic, it expresses confidence/uncertainty, helping doctors prioritise",
+                "B": "Deterministic, it's always exact",
                 "C": "A rule-based system following fixed medical guidelines",
                 "D": "An overfitted model that is just guessing"
             },
             "correct": "A",
-            "feedback_correct": "Exactly — a confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
-            "feedback_wrong": "This is probabilistic — it expresses outputs as likelihoods. A \"78% likelihood\" helps a doctor prioritise and handle uncertainty, which is far safer in medicine than false certainty.",
-            "explanation": "Exactly — a confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
+            "feedback_correct": "Exactly. A confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
+            "feedback_wrong": "This is probabilistic. It expresses outputs as likelihoods. A \"78% likelihood\" helps a doctor prioritise and handle uncertainty, which is far safer in medicine than false certainty.",
+            "explanation": "Exactly. A confidence score lets a clinician weigh uncertainty rather than trust a false black-and-white answer.",
             "hint": "The output is a confidence percentage, not a flat yes/no. Which kind of system expresses likelihoods?"
         },
         {
@@ -1138,7 +1138,7 @@ import random as _random
 # Atmospheric decoy books that fill the Library shelves (no real content).
 DECOY_TITLES = [
     "On the Nature of Numbers", "Forgotten Algorithms", "A History of Machines",
-    "The Cartographer's Atlas", "Whispers of Logic", "Codex of the Ancients",
+    "The Cartographer's Atlas", "Whispers of Logic", "The Codex of Hidden Patterns",
     "Theories Long Abandoned", "The Astronomer's Folly", "Mechanical Dreams",
     "Letters to a Young Scholar", "The Glass Bestiary", "Maps of Forgotten Lands",
     "Principles of Steam", "The Alchemist's Ledger", "Songs of the Deep Archive",
@@ -1276,87 +1276,112 @@ def grade_quiz(location_key, submitted_answers, shown_keys=None):
 # Hooks must never reveal a Trial answer — they prime curiosity, nothing more.
 HOOKS = {
     "library": [
-        {"question": "Before you open this tome — what do you think makes a machine “intelligent”?",
+        {"question": "Before you open this tome, what do you think makes a machine “intelligent”?",
          "options": ["Raw speed", "Learning from data & predicting", "A huge memory"],
-         "payoff": "Hold that thought — one of these is the real heart of it. Let's read on."},
-        {"question": "If an AI screens loans but a human makes the final call — who is really in charge?",
+         "payoff": "Hold that thought. One of these is the real heart of it. Let's read on.",
+         "insight": "A fair guess, but raw speed and memory alone are just a fast filing cabinet. What we mean by intelligence here is learning patterns from data and predicting from them, and that is where we begin."},
+        {"question": "If an AI screens loans but a human makes the final call, who is really in charge?",
          "options": ["The AI", "The human", "Neither"],
-         "payoff": "Keep your guess in mind — this balance of power has a name."},
+         "payoff": "Keep your guess in mind. This balance of power has a name.",
+         "insight": "You have spotted the tension. A machine can advise, but when a person keeps the final say and the responsibility, that partnership has a name, and it is the most responsible way we use AI today."},
         {"question": "At its core, AI really does just two things. Care to guess what they are?",
          "options": ["Store & delete", "Analyse & predict", "Type & print"],
-         "payoff": "Interesting — let's see if the two acts match what you pictured."},
+         "payoff": "Interesting. Let's see if the two acts match what you pictured.",
+         "insight": "Two acts, and you are right to look for them. Strip everything else away and an AI studies data to find a pattern, then predicts from it. Hold onto that pair as we read on."},
         {"question": "Which of these do you think is powered by AI prediction?",
-         "options": ["Spotting bank fraud", "Reading road signs", "Both — and more"],
-         "payoff": "Hold that thought — the reach might surprise you."},
+         "options": ["Spotting bank fraud", "Reading road signs", "Both, and more"],
+         "payoff": "Hold that thought. The reach might surprise you.",
+         "insight": "Tempting to pick just one. In truth AI prediction quietly runs through fraud checks, road signs and far more you never notice. Let me show you its reach."},
         {"question": "A program plays chess brilliantly but can do nothing else. What would you call that kind of AI?",
          "options": ["Narrow", "General", "Super"],
-         "payoff": "Note your instinct — the three levels are about to come into focus."},
+         "payoff": "Note your instinct. The three levels are about to come into focus.",
+         "insight": "Good instinct. A mind brilliant at one task and helpless at all others sits at the narrow end of a spectrum, and there are three levels in all. Let us place them."},
     ],
     "chronicle": [
         {"question": "Before any 'thinking' machine, what was the first useful thing machines did with data?",
          "options": ["Sorted it into tables", "Predicted the future", "Wrote their own programs"],
-         "payoff": "Hold that thought — the story begins with sorting, not thinking."},
+         "payoff": "Hold that thought. The story begins with sorting, not thinking.",
+         "insight": "Before machines could think, they could sort. The first breakthrough was tidying raw figures into tables so a pattern could surface, long before anything learned. That is where our timeline opens."},
         {"question": "What first let a single 1940s machine do many different jobs?",
          "options": ["Programs (instructions)", "More metal", "Sheer luck"],
-         "payoff": "Keep that in mind as we power up ENIAC."},
+         "payoff": "Keep that in mind as we power up ENIAC.",
+         "insight": "Not brute metal but instructions. Once a machine could follow a program, a single device could take on many jobs. Keep that in mind as ENIAC powers up."},
         {"question": "Guess the year the term “artificial intelligence” was first coined.",
          "options": ["1956", "1985", "2010"],
-         "payoff": "Hold that thought — it's older than most people expect."},
+         "payoff": "Hold that thought. It's older than most people expect.",
+         "insight": "Most place it far later than it truly is. The name was coined in a single summer of bold ambition that set the whole field in motion. Let us visit that room."},
         {"question": "Early AI stalled hard in the 1970s. What do you think held it back?",
          "options": ["Slow machines & tiny memory", "Too many rules", "No electricity"],
-         "payoff": "Keep your guess — the First Winter is closing in."},
+         "payoff": "Keep your guess. The First Winter is closing in.",
+         "insight": "You are circling the truth. The first freeze came from two hard limits in the machines themselves, and naming them explains why the winter fell. Feel the cold set in."},
         {"question": "Million-dollar 'expert' machines boomed in the 1980s. What toppled them?",
          "options": ["Cheap personal computers", "A new law", "Public boredom"],
-         "payoff": "Hold that thought — the second thaw and freeze are near."},
+         "payoff": "Hold that thought. The second thaw and freeze are near.",
+         "insight": "Follow the money. The mighty machines were not banned or forgotten; something far cheaper simply outran them. Watch the boom turn to bust."},
         {"question": "In 1997 a machine first beat the reigning world champion at which game?",
          "options": ["Chess", "Go", "Poker"],
-         "payoff": "Keep your guess — the Winters are about to end."},
+         "payoff": "Keep your guess. The Winters are about to end.",
+         "insight": "A famous first. In 1997 a machine faced the reigning champion of an ancient game of pure strategy and won, and that victory helped thaw the long winter."},
     ],
     "ai_lab": [
         {"question": "Before computers, how did people make sense of huge piles of numbers?",
          "options": ["By hand, in tables", "They simply couldn't", "With pocket calculators"],
-         "payoff": "Hold that thought — the story starts slower than you'd think."},
+         "payoff": "Hold that thought. The story starts slower than you'd think.",
+         "insight": "Slow, patient work. For centuries the only tool was the human hand, sorting numbers into tables one at a time. That struggle is where the story of data begins."},
         {"question": "What first let a single machine do many different jobs?",
          "options": ["More metal", "Programs (instructions)", "More electricity"],
-         "payoff": "Keep that in mind as we power up the 1940s."},
+         "payoff": "Keep that in mind as we power up the 1940s.",
+         "insight": "It was never about more metal. The leap came when a machine could follow instructions, a program, and so turn its hand to many tasks. Let us power up the 1940s."},
         {"question": "Guess the year the term “artificial intelligence” was first coined.",
          "options": ["1956", "1985", "2007"],
-         "payoff": "Hold that thought — it's older than most people expect."},
+         "payoff": "Hold that thought. It's older than most people expect.",
+         "insight": "Older than it feels. The field was named in one summer of ambition, decades before the tools could catch up. Keep that gap in mind."},
         {"question": "Guess: what fraction of a company's data do you think ever actually gets analysed?",
          "options": ["Almost all of it", "About half", "Only a small slice"],
-         "payoff": "Keep your guess — then let's sort some data and find out."},
+         "payoff": "Keep your guess, then let's sort some data and find out.",
+         "insight": "Brace yourself. Only a thin slice of what a company gathers is ever analysed; the rest sits untouched. Why that is, and what AI does with the pile, is what this lab uncovers."},
     ],
     "observatory": [
         {"question": "A calculator always says 7×8=56. A weather AI says “70% chance of rain.” What's the key difference?",
          "options": ["One is certain, one gives odds", "One is just faster", "No real difference"],
-         "payoff": "Hold that thought — certainty vs. confidence is the whole idea."},
+         "payoff": "Hold that thought. Certainty vs. confidence is the whole idea.",
+         "insight": "You have felt the difference. One machine is always certain; the other weighs the odds and states its confidence. That shift from certainty to probability is what machine learning relies on."},
         {"question": "To teach an AI to spot spam, what would you give it first?",
-         "options": ["Thousands of labelled examples", "Nothing — let it guess", "A written rulebook"],
-         "payoff": "Keep that in mind as we trace this star."},
+         "options": ["Thousands of labelled examples", "Nothing, let it guess", "A written rulebook"],
+         "payoff": "Keep that in mind as we trace this star.",
+         "insight": "Good thinking. To learn a task like spotting spam, a model first needs examples already marked with the right answer. That labelled data is what lets it learn. Watch how."},
         {"question": "Could a machine group similar customers together with NO labels telling it the groups?",
-         "options": ["Yes — it finds patterns itself", "No, impossible", "Only if a human helps"],
-         "payoff": "Hold that thought — pattern-finding without answers is next."},
+         "options": ["Yes, it finds patterns itself", "No, impossible", "Only if a human helps"],
+         "payoff": "Hold that thought. Pattern-finding without answers is next.",
+         "insight": "It can, and that surprises people. Given no labels at all, a model can still uncover natural groupings hiding in the data. That is the idea we trace next."},
         {"question": "How do you think a machine could learn chess with NO teacher and NO answer key?",
          "options": ["Reward good moves, penalise bad", "It simply can't", "Memorise every game ever played"],
-         "payoff": "Keep your guess — trial, reward and consequence await."},
+         "payoff": "Keep your guess. Trial, reward and consequence await.",
+         "insight": "Exactly the right instinct. With no answer key, a machine can still learn by trying, earning rewards for good moves and penalties for poor ones. Over many games it teaches itself."},
         {"question": "Which kind of AI actually exists and runs real businesses today?",
          "options": ["Narrow & Broad AI", "General AI", "Super AI"],
-         "payoff": "Hold that thought — let's map the big picture."},
+         "payoff": "Hold that thought. Let's map the big picture.",
+         "insight": "You are close. Some levels of AI already work quietly around you, while the most powerful remains only a goal. Which is which is what this star reveals."},
         {"question": "A model aces its practice data but flops on brand-new data. What went wrong?",
          "options": ["It memorised instead of learning", "It's simply perfect", "It needs less data"],
-         "payoff": "Keep your guess — this trap has a name."},
-        {"question": "How do machines make sense of messy human language — emails, speech, chat?",
+         "payoff": "Keep your guess. This trap has a name.",
+         "insight": "A classic trap. When a model shines on its practice data but stumbles on anything new, it has memorised rather than learned. This failing has a name worth knowing."},
+        {"question": "How do machines make sense of messy human language (emails, speech, chat)?",
          "options": ["Natural Language Processing", "They can't at all", "Only via spreadsheets"],
-         "payoff": "Hold that thought — language is the next frontier."},
-        {"question": "Your guide, Professor Atlas — what kind of AI do you think it is?",
+         "payoff": "Hold that thought. Language is the next frontier.",
+         "insight": "Yes, and it is harder than it sounds. Teaching a machine to read our emails, speech and chat is a whole field of its own. You are about to meet it by name."},
+        {"question": "Your guide, Professor Atlas, what kind of AI do you think it is?",
          "options": ["A large language model", "A human typing", "A search engine"],
-         "payoff": "Keep that in mind — the tutor IS the technology."},
+         "payoff": "Keep that in mind. The tutor IS the technology.",
+         "insight": "A fair question to ask of your guide. I am a model trained on vast amounts of text, predicting language rather than truly understanding it. Knowing what I am will change how you weigh my answers."},
         {"question": "An AI confidently states a fake 'fact'. What is that called?",
          "options": ["A hallucination", "A victory", "A calculation"],
-         "payoff": "Hold that thought — even Atlas can do this."},
+         "payoff": "Hold that thought. Even Atlas can do this.",
+         "insight": "Unsettling, is it not? Even a fluent, confident answer from a model can be flatly untrue, and that failing has a name. Yes, I can do it too."},
         {"question": "To steer an LLM, what helps most before your real question?",
          "options": ["A few example answers", "Asking louder", "Nothing at all"],
-         "payoff": "Keep your guess — prompting is a real skill."},
+         "payoff": "Keep your guess. Prompting is a real skill.",
+         "insight": "Shrewd. Show a model a few worked examples before your real request and it follows the pattern far better than asking cold. How you ask turns out to be a genuine skill."},
     ],
 }
 
