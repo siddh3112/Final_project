@@ -19,6 +19,13 @@
 
   // ONE constellation that builds star-by-star (in order). Ten concepts: the
   // five machine-learning stars, then a compact "Modern Language AI" arc.
+  //
+  // This array is the SINGLE SOURCE OF TRUTH for how many stars there are. Every
+  // counter, progress readout, intro line, and the "all discovered" check derives
+  // its total from CONSTELLATION_STARS.length rather than repeating the number.
+  // Adding or removing a star here updates all of them, and the completion sound
+  // still fires at the right moment; hardcoding a count anywhere would silently
+  // desynchronise the finale from the actual set.
   const CONSTELLATION_STARS = [
     { x: 9,  y: 62 },   // 1 — how ML learns/answers
     { x: 19, y: 42 },   // 2 — supervised

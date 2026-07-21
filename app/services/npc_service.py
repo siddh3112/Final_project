@@ -108,6 +108,13 @@ FALLBACK = (
 
 
 def _looks_like_answer_request(message):
+    """True if the learner is fishing for the answer rather than for understanding.
+
+    Deliberately errs towards catching too much: a wrongly-deflected question costs
+    the learner one Socratic nudge, whereas a missed one could hand over a Trial
+    answer. It runs before any LLM call so the no-answer rule holds even when the
+    model is switched on.
+    """
     text = message.lower()
     return any(re.search(p, text) for p in ANSWER_REQUEST_PATTERNS)
 

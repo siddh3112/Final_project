@@ -429,7 +429,10 @@
           if (inner) inner.removeEventListener("animationend", clearSpin);
         };
         if (inner) inner.addEventListener("animationend", clearSpin);
-        setTimeout(clearSpin, 1200);   // fail-safe if animationend does not fire
+        // Fail-safe if animationend never fires. MUST stay longer than the 5s
+        // earn animation, or the class is stripped mid-hold and the card snaps
+        // back to the front before the meaning can be read.
+        setTimeout(clearSpin, 6000);
       }
     }
     if (readEl) readEl.textContent = completed.size;

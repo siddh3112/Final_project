@@ -58,7 +58,7 @@ app/
   static/
     css/style.css           # ~3400+ lines, all theming/animation; canonical palette vars in :root
     js/                     # see section 9
-    images/ (images.jpeg map, atlas-glyph.svg), sounds/book-open.mp3
+    images/ (images.jpeg map), sounds/book-open.mp3
 instance/atlas_quest.db     # the SQLite database (auto-created; gitignored)
 final quiz/                 # design reference screenshots (not code)
 ```
@@ -129,7 +129,7 @@ Inline "quick check"/"check" questions inside locations are **learning gates onl
 - `lesson.js`, `reveal.js`, `onboarding.js`, `celebration.js` — paged lessons, scroll reveals, overlays, win celebration. `darkdata.js` — unused.
 
 ## 10. Professor Atlas (the AI tutor) — `app/services/npc_service.py`
-- Icon: a telescope-and-stars SVG glyph (`static/images/atlas-glyph.svg`) recoloured per location accent.
+- Icon: the owl glyph, rendered by the `.atlas-glyph` CSS class (`content: "🦉"`) and recoloured per location accent. (An earlier telescope-and-stars SVG was replaced by this and has been removed.)
 - `get_response(location, message, ollama_enabled, recent_mistakes, history)` → `(text, is_fallback)`.
 - If `ollama_enabled`: `_query_ollama()` POSTs to `…/api/chat` with `granite3.3:8b`. **RAG:** the location's `COURSE_KNOWLEDGE` is injected into a locked-down `SYSTEM_PROMPT` (answer ONLY from that content; if out of scope say the exact fallback line; never give quiz answers; stay in character; 2–4 sentences). Returns `is_fallback=False`.
 - **Adaptive tutoring (ZPD):** the route passes up to 5 recent **question STEMS the learner got wrong** (options/answers stripped — never leaks the answer) plus the **last 3 dialogue turns**; these are appended to the system prompt / message list to scaffold.

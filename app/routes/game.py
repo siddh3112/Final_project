@@ -346,6 +346,12 @@ TRIAL_TTL_SECONDS = 2 * 60 * 60
 
 
 def _attempt_keys(att):
+    """The question keys the server chose for this attempt.
+
+    Returns an empty list if the stored JSON is missing or malformed. Grading then
+    finds nothing to mark rather than raising, which fails closed: a corrupted row
+    cannot be turned into a pass.
+    """
     try:
         return json.loads(att.question_keys) or []
     except (TypeError, ValueError):
@@ -353,6 +359,10 @@ def _attempt_keys(att):
 
 
 def _attempt_answers(att):
+    """The answers already committed for this attempt, as {question_key: answer}.
+
+    Empty on malformed JSON, for the same fail-closed reason as _attempt_keys.
+    """
     try:
         return json.loads(att.answers_json) or {}
     except (TypeError, ValueError):
@@ -507,6 +517,23 @@ def trial(key):
 @game_bp.route("/location/<key>/submit", methods=["POST"])
 @login_required
 def submit_quiz(key):
+    """Grade one Trial submission and record it, unless it is a practice replay.
+
+    Two rules matter most here:
+
+    1. Grading is server-authoritative. The browser sends only an opaque attempt
+       id; the questions and the learner's committed answers come from the stored
+       TrialAttempt, so nothing the client sends can change what gets graded.
+
+    2. A Trial is recorded WRITE-ONCE. If this location has already been passed,
+       the submission is graded for feedback but nothing is written: no
+       QuizAttempt rows, no progress update, no attempt count. That keeps the
+       research data to genuine first encounters with each item, so a learner who
+       replays a passed Trial for practice cannot inflate their own accuracy or
+       attempt counts. Practice is still allowed, it simply does not count.
+
+    Everything below the practice guard is therefore the recorded path.
+    """
     loc = LOCATIONS.get(key)
     if loc is None or loc.get("stub", False):
         abort(404)
@@ -522,7 +549,11 @@ def submit_quiz(key):
         "game.location" if loc.get("interaction") == "terminal" else "game.trial",
         key=key,
     )
-    att, err = _load_trial_attempt(key, request.form.get("attempt_id", ""))
+    # The specific reason (invalid / submitted / expired) is deliberately discarded
+    # here: the learner gets one generic message either way, so a tamperer is not
+    # told which check they tripped. The reason IS surfaced on /answer, where it
+    # helps a legitimate client recover.
+    att, _ = _load_trial_attempt(key, request.form.get("attempt_id", ""))
     if att is None:
         flash("That Trial attempt has expired or was already submitted — here is a fresh Trial.", "warning")
         return redirect(fresh)
@@ -666,9 +697,22 @@ def submit_quiz(key):
 @game_bp.route("/location/<key>/reflect", methods=["POST"])
 @login_required
 def reflect(key):
-    """Save a post-Trial reflection (ungraded qualitative data). Submit saves the
-    learner's sentence; Skip saves an empty, skipped=True row (skip-rate is data).
-    Never affects scoring, progression, XP, or any existing measure."""
+    """Save a post-Trial reflection (ungraded qualitative data).
+
+    Submit saves the learner's sentence; Skip saves an empty row with skipped=True.
+    Skipped rows are kept deliberately: how often people decline to reflect is
+    itself a finding, and discarding them would leave no way to tell a skip apart
+    from never having been offered the prompt.
+
+    The reflection is optional by design. It is a generative-learning prompt, not a
+    measure, so forcing it would change what is being studied and would pressure
+    participants into writing. Nothing here affects scoring, progression, XP, or
+    any existing measure; the completion screen only asks the learner to make a
+    choice before the exit appears, and skipping is one click.
+
+    Only offered after a PASS, and only once per location, so a learner cannot be
+    prompted repeatedly for the same reflection.
+    """
     loc = LOCATIONS.get(key)
     prompt = REFLECTION_PROMPTS.get(key)
     if loc is None or prompt is None:

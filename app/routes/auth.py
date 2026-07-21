@@ -29,7 +29,14 @@ def _assign_condition():
     `return "game"` and un-comment the original allocation below. Nothing
     structural was removed."""
     return "game"
-    # ── Original balanced-random allocation (kept for easy restore) ──
+    # ── KEPT INTENTIONALLY, NOT DEAD CODE ──────────────────────────────────────
+    # This is the original balanced-random allocation for the two-group study. It
+    # is commented out rather than deleted so the split can be restored by hand in
+    # one step: delete the `return "game"` above and un-comment the block below.
+    # Please do not "tidy" this away; it is the documented revert path, and the
+    # CONDITIONS tuple, the `import random`, the template gates and the /npc/chat
+    # gate are all retained for the same reason.
+    # ───────────────────────────────────────────────────────────────────────────
     # game_n = User.query.filter_by(condition="game").count()
     # control_n = User.query.filter_by(condition="control").count()
     # if game_n < control_n:
@@ -58,6 +65,14 @@ def _reset_presentation_session():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    """Create a participant account and sign them straight in.
+
+    The study condition is assigned by the SERVER here (see _assign_condition) and
+    is never read from the form or the URL, so a participant cannot place
+    themselves in a group. Duplicate username or email is rejected before any row
+    is created, and the presentation session is reset on success so the new user
+    does not inherit the previous one's settings or one-time reveals.
+    """
     if current_user.is_authenticated:
         return redirect(url_for("game.hub"))
 
@@ -95,6 +110,14 @@ def register():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    """Sign in with either username or email.
+
+    The same generic "Invalid username or password" message is used whether the
+    account is missing or the password is wrong, so the form cannot be used to
+    discover which accounts exist. Settings and one-time reveals are reset on
+    success, so a shared browser never carries the previous participant's state
+    into this session.
+    """
     if current_user.is_authenticated:
         return redirect(url_for("game.hub"))
 

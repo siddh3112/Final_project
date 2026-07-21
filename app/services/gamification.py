@@ -11,7 +11,7 @@ Scoring (transparent + round numbers):
   - +30 XP per correct answer on the final assessment (if submitted)
 """
 
-from ..game_content import LOCATION_ORDER, LOCATIONS
+from ..game_content import LOCATION_ORDER
 from ..models import KnowledgeTest, LocationProgress
 
 XP_PER_CORRECT = 25
@@ -28,11 +28,27 @@ SAGE_RANK = "Atlas Sage"
 
 
 def _location_progress(user):
+    """All of this user's progress rows, keyed by location.
+
+    Fetched once and passed around so a single hub render does not re-query per
+    location.
+    """
     rows = LocationProgress.query.filter_by(user_id=user.id).all()
     return {r.location: r for r in rows}
 
 
 def compute_xp(user, progress=None):
+    """Total XP: best score per location, a bonus per location passed, plus the
+    Final Assessment.
+
+    XP is derived from stored progress every time rather than accumulated in a
+    column, so it can never drift out of step with the real scores and there is no
+    running total to corrupt. It is presentation only: XP, levels, and ranks never
+    feed back into grading or unlocking.
+
+    Scoring off `best_score` (not the latest attempt) means a weaker retry cannot
+    take XP away, which matches the rule that best_score only ever rises.
+    """
     progress = progress if progress is not None else _location_progress(user)
     xp = 0
     for key in LOCATION_ORDER:

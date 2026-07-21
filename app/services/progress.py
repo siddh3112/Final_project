@@ -14,11 +14,23 @@ from ..game_content import LOCATION_ORDER
 from ..models import GameSession, LocationProgress, db
 
 # Normal gated progression: each location unlocks only when the previous one is
-# passed. Set True to open every location regardless of progress (testing).
+# passed. Set True to open every location regardless of progress, which is handy
+# when testing a later realm without playing through the earlier ones.
+# DEV ONLY: this must be False for any real run or evaluation, otherwise the
+# unlock chain is bypassed and the progression data is meaningless. It affects
+# access only; it never makes a Trial pass or changes a score.
 UNLOCK_ALL = False
 
 
 def get_or_create_progress(user, location):
+    """Return this user's progress row for a location, creating it on first visit.
+
+    `unlocked_at` is stamped only if the location is actually unlocked now, so the
+    timestamp records when it genuinely opened rather than when the row happened to
+    be created. Creation races are expected (two requests can arrive together), so
+    the unique index is allowed to reject the loser and we re-read the winner's row
+    instead of failing the request.
+    """
     lp = LocationProgress.query.filter_by(user_id=user.id, location=location).first()
     if lp is None:
         unlocked = is_unlocked(user, location)
@@ -56,6 +68,11 @@ def is_unlocked(user, location):
 
 
 def all_passed(user):
+    """True only when every location in the chain has been passed.
+
+    This is the gate for the Final Assessment, so it deliberately requires all four
+    rather than a count: a missing progress row counts as not passed.
+    """
     for loc in LOCATION_ORDER:
         lp = LocationProgress.query.filter_by(user_id=user.id, location=loc).first()
         if not (lp and lp.passed):

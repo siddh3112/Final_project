@@ -112,7 +112,13 @@ def test_post_test_wellformed():
 # ── CONTENT VALIDITY: every tested concept is TAUGHT (no orphan) ─────────
 def test_post_test_concepts_are_a_subset_of_taught():
     """Assessment_Blueprint.md: the set of concepts the post-test measures must be
-    a SUBSET of the concepts the game teaches — no item tests untaught material."""
+    a SUBSET of the concepts the game teaches, so no item tests untaught material.
+
+    Deliberately a subset and not an equality. Teaching more than you assess is
+    fine and expected; assessing something you never taught is a content-validity
+    fault, because a wrong answer would then measure the gap in the game rather
+    than the learner's understanding. Only the orphan direction is an error.
+    """
     from app.game_content import TAUGHT_CONCEPTS
     tested = {q["concept"] for q in POST_TEST}
     taught = set(TAUGHT_CONCEPTS)

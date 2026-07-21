@@ -423,7 +423,6 @@ def _build_certificate_pdf(*, name, rank, score, total, badges_earned,
     from reportlab.pdfgen import canvas
 
     PURPLE = HexColor("#160a30")
-    PURPLE_LINE = HexColor("#3a2570")
     GOLD = HexColor("#f0c96b")
     GOLD_DIM = HexColor("#c9a24b")
     INK = HexColor("#ece8ff")

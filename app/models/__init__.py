@@ -16,6 +16,15 @@ db = SQLAlchemy()
 
 
 class User(UserMixin, db.Model):
+    """One study participant: login identity plus the few flags the study needs.
+
+    `condition` exists for the two-group design (game vs control). Every user is
+    currently assigned "game" by the server, so Professor Atlas is available to
+    everyone; the field and the gates that read it are kept so the split can be
+    restored in one line (see auth._assign_condition). It is always set server-side
+    and never from client input.
+    """
+
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -38,6 +47,15 @@ class User(UserMixin, db.Model):
 
 
 class GameSession(db.Model):
+    """One visit to a location: opened on arrival, closed when its Trial is
+    submitted (`ended_at`).
+
+    This gives time-on-location for the research log. It is purely observational
+    and never affects grading, scoring, or unlocking. A learner can have several
+    rows per location across attempts; the row with ended_at still NULL is the
+    current visit.
+    """
+
     __tablename__ = "game_sessions"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -48,6 +66,13 @@ class GameSession(db.Model):
 
 
 class NpcInteraction(db.Model):
+    """Research log of every Professor Atlas exchange, one row per turn.
+
+    Records what was asked, what came back, how long it took, and which engine
+    answered. Hints taken inside a Trial are logged here too, so hint-seeking can
+    be analysed alongside quiz_attempts.npc_consulted.
+    """
+
     __tablename__ = "npc_interactions"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -67,6 +92,18 @@ class NpcInteraction(db.Model):
 
 
 class QuizAttempt(db.Model):
+    """The primary learning measure: one row per graded question answered.
+
+    `attempt_number` separates a learner's first pass from later retries, so
+    first-attempt accuracy can be reported on its own. Only recorded attempts land
+    here: replaying a Trial you have already passed runs as practice and writes
+    nothing (see routes.game.submit_quiz), which keeps the measure free of repeat
+    exposure to the same item.
+
+    Distinct from `trial_attempts`, which is transient server-side grading state
+    rather than research data.
+    """
+
     __tablename__ = "quiz_attempts"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -129,6 +166,15 @@ class KnowledgeTest(db.Model):
 
 
 class LocationProgress(db.Model):
+    """Per-user, per-location mastery record, and the gate for progression.
+
+    `passed` is what unlocks the next location (see services.progress.is_unlocked),
+    `best_score` only ever rises, and `attempts_count` counts recorded attempts, so
+    practice replays of an already-passed Trial are excluded. The unique constraint
+    keeps exactly one row per user and location, so two concurrent first visits
+    cannot create duplicates.
+    """
+
     __tablename__ = "location_progress"
     __table_args__ = (
         db.UniqueConstraint("user_id", "location", name="ux_progress_user_location"),

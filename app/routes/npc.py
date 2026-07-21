@@ -14,7 +14,19 @@ npc_bp = Blueprint("npc", __name__, url_prefix="/npc")
 @npc_bp.route("/chat", methods=["POST"])
 @login_required
 def chat():
-    # Professor Atlas only exists for the game condition.
+    """Ask Professor Atlas. Returns his reply and logs the exchange as research data.
+
+    The checks below run in order and are all server-side, because the client
+    cannot be trusted to enforce any of them: condition, then a non-empty message,
+    then a real location, then that the learner has actually unlocked it. Only
+    after those does the request reach the tutor.
+
+    Every exchange is logged to npc_interactions with timing and the engine that
+    answered, so help-seeking can be analysed later. Nothing here touches grading.
+    """
+    # Professor Atlas only exists for the game condition. Currently every user is
+    # assigned "game", so this never fires; it is kept so the control group works
+    # immediately if the two-condition split is restored.
     if current_user.condition != "game":
         abort(403)
 

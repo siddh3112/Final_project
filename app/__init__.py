@@ -127,8 +127,14 @@ def create_app(config=None):
     app.register_blueprint(eval_bp)
 
     # Lightweight CSRF mitigation: browsers label cross-site requests with
-    # Sec-Fetch-Site — reject state-changing requests that arrive cross-site.
+    # Sec-Fetch-Site, so state-changing requests arriving cross-site are rejected.
     # Same-origin fetches/forms and non-browser clients (no header) pass.
+    #
+    # Chosen over per-form CSRF tokens because the app POSTs from many places,
+    # including fire-and-forget fetches, and threading a token through all of them
+    # invites a missed one. "Lightweight" is honest about the trade-off: a client
+    # that sends no Sec-Fetch-Site header is allowed through, so this raises the
+    # bar for a browser-based attack rather than closing it absolutely.
     @app.before_request
     def _reject_cross_site_writes():
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
@@ -140,6 +146,11 @@ def create_app(config=None):
     # While AUTH_DISABLED, transparently sign in a single shared "guest" user so
     # all the per-user logic (progress, sessions, quiz attempts) keeps working
     # without any login screen.
+    #
+    # DEV ONLY, for working on the interface without logging in each reload. It
+    # must stay off for any real run: every participant would share one user row,
+    # so progress and research data would be pooled onto the guest and the study
+    # data would be worthless.
     @app.before_request
     def _auto_guest_login():
         if not AUTH_DISABLED or request.endpoint == "static":
