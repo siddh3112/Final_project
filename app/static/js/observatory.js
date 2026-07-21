@@ -617,6 +617,19 @@
 
   // ───────────────────────── DISCOVERY ─────────────────────────
   const hintEl = document.getElementById("sky-hint");
+
+  // Once every star is mapped the "click the glowing star to begin" prompt is
+  // wrong, and simply hiding it left the finished map with no guidance at all.
+  // Clicking a discovered star already reopens it read-only (see doneHit /
+  // openPanel), so say so: it is the only thing left to do here besides the Trial.
+  function setRevisitHint() {
+    if (!hintEl) return;
+    hintEl.style.display = "";
+    hintEl.textContent =
+      "All " + CONSTELLATION_STARS.length + " concepts discovered. Click any star to read it again.";
+    hintEl.classList.add("sky-hint-revisit");
+  }
+
   const countEl = document.getElementById("obs-count");
   const totalEl = document.getElementById("obs-total");
   if (totalEl) totalEl.textContent = CONSTELLATION_STARS.length;  // "CONCEPT x / N DISCOVERED"
@@ -908,6 +921,7 @@
     soundUnlock();
     if (trialGate) trialGate.hidden = true;
     if (trialReady) trialReady.hidden = false;
+    setRevisitHint();   // the map is done: point at the re-read, not "begin"
     // sync pulse all
     brightenBoost = 0.6;
     const ov = document.getElementById("obs-unlock");
@@ -937,7 +951,10 @@
     ready = discoveredCount < N;        // the next star (if any) pulses / is clickable
     if (countEl) countEl.textContent = discoveredCount;
     if (progFill) progFill.style.width = (discoveredCount / N * 100) + "%";
-    const hint = document.getElementById("sky-hint"); if (hint) hint.style.display = "none";
+    // Mid-progress restore keeps the prompt out of the way; a COMPLETE map gets
+    // the re-read guidance instead of a blank space.
+    if (hintEl) hintEl.style.display = "none";
+    if (discoveredCount >= N) setRevisitHint();
     if (discoveredCount >= N) {
       // Whole constellation already mapped — restore the unlocked Trial end
       // state silently (no unlock cinematic / overlay replay).

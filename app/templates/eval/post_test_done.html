@@ -56,11 +56,14 @@
       </div>
     </div>
 
-    <!-- Personal-best celebration (silent — visual particles only). Not shown on
-         re-entry (a re-view isn't a new run). -->
-    {% if not is_review %}
-    <div class="rv-pb {{ 'is-best' if is_personal_best }}" id="rv-pb" hidden>
-      {% if is_personal_best %}
+    <!-- The run's leaderboard score. On a fresh run this is revealed by the
+         cinematic (showPB) and celebrates a new personal best. On re-entry there
+         is no new run to celebrate, so it renders straight away as a plain
+         statement of the standing rather than staying hidden. -->
+    <div class="rv-pb {{ 'is-best' if is_personal_best }}" id="rv-pb" {% if not is_review %}hidden{% endif %}>
+      {% if is_review %}
+      <div class="rv-pb-normal">Your best combined score <b>{{ personal_best or combined_score }}</b></div>
+      {% elif is_personal_best %}
       <div class="rv-pb-particles" id="rv-pb-particles" aria-hidden="true"></div>
       <div class="rv-pb-title">NEW PERSONAL BEST!</div>
       <div class="rv-pb-sub">Combined score <b>{{ combined_score }}</b></div>
@@ -68,12 +71,13 @@
       <div class="rv-pb-normal">This run <b>{{ combined_score }}</b> &middot; your best is <b>{{ personal_best }}</b></div>
       {% endif %}
     </div>
-    {% endif %}
 
     <!-- Actions — revealed at the end of the reveal sequence. The full
          per-question review lives on its own page (eval.review). -->
     <div class="rv-actions rv-actions-results" id="rv-actions" hidden>
       <a href="{{ url_for('game.hub') }}" class="btn-continue rv-return">Return to the Map <i class="bi bi-arrow-right ms-1"></i></a>
+      {# This run has just been scored, so the board is the natural next step. #}
+      <a href="{{ url_for('game.leaderboard') }}" class="rv-replay-ending rv-board-link"><i class="bi bi-trophy-fill me-1"></i>View the Leaderboard</a>
       <a href="{{ url_for('eval.review') }}" class="rv-replay-ending"><i class="bi bi-card-list me-1"></i>View your review</a>
       {% if passed %}
       <a href="{{ url_for('eval.certificate') }}" class="rv-replay-ending"><i class="bi bi-download me-1"></i>Download Certificate</a>

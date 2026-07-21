@@ -61,18 +61,43 @@
 
       <!-- ── Read-only sector review (revisit): reread the taught content, with no
            practice bench, no board, no grading, and nothing written. Built from the
-           AI Lab's learn cards so it always matches the taught sectors. ── -->
+           AI Lab's learn cards so it always matches the taught sectors.
+
+           One sector at a time rather than one long scroll. The learn cards map 1:1
+           onto the physical SECT-1..4 switches above the monitor, so the archive is
+           numbered the same way and the learner can jump straight to the sector they
+           want instead of hunting through the lot. ── -->
       <section class="term-review" id="term-review" hidden>
         <div class="term-bar">ATLAS-TERMINAL v2.3 | SECTOR ARCHIVE (READ-ONLY)</div>
         <hr class="term-hr" />
-        {% for c in loc.learn_cards %}
-        <article class="term-review-sector">
-          <h3 class="term-review-head">&gt; {{ c.heading }}</h3>
-          <p class="term-review-text">{{ c.text }}</p>
-        </article>
-        {% endfor %}
-        <div class="tm-actions">
+
+        <div class="tr-rail" id="tr-rail" role="tablist" aria-label="Sector archive">
+          {% for c in loc.learn_cards %}
+          <button type="button" class="tr-tab{{ ' is-active' if loop.first }}" role="tab"
+                  id="tr-tab-{{ loop.index0 }}" aria-controls="tr-panel-{{ loop.index0 }}"
+                  aria-selected="{{ 'true' if loop.first else 'false' }}">SECT-{{ loop.index }}</button>
+          {% endfor %}
+        </div>
+
+        <!-- The stage is the only scrolling part, and only if a sector runs long.
+             The monitor itself never changes shape. -->
+        <div class="tr-stage" id="tr-stage">
+          {% for c in loc.learn_cards %}
+          <article class="tr-panel" role="tabpanel" id="tr-panel-{{ loop.index0 }}"
+                   aria-labelledby="tr-tab-{{ loop.index0 }}" {% if not loop.first %}hidden{% endif %}>
+            <div class="tr-meta">&gt; SECTOR {{ loop.index }} OF {{ loc.learn_cards | length }}</div>
+            <h3 class="term-review-head">{{ c.heading }}</h3>
+            <p class="term-review-text">{{ c.text }}</p>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="tr-foot">
           <button type="button" class="term-mastered-btn tm-primary" id="term-review-back"><i class="bi bi-chevron-left me-1"></i> BACK</button>
+          <div class="tr-step">
+            <button type="button" class="term-mastered-btn" id="tr-prev">&lt; PREV</button>
+            <button type="button" class="term-mastered-btn" id="tr-next">NEXT &gt;</button>
+          </div>
         </div>
       </section>
 

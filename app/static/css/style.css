@@ -3190,16 +3190,55 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 .term-mastered-btn.tm-primary { background: rgba(138, 180, 212, 0.16); border-color: #8ab4d4; }
 .tm-note { margin-left: 0.5rem; font-size: 0.68rem; opacity: 0.7; text-transform: none; letter-spacing: 0; }
 
-/* Read-only sector archive (revisit): reread the taught content, nothing written. */
-.term-review {
-  font-family: 'Courier New', monospace; color: #cfe1ef; text-align: left;
-  max-width: 640px; margin: 0 auto; padding: 0.5rem 0.2rem 1rem;
-  max-height: 100%; overflow-y: auto;
+/* Read-only sector archive (revisit): reread the taught content, nothing written.
+   Absolutely positioned like .term-mastered so the archive can never stretch the
+   CRT. In normal flow its content pushed the monitor to nearly twice its designed
+   height and shoved the BACK button below the fold. Fixed rows + one scrolling
+   stage keeps the monitor its own shape and the controls always reachable. */
+.crt-screen .term-review {
+  position: absolute; inset: 0; z-index: 9; border-radius: 8px;
+  display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  padding: 1rem 1.5rem 1.1rem; text-align: left;
+  background: radial-gradient(circle at 50% 40%, rgba(12, 22, 34, 0.96), rgba(4, 8, 5, 0.98));
+  font-family: 'Courier New', monospace; color: #cfe1ef;
 }
-.term-review-sector { margin: 0 0 1.1rem; }
-.term-review-head { color: #8ab4d4; font-size: 0.92rem; letter-spacing: 0.03em; margin: 0 0 0.35rem; }
-.term-review-text { font-size: 0.82rem; line-height: 1.7; color: #b8ccdb; margin: 0; }
-.term-review .tm-actions { position: sticky; bottom: 0; padding-top: 0.6rem; }
+.crt-screen .term-review[hidden] { display: none; }
+
+/* Sector selector. Deliberately labelled SECT-n to match the lit switches sitting
+   above the monitor, so the archive reads as the same machine. */
+.tr-rail { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.7rem 0 0.9rem; }
+.tr-tab {
+  font-family: 'Courier New', monospace; font-size: 0.78rem; letter-spacing: 0.06em;
+  color: #7f9cb2; background: rgba(10, 18, 30, 0.7); cursor: pointer;
+  border: 1px solid rgba(138, 180, 212, 0.28); border-radius: 5px; padding: 0.4rem 0.85rem;
+  transition: color 0.16s, border-color 0.16s, background 0.16s;
+}
+.tr-tab:hover { color: #cfe1ef; border-color: rgba(138, 180, 212, 0.6); }
+.tr-tab.is-active {
+  color: #dff0ff; border-color: #8ab4d4; background: rgba(138, 180, 212, 0.18);
+  text-shadow: 0 0 8px rgba(138, 180, 212, 0.55);
+}
+
+/* The only scrollable region, and only when a sector runs long. */
+.tr-stage { min-height: 0; overflow-y: auto; padding-right: 0.4rem; }
+.tr-panel[hidden] { display: none; }
+.tr-meta { color: #6f8da0; font-size: 0.72rem; letter-spacing: 0.09em; margin-bottom: 0.4rem; }
+.term-review-head { color: #8ab4d4; font-size: 1.02rem; letter-spacing: 0.02em; margin: 0 0 0.6rem; }
+/* Larger than the old stacked view: one sector at a time can afford comfortable
+   type, which is the whole point of the archive. The measure is wide for body
+   text, but it is monospace on a wide CRT and it is what lets the longest sector
+   (data classification, ~1060 characters) land inside the screen instead of
+   scrolling. Longer sectors on a short viewport still scroll the stage, which is
+   contained and harmless. */
+.term-review-text { font-size: 0.92rem; line-height: 1.75; color: #c2d6e5; margin: 0; max-width: 92ch; }
+
+/* All footer controls sit on the LEFT. The Professor Atlas dock overlays the
+   right-hand side of the monitor, and PREV/NEXT ended up underneath it when the
+   footer was justified to the edges. */
+.tr-foot { display: flex; align-items: center; justify-content: flex-start; gap: 1.6rem; padding-top: 0.9rem; }
+.tr-step { display: flex; gap: 0.6rem; }
+.tr-step .term-mastered-btn[disabled] { opacity: 0.35; cursor: default; }
+.tr-step .term-mastered-btn[disabled]:hover { background: rgba(10, 18, 30, 0.7); border-color: rgba(138, 180, 212, 0.5); color: #cfe1ef; }
 /* "not recorded" note on the practice board. */
 .term-practice-note {
   font-family: 'Courier New', monospace; color: #c9b98f; font-size: 0.78rem;
@@ -3264,21 +3303,26 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 .term-btn-sm:hover { background: rgba(138,180,212,0.2); }
 .hint-box.term-note { margin-top: 0.6rem; color: #cfe1ef; font-family: 'Courier New', monospace; font-size: 0.8rem; background: #0c1622; border: 1px solid rgba(138,180,212,0.3); border-radius: 3px; padding: 0.55rem 0.7rem; }
 
-/* ── Professor Atlas — secondary CRT mini-monitor ── */
-.atlas-mini { position: fixed; right: 20px; bottom: 20px; z-index: 30; width: 244px; font-family: 'Courier New', monospace; }
-.mini-bezel { background: linear-gradient(160deg, #242424, #131313); border-radius: 12px; padding: 8px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px rgba(0,0,0,0.8), 0 12px 26px rgba(0,0,0,0.5); }
+/* ── Professor Atlas — secondary CRT mini-monitor ──
+   Sized down from 244px wide / 92px screen: it sat close enough to the main CRT
+   to compete with it. Every dimension here is scaled together so the little
+   monitor keeps its proportions rather than looking squashed. The chat panel it
+   opens is deliberately NOT shrunk, since that is where the learner actually
+   reads and types. */
+.atlas-mini { position: fixed; right: 20px; bottom: 20px; z-index: 30; width: 206px; font-family: 'Courier New', monospace; }
+.mini-bezel { background: linear-gradient(160deg, #242424, #131313); border-radius: 10px; padding: 7px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px rgba(0,0,0,0.8), 0 10px 22px rgba(0,0,0,0.5); }
 .mini-screen {
-  position: relative; border-radius: 6px; min-height: 92px; overflow: hidden; padding: 0.7rem;
+  position: relative; border-radius: 6px; min-height: 78px; overflow: hidden; padding: 0.6rem;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: radial-gradient(120% 120% at 50% 50%, #0a1622, #01060d);
   box-shadow: inset 0 0 24px rgba(0,0,0,0.6), 0 0 14px rgba(138,180,212,0.25); transition: min-height 0.2s;
 }
 .mini-screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(transparent 0, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px); }
-.atlas-mini .atlas-ascii { margin: 0; color: var(--accent, #8ab4d4); font-size: 0.85rem; line-height: 1.1; text-shadow: 0 0 8px rgba(138,180,212,0.6); }
-.mini-caption { color: #7aab8a; font-size: 0.55rem; letter-spacing: 0.1em; margin-top: 0.4rem; }
-.mini-launcher { display: flex; align-items: center; gap: 0.4rem; justify-content: center; width: 100%; margin-top: 6px; background: #0e1826; border: 1px solid var(--accent, #8ab4d4); color: var(--accent, #8ab4d4); font-family: 'Courier New', monospace; font-size: 0.64rem; padding: 0.42rem; border-radius: 6px; cursor: pointer; }
+.atlas-mini .atlas-ascii { margin: 0; color: var(--accent, #8ab4d4); font-size: 0.72rem; line-height: 1.1; text-shadow: 0 0 8px rgba(138,180,212,0.6); }
+.mini-caption { color: #7aab8a; font-size: 0.5rem; letter-spacing: 0.1em; margin-top: 0.35rem; }
+.mini-launcher { display: flex; align-items: center; gap: 0.35rem; justify-content: center; width: 100%; margin-top: 5px; background: #0e1826; border: 1px solid var(--accent, #8ab4d4); color: var(--accent, #8ab4d4); font-family: 'Courier New', monospace; font-size: 0.58rem; padding: 0.36rem; border-radius: 6px; cursor: pointer; }
 .mini-launcher:hover { background: rgba(138,180,212,0.12); }
-.mini-led { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, #8ab4d4); box-shadow: 0 0 8px var(--accent, #8ab4d4); animation: led-pulse 2s ease-in-out infinite; }
+.mini-led { width: 7px; height: 7px; border-radius: 50%; background: var(--accent, #8ab4d4); box-shadow: 0 0 8px var(--accent, #8ab4d4); animation: led-pulse 2s ease-in-out infinite; }
 /* Chat opens as a larger panel ABOVE the mini-monitor (not clipped inside it) */
 .atlas-mini .atlas-chat {
   position: absolute; bottom: calc(100% + 10px); right: 0; z-index: 3;
@@ -3306,7 +3350,7 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 @media (max-width: 620px) {
   .crt-monitor { padding: 12px; border-radius: 16px; }
   .sector-switches { gap: 1rem; }
-  .atlas-mini { width: 200px; right: 10px; bottom: 10px; }
+  .atlas-mini { width: 172px; right: 10px; bottom: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5995,9 +6039,12 @@ html.reduce-motion .tskin-star.current { animation: none; }
 .lex-line-g:hover .lex-line { stroke: #7a3f14; stroke-width: 3.2; }
 
 .lex-col { display: flex; flex-direction: column; gap: 0.55rem; position: relative; z-index: 1; }
-/* 4 concepts vs 6 slips: centre the shorter concept column against the taller slip
-   column so the board reads as balanced instead of top-heavy with dead space. */
-.lex-concepts { justify-content: center; }
+/* 4 concepts vs 6 slips. Centring the shorter column looked balanced but clustered
+   the concepts into the middle ~126px of a 376px board, so a line out to the top or
+   bottom slip had to climb ~224px diagonally across its neighbours: the "knot".
+   Spreading them over the same vertical span as the slips keeps each line short and
+   roughly level, which is what stops the ink from tangling. */
+.lex-concepts { justify-content: space-between; }
 .lex-card {
   position: relative; width: 100%; text-align: left; cursor: pointer;
   padding: 0.6rem 0.85rem; border-radius: 9px; color: #33230f;
@@ -6416,3 +6463,10 @@ html.reduce-motion .rc-dialog, html.reduce-motion .rc-backdrop { transition: non
   color: rgba(240, 232, 214, 0.55); text-transform: none; margin-left: 0.4rem;
   border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px; padding: 0.05rem 0.4rem; }
 .lb-runs-more { font-size: 0.72rem; color: rgba(240, 232, 214, 0.5); margin: 0.5rem 0 0; text-align: center; }
+
+/* The completed-map guidance ("click any star to read it again"). Calmer than the
+   in-progress prompt: it is an offer to revisit, not an instruction to act. */
+.sky-hint.sky-hint-revisit {
+  color: rgba(200, 224, 240, 0.72); font-style: normal; letter-spacing: 0.02em;
+  animation: none; opacity: 1;
+}

@@ -716,9 +716,48 @@
   const reviewBack = document.getElementById("term-review-back");
   const reviewSection = document.getElementById("term-review");
   const masteredSection = document.getElementById("term-mastered");
+  // One sector on screen at a time, picked from the SECT-1..4 rail. Everything here
+  // is presentation only: no answers, no scoring, and nothing sent to the server.
+  const revTabs = reviewSection ? Array.prototype.slice.call(reviewSection.querySelectorAll(".tr-tab")) : [];
+  const revPanels = reviewSection ? Array.prototype.slice.call(reviewSection.querySelectorAll(".tr-panel")) : [];
+  const revStage = document.getElementById("tr-stage");
+  const revPrev = document.getElementById("tr-prev");
+  const revNext = document.getElementById("tr-next");
+  let revIdx = 0;
+
+  function showSector(i) {
+    if (!revPanels.length) return;
+    revIdx = Math.max(0, Math.min(revPanels.length - 1, i));
+    revPanels.forEach(function (p, n) { p.hidden = n !== revIdx; });
+    revTabs.forEach(function (t, n) {
+      t.classList.toggle("is-active", n === revIdx);
+      t.setAttribute("aria-selected", n === revIdx ? "true" : "false");
+    });
+    // PREV/NEXT stop at the two ends rather than wrapping, so the learner can tell
+    // where the archive starts and stops.
+    if (revPrev) revPrev.disabled = revIdx === 0;
+    if (revNext) revNext.disabled = revIdx === revPanels.length - 1;
+    if (revStage) revStage.scrollTop = 0;      // a new sector always opens at its top
+  }
+
+  revTabs.forEach(function (t, n) {
+    t.addEventListener("click", function () { showSector(n); });
+    // Arrow keys walk the rail, which is what a tablist is expected to do.
+    t.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      const next = (n + (e.key === "ArrowRight" ? 1 : -1) + revTabs.length) % revTabs.length;
+      showSector(next);
+      revTabs[next].focus();
+    });
+  });
+  if (revPrev) revPrev.addEventListener("click", function () { showSector(revIdx - 1); });
+  if (revNext) revNext.addEventListener("click", function () { showSector(revIdx + 1); });
+
   if (reviewBtn && reviewSection) reviewBtn.addEventListener("click", function () {
     if (masteredSection) masteredSection.hidden = true;
     reviewSection.hidden = false;
+    showSector(0);                             // always reopen at the first sector
   });
   if (reviewBack && reviewSection) reviewBack.addEventListener("click", function () {
     reviewSection.hidden = true;
