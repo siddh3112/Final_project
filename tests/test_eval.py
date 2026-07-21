@@ -434,11 +434,14 @@ def test_run_records_chronicle_score_and_five_badges(client, user_factory, login
 
 
 def test_leaderboard_breakdown_includes_chronicle(client, user_factory, login, as_correct):
-    """The personal best-runs panel shows the Chronicle in the L·C·A·O line."""
+    """The personal best-runs list shows the Chronicle in the L·C·A·O line.
+
+    Lives on the full leaderboard page (it used to be a slide-in panel on the hub);
+    the assertion is unchanged, only the page it is read from."""
     import re
     u = user_factory(passed=ALL_LOCATIONS)
     login(u)
     client.post(SUBMIT, data=as_correct(8))          # records a run
-    body = client.get("/").get_data(as_text=True)    # hub renders the best-runs panel server-side
+    body = client.get("/leaderboard").get_data(as_text=True)
     assert re.search(r'lb-locs">L\d+ · C\d+ · A\d+ · O\d+', body), \
         "leaderboard breakdown must show all four: L (Library) · C (Chronicle) · A (AI Lab) · O (Observatory)"

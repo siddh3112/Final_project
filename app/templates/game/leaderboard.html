@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}The Leaderboard, Atlas Quest{% endblock %}
+{% block body_class %}leaderboard-body{% endblock %}
+
+{% block body %}
+<div class="lbp-screen">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <header class="lbp-header text-center">
+    <div class="lbp-crest" aria-hidden="true"><i class="bi bi-trophy-fill"></i></div>
+    <h1 class="lbp-title">The Leaderboard</h1>
+    <p class="lbp-tagline">Every explorer at their best run</p>
+  </header>
+
+  {# ── 1. How the score is actually made, stated honestly. Must stay true to
+        services/leaderboard.combined_score: Trial best_scores (8 each) + post-test
+        (10 each) + badges (12 each) + a capped speed bonus. Reflections and the
+        guess-first hooks contribute NOTHING and must never be implied to. ── #}
+  <div class="lb-howto lbp-howto">
+    Your score comes from how well you do on each location's Trial and on the Final
+    Assessment. Earned achievements and a small time bonus add to it. Reflections and
+    guess prompts are not scored. Replay the whole game any time to better your best run.
+  </div>
+
+  <div class="lbp-grid">
+
+    {# ── 2. Cross-player rankings: every player once, at their BEST run ── #}
+    <section class="lbp-col lbp-col-board">
+      <div class="lb-section-title">Best Runs, All Explorers</div>
+      {% if board %}
+      <table class="lbp-table">
+        <thead>
+          <tr>
+            <th class="lbp-th-rank">#</th>
+            <th class="lbp-th-name">Explorer</th>
+            <th class="lbp-th-run">Run</th>
+            <th class="lbp-th-post">Assessment</th>
+            <th class="lbp-th-score">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in board %}
+          {# Podium classes drive the gold/silver/bronze treatment; `is-you` is a
+             separate accent so it still reads when the viewer is also top three. #}
+          <tr class="lbp-row{{ ' is-you' if e.is_you }}{{ ' rank-' ~ e.rank if e.rank <= 3 }}">
+            <td class="lbp-rank">
+              {% if e.rank <= 3 %}<span class="lbp-medal">{{ e.rank }}</span>{% else %}{{ e.rank }}{% endif %}
+            </td>
+            <td class="lbp-name">{{ e.handle }}{% if e.is_you %} <span class="lb-you-tag">YOU</span>{% endif %}</td>
+            <td class="lbp-run">{{ e.run_number }}</td>
+            <td class="lbp-post">{{ e.post_test_score }}/{{ e.post_test_max }}</td>
+            <td class="lbp-score">{{ e.score }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="lb-empty"><p>No completed runs yet. Be the first to finish the journey.</p></div>
+      {% endif %}
+    </section>
+
+    <aside class="lbp-col lbp-col-side">
+
+      {# ── 3. Start a new run (only once the current run is finished) ── #}
+      {% if can_replay %}
+      <form method="post" action="{{ url_for('game.replay') }}" class="lb-replay-form" id="replay-form">
+        <button type="submit" class="lb-replay-btn" id="replay-btn">
+          <i class="bi bi-arrow-repeat me-1"></i> Start a New Run
+        </button>
+        <p class="lb-replay-note">
+          Replays the whole journey as run {{ current_run + 1 }}. Your past runs and your
+          original assessment record are kept; only a full playthrough scores.
+        </p>
+      </form>
+      {% endif %}
+
+      {# ── 4. This player's own runs ── #}
+      <div class="lb-section-title lb-section-own">
+        Your Best Runs
+        {% if runs_total and runs_total > runs|length %}
+        <span class="lb-runs-count">{{ runs|length }} of {{ runs_total }}</span>
+        {% endif %}
+      </div>
+      {% if runs %}
+      <div class="lb-stats">
+        <div class="lb-stat"><span class="lb-stat-label">Best Score</span><b>{{ run_stats.best_score }}</b></div>
+        <div class="lb-stat"><span class="lb-stat-label">Best Post-Test</span><b>{{ run_stats.best_post_test }}/10</b></div>
+        <div class="lb-stat"><span class="lb-stat-label">Fastest</span><b>{% if run_stats.fastest is not none %}{{ '%d:%02d'|format(run_stats.fastest // 60, run_stats.fastest % 60) }}{% else %}-{% endif %}</b></div>
+        <div class="lb-stat"><span class="lb-stat-label">Total Runs</span><b>{{ run_stats.total }}</b></div>
+      </div>
+
+      <ol class="lb-list">
+        {% for r in runs %}
+        <li class="lb-run {{ 'lb-best' if loop.first }}">
+          <span class="lb-pos">#{{ loop.index }}</span>
+          <div class="lb-run-main">
+            <div class="lb-run-top">
+              <span class="lb-combined">{{ r.display_score }}</span>
+              <span class="lb-post">{{ r.post_test_score }}/{{ r.post_test_max }}</span>
+              {% if loop.first %}<span class="lb-pb-tag">PERSONAL BEST</span>{% endif %}
+            </div>
+            <div class="lb-run-sub">
+              <span class="lb-locs">L{{ r.library_score }} · C{{ r.chronicle_score }} · A{{ r.ai_lab_score }} · O{{ r.observatory_score }}</span>
+              <span class="lb-badges"><i class="bi bi-award-fill"></i> {{ r.badges_count }}</span>
+              {% if r.time_spent_seconds is not none %}<span class="lb-time"><i class="bi bi-stopwatch"></i> {{ '%d:%02d'|format(r.time_spent_seconds // 60, r.time_spent_seconds % 60) }}</span>{% endif %}
+              <span class="lb-date">{{ r.created_at.strftime('%d %b %Y') }}</span>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ol>
+      {% if runs_total and runs_total > runs|length %}
+      <p class="lb-runs-more">Your strongest {{ runs|length }} runs, out of {{ runs_total }} completed.</p>
+      {% endif %}
+      {% else %}
+      <div class="lb-empty">
+        <div class="lb-empty-icon">🏔️</div>
+        <p>Complete the Final Ascent to record your first run.</p>
+      </div>
+      {% endif %}
+    </aside>
+
+  </div>
+</div>
+
+{% if can_replay %}
+{# Confirmation for starting a new run. It re-locks the whole journey, so the
+   learner is told exactly what changes and what is kept before committing.
+   Progressive enhancement: with JS off the form still submits normally. #}
+<div class="rc-backdrop" id="rc-backdrop" hidden></div>
+<div class="rc-dialog" id="rc-dialog" role="dialog" aria-modal="true"
+     aria-labelledby="rc-title" aria-describedby="rc-body" hidden>
+  <h2 class="rc-title" id="rc-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Start run {{ current_run + 1 }}?</h2>
+  <div class="rc-body" id="rc-body">
+    <p>All four locations will lock again and you will play the whole journey from the start.</p>
+    <ul class="rc-list">
+      <li><i class="bi bi-check-lg"></i> Your past runs stay on the leaderboard</li>
+      <li><i class="bi bi-check-lg"></i> Your original assessment record is kept, untouched</li>
+      <li><i class="bi bi-info-circle"></i> The new run only scores once you finish the whole game</li>
+    </ul>
+    <p class="rc-note">Your best score never goes down, so a weaker run cannot cost you your place.</p>
+  </div>
+  <div class="rc-actions">
+    <button type="button" class="rc-btn rc-cancel" id="rc-cancel">Not yet</button>
+    <button type="button" class="rc-btn rc-confirm" id="rc-confirm">
+      <i class="bi bi-arrow-repeat me-1"></i> Yes, start run {{ current_run + 1 }}
+    </button>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if can_replay %}
+<script src="{{ url_for('static', filename='js/replay-confirm.js') }}"></script>
+{% endif %}
+{% endblock %}

@@ -45,7 +45,7 @@ from ..services.achievements import (
     grant_new,
 )
 from ..services.gamification import gamification_summary
-from ..services.leaderboard import run_stats, user_runs
+from ..services.leaderboard import best_runs, run_stats, user_runs
 from ..services.progress import (
     all_passed,
     get_or_create_open_session,
@@ -161,9 +161,18 @@ def hub():
         hub_state=hub_state,
         new_achievement_keys=new_keys,
         new_achievements=new_achievements,
-        runs=user_runs(current_user),
-        run_stats=run_stats(current_user),
+        # The leaderboard moved to its own page (game.leaderboard), so the hub no
+        # longer builds board/run data it would not render.
     )
+
+
+def _current_run_finished(user):
+    """True when the run the learner is on has been completed and scored, which is
+    the only point at which starting a new run is offered."""
+    from ..models import RunHistory
+    return RunHistory.query.filter_by(
+        user_id=user.id, run_number=user.current_run or 1
+    ).first() is not None
 
 
 # Maps each location-completion badge to its location key.
@@ -645,6 +654,10 @@ def submit_quiz(key):
                 selected_answer=selected,
                 is_correct=bool(result_by_key.get(q["key"], {}).get("is_correct")),
                 attempt_number=attempt_number,
+                # Stamp the playthrough so run-1 research rows are trivially
+                # separable from replay rows. attempt_number stays monotonic
+                # across runs, so it remains valid on its own too.
+                run=current_user.current_run or 1,
                 npc_consulted=(q["key"] in consulted),
             )
         )
@@ -765,6 +778,116 @@ def reflect(key):
     )
     db.session.commit()
     return jsonify({"ok": True, "skipped": skipped})
+
+
+@game_bp.route("/display-name", methods=["POST"])
+@login_required
+def set_display_name():
+    """Change the player's public leaderboard name.
+
+    Deliberately NOT part of /prefs: prefs are presentation-only, live in the
+    session, and are wiped on every login, whereas the display name is a durable
+    User column. Same validator as registration, so the rules and the wording
+    stay in step. Returns 409 with a clear message when the name is taken, so the
+    settings panel can show it inline instead of failing.
+    """
+    from sqlalchemy.exc import IntegrityError
+    from ..services.handles import validate_display_name
+
+    data = request.get_json(silent=True) or {}
+    cleaned, error = validate_display_name(
+        data.get("display_name", ""), exclude_user_id=current_user.id
+    )
+    if error:
+        return jsonify({"ok": False, "error": error}), 409
+
+    current_user.display_name = cleaned
+    try:
+        db.session.commit()
+    except IntegrityError:
+        # Claimed between the check and the commit. Fail gracefully, never 500.
+        db.session.rollback()
+        return jsonify({
+            "ok": False,
+            "error": "That display name is already taken, please choose another.",
+        }), 409
+    return jsonify({"ok": True, "display_name": cleaned})
+
+
+@game_bp.route("/replay", methods=["POST"])
+@login_required
+def replay():
+    """Start a NEW run: re-lock the journey so the whole game can be played again.
+
+    What this does NOT do is the important part. It deletes nothing. Run 1's
+    KnowledgeTest (the research measure), every QuizAttempt, every past RunHistory
+    row, all reflections and achievements are left exactly as they are. A replay
+    is a fresh layer on top, not a reset of history.
+
+    What it changes is only the CURRENT-run progression state:
+      - current_run += 1
+      - each location: passed=False, best_score=0, stamped with the new run
+      - post_test_done=False, so the Final Assessment is reachable again
+
+    `attempts_count` is deliberately left alone. QuizAttempt.attempt_number is
+    derived from it, so resetting it would restart numbering and collide with the
+    research run's rows; keeping it monotonic preserves the attempt sequence.
+
+    Only offered once the current run is finished, so a learner cannot skip out of
+    a half-played run to dodge a bad score.
+    """
+    from ..models import RunHistory
+
+    current = current_user.current_run or 1
+    finished = RunHistory.query.filter_by(
+        user_id=current_user.id, run_number=current
+    ).first() is not None
+    if not finished:
+        flash("Finish your current run before starting a new one.", "warning")
+        return redirect(url_for("game.hub"))
+
+    new_run = current + 1
+    current_user.current_run = new_run
+    current_user.post_test_done = False
+
+    for lp in LocationProgress.query.filter_by(user_id=current_user.id).all():
+        lp.passed = False
+        lp.best_score = 0
+        lp.run = new_run
+        # attempts_count intentionally NOT reset (see docstring).
+
+    db.session.commit()
+    flash("A new run begins. The Atlas has faded; the journey is yours to make again.", "success")
+    return redirect(url_for("game.hub"))
+
+
+@game_bp.route("/leaderboard")
+@login_required
+def leaderboard():
+    """The Leaderboard: a READ-ONLY full page showing the cross-player board and
+    the viewer's own run history.
+
+    Presentation only. It reads the same helpers the old slide-in panel used
+    (best_runs / user_runs / run_stats) and computes nothing new, so the ranking,
+    the combined-score formula and the run model are untouched. The one action on
+    this page is the replay form, which POSTs to game.replay exactly as before.
+    """
+    # user_runs() is sorted best-first, so the head of the list is the player's
+    # strongest runs. Only those are listed: a learner with dozens of replays
+    # would otherwise stretch the page far past the rankings. The full count is
+    # still shown, both in the stats strip and in the "showing N of M" line.
+    all_runs = user_runs(current_user)
+    RUNS_SHOWN = 5
+
+    return render_template(
+        "game/leaderboard.html",
+        board=best_runs(limit=25, current_user_id=current_user.id),
+        runs=all_runs[:RUNS_SHOWN],
+        runs_total=len(all_runs),
+        run_stats=run_stats(current_user),
+        current_run=current_user.current_run or 1,
+        can_replay=_current_run_finished(current_user),
+    )
 
 
 @game_bp.route("/journal")

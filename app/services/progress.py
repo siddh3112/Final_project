@@ -41,6 +41,7 @@ def get_or_create_progress(user, location):
             best_score=0,
             attempts_count=0,
             unlocked_at=datetime.utcnow() if unlocked else None,
+            run=getattr(user, "current_run", 1) or 1,
         )
         db.session.add(lp)
         try:

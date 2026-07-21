@@ -23,6 +23,7 @@ def _register_anon(client, i, condition_hint="game"):
     g.pop("_login_user", None)
     return client.post("/auth/register", data={
         "username": f"p{i}", "email": f"p{i}@ex.com", "password": "pw",
+        "display_name": f"Explorer {i}",   # required since display names were added
         "condition": condition_hint,   # supplied on purpose — must be IGNORED
     })
 
@@ -32,7 +33,7 @@ def test_register_creates_hashed_user_and_logs_in(client):
     r = client.post(
         "/auth/register?condition=control",   # supplied condition must be IGNORED
         data={"username": "newbie", "email": "New@Example.com", "password": "s3cret",
-              "condition": "control"},
+              "display_name": "Newbie Explorer", "condition": "control"},
     )
     assert r.status_code == 302 and "/auth" not in r.headers["Location"]  # → hub, not back to auth
     _fresh()
@@ -54,7 +55,8 @@ def test_register_ignores_supplied_condition(client):
     g.pop("_login_user", None)
     client.post(
         "/auth/register?condition=control",   # supplied condition must be IGNORED
-        data={"username": "z", "email": "z@ex.com", "password": "pw", "condition": "control"},
+        data={"username": "z", "email": "z@ex.com", "password": "pw",
+              "display_name": "Zed Explorer", "condition": "control"},
     )
     _fresh()
     u = User.query.filter_by(username="z").first()

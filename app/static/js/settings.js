@@ -217,4 +217,45 @@
       if (window.AtlasCinematic) window.AtlasCinematic.play();
     }, 320);
   });
+
+  // ── Display name (leaderboard) ──
+  // Not a pref: prefs live in the session and are wiped at login, whereas this is
+  // a durable User column, so it POSTs to its own endpoint. A taken name comes
+  // back as 409 with a message we show inline rather than failing silently.
+  var nameInput = document.getElementById("set-display-name");
+  var nameSave = document.getElementById("set-name-save");
+  var nameMsg = document.getElementById("set-name-msg");
+
+  function showNameMsg(text, ok) {
+    if (!nameMsg) return;
+    nameMsg.textContent = text;
+    nameMsg.className = "set-name-msg " + (ok ? "is-ok" : "is-error");
+    nameMsg.hidden = false;
+  }
+
+  if (nameInput && nameSave) {
+    nameSave.addEventListener("click", function () {
+      var value = (nameInput.value || "").trim();
+      nameSave.disabled = true;
+      fetch("/display-name", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ display_name: value }),
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (res.ok && res.d && res.d.ok) {
+            nameInput.value = res.d.display_name;
+            showNameMsg("Saved. This is the name shown on the leaderboard.", true);
+          } else {
+            showNameMsg((res.d && res.d.error) || "Could not save that name.", false);
+          }
+        })
+        .catch(function () { showNameMsg("Could not save that name.", false); })
+        .finally(function () { nameSave.disabled = false; });
+    });
+    nameInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); nameSave.click(); }
+    });
+  }
 })();

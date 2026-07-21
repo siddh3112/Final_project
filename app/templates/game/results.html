@@ -31,6 +31,10 @@
     <div class="reflect-card" id="reflect-card" data-key="{{ loc.key }}"
          style="--reflect-accent: {{ reflect_accent }};" hidden>
       <div class="reflect-kicker"><i class="bi bi-feather me-1"></i>Seal a thought in the Atlas</div>
+      {# Motivates the reflection through its REAL payoff (kept in the Journal, Atlas
+         replies), never through points. The reflection is ungraded and contributes
+         nothing to the leaderboard, so the text says so plainly. #}
+      <p class="reflect-why">Putting it in your own words is what makes it stick. Your sealed thoughts are kept in your Journal, and Professor Atlas replies to each one. This is not scored.</p>
       <p class="reflect-prompt narrative">{{ reflection_prompt.text }}</p>
       <input type="text" class="reflect-input" id="reflect-input" maxlength="280"
              placeholder="One sentence, in your own words…" autocomplete="off" />

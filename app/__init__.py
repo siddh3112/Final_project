@@ -183,15 +183,31 @@ def _ensure_sqlite_columns():
 
     wanted = {
         "knowledge_tests": [("time_spent_seconds", "INTEGER")],
-        "users": [("seen_intro", "INTEGER")],
+        # NOTE: one entry per table — a duplicate key would silently drop the
+        # earlier migration. current_run/display_handle are the replay + anonymised
+        # leaderboard additions; seen_intro predates them.
+        "users": [
+            ("seen_intro", "INTEGER"),
+            ("current_run", "INTEGER NOT NULL DEFAULT 1"),
+            ("display_handle", "VARCHAR(40)"),
+            ("display_name", "VARCHAR(40)"),
+        ],
         # The Chronicle (4th location) joined the leaderboard; add its Trial score
         # to existing run_history rows as 0 (pre-Chronicle runs had no Chronicle).
-        "run_history": [("chronicle_score", "INTEGER NOT NULL DEFAULT 0")],
+        # run_number defaults to 1 so every historic run reads as the research run.
+        "run_history": [
+            ("chronicle_score", "INTEGER NOT NULL DEFAULT 0"),
+            ("run_number", "INTEGER NOT NULL DEFAULT 1"),
+        ],
         # Which engine answered each Atlas hint: "granite" (LLM) or "rules".
         "npc_interactions": [("source", "VARCHAR(16)")],
         # Professor Atlas's reply to a sealed reflection (shown read-only in the
         # Journal) and which engine produced it: "granite" (LLM) or "rules" (authored).
         "reflections": [("atlas_response", "TEXT"), ("atlas_source", "VARCHAR(16)")],
+        # Which run each row belongs to. Defaulted to 1, so all existing progress and
+        # research rows are attributed to the original measured run.
+        "location_progress": [("run", "INTEGER NOT NULL DEFAULT 1")],
+        "quiz_attempts": [("run", "INTEGER NOT NULL DEFAULT 1")],
     }
     conn = db.session.connection()
 
@@ -234,6 +250,19 @@ def _ensure_sqlite_columns():
         # duplicates exist, then enforce it going forward with a unique index.
         """DELETE FROM knowledge_tests WHERE id NOT IN (
              SELECT MIN(id) FROM knowledge_tests GROUP BY user_id)""",
+        # Give every existing account a display name BEFORE enforcing uniqueness.
+        # It defaults to the anonymised handle, never the login username, so no
+        # login identity is ever auto-published on the board. Players change it
+        # whenever they like in settings.
+        """UPDATE users SET display_name = display_handle
+             WHERE (display_name IS NULL OR display_name = '')
+               AND display_handle IS NOT NULL AND display_handle != ''""",
+        # Case-insensitive uniqueness: indexing lower(display_name) makes
+        # "StarSeeker" and "starseeker" the same name at the DB level, which also
+        # closes the check-then-insert race the form validation alone would leave.
+        # Rows with NULL are exempt (SQLite treats NULLs as distinct).
+        "CREATE UNIQUE INDEX IF NOT EXISTS ux_user_display_name_ci"
+        " ON users(lower(display_name))",
         "CREATE UNIQUE INDEX IF NOT EXISTS ux_progress_user_location"
         " ON location_progress(user_id, location)",
         "CREATE UNIQUE INDEX IF NOT EXISTS ux_achievement_user_key"

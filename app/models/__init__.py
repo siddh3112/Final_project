@@ -33,6 +33,21 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     condition = db.Column(db.String(20), nullable=False, default="game")  # game | control
     post_test_done = db.Column(db.Boolean, nullable=False, default=False)
+    # Which playthrough ("run") the learner is currently on. Run 1 is the measured
+    # research run; a replay increments this. It is the switch that decides whether
+    # a post-test submission writes the research KnowledgeTest (run 1 only) or just
+    # a gamified RunHistory score (run 2+). See routes.eval_routes.submit_post_test.
+    current_run = db.Column(db.Integer, nullable=False, default=1)
+    # Auto-assigned anonymous alias. Now the FALLBACK for the board: it is what a
+    # player is shown as before they choose a display name, so a login username is
+    # never auto-published. Never derived from the username.
+    display_handle = db.Column(db.String(40), unique=True, nullable=True)
+    # The player's CHOSEN public name, shown on the leaderboard. Unique
+    # case-insensitively ("StarSeeker" and "starseeker" are the same name),
+    # enforced both in the form validators and by a unique index on
+    # lower(display_name). Set at registration, editable in settings. Separate
+    # from `username`, which stays the private login identifier.
+    display_name = db.Column(db.String(40), nullable=True)
     # Whether this user has been shown the opening instructions (cinematic +
     # how-to-play) — tracked per USER so each participant sees them once,
     # independent of browser/session state. Presentation only.
@@ -115,6 +130,11 @@ class QuizAttempt(db.Model):
     selected_answer = db.Column(db.String(64), nullable=True)
     is_correct = db.Column(db.Boolean, default=False)
     attempt_number = db.Column(db.Integer, nullable=False, default=1)
+    # Which playthrough produced this row. Run 1 is the research run; replays write
+    # run 2+. attempt_number stays MONOTONIC across runs (a replay never resets it),
+    # so run-1 first attempts remain identifiable either way, but this column makes
+    # isolating the research run trivial: filter run == 1.
+    run = db.Column(db.Integer, nullable=False, default=1)
     npc_consulted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -187,6 +207,11 @@ class LocationProgress(db.Model):
     best_score = db.Column(db.Integer, default=0)
     attempts_count = db.Column(db.Integer, default=0)
     unlocked_at = db.Column(db.DateTime, nullable=True)
+    # Which run `passed` and `best_score` describe. A replay re-locks the row for the
+    # new run (passed=False, best_score=0, run=new run) but deliberately leaves
+    # attempts_count alone: QuizAttempt.attempt_number derives from it, so resetting
+    # would restart numbering and collide with the research run's rows.
+    run = db.Column(db.Integer, nullable=False, default=1)
 
 
 class Achievement(db.Model):
@@ -250,16 +275,23 @@ class Reflection(db.Model):
 
 
 class RunHistory(db.Model):
-    """One row per completed post-test run — a PERSONAL best-runs history.
+    """One row per completed playthrough: the GAMIFIED score for that run.
 
-    This is per-user history for a personal leaderboard; it is never ranked
-    across users or by condition. Additive telemetry: it does not affect scoring.
+    This is the replayable number, deliberately separate from the research data.
+    A run is only recorded when the WHOLE journey is finished (the post-test is
+    gated on all four locations being passed), so a partial re-do can never score.
+
+    Contrast with KnowledgeTest: that is the one-shot research measure, written
+    only on run 1 and never again. A replay adds a row HERE and nowhere else, so
+    the leaderboard can improve while the research record stays frozen.
     """
 
     __tablename__ = "run_history"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    # Which playthrough this score belongs to (1 = the research run).
+    run_number = db.Column(db.Integer, nullable=False, default=1)
     combined_score = db.Column(db.Integer, nullable=False)
     post_test_score = db.Column(db.Integer, nullable=False)
     post_test_max = db.Column(db.Integer, nullable=False)

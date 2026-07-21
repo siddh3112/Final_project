@@ -135,16 +135,40 @@ def _render_completed_results():
     )
 
 
+def _run_recorded(user):
+    """Has the CURRENT run already produced its gamified score?"""
+    from ..models import RunHistory
+    return RunHistory.query.filter_by(
+        user_id=user.id, run_number=user.current_run or 1
+    ).first() is not None
+
+
+def _assessment_closed(user):
+    """Is the Final Assessment closed for the run the learner is currently on?
+
+    Run 1 keeps the ORIGINAL research gate untouched: the moment a KnowledgeTest
+    exists (pass or fail) the measured attempt is over and can never be retaken.
+
+    Run 2+ is a replay, which produces only a gamified RunHistory score, so it is
+    closed once that run has been scored. This is what lets a learner play the
+    whole journey again without ever reopening the research measure.
+    """
+    if (user.current_run or 1) == 1:
+        return _assessment_completed(user)
+    return _run_recorded(user)
+
+
 @eval_bp.route("/post-test")
 @login_required
 def post_test():
     # Gated: only after all locations are passed.
     if not all_passed(current_user):
         return redirect(url_for("game.hub"))
-    # SINGLE-ATTEMPT: once the graded assessment is completed (an attempt exists,
-    # pass OR fail) it is CLOSED. Re-entering ALWAYS shows the recorded results —
-    # never a fresh blank test. There is no retake of the graded measure.
-    if _assessment_completed(current_user):
+    # SINGLE-ATTEMPT (run 1): once the graded assessment is completed (an attempt
+    # exists, pass OR fail) it is CLOSED. Re-entering ALWAYS shows the recorded
+    # results — never a fresh blank test. There is no retake of the graded measure.
+    # On a replay run this instead means "this run is already scored".
+    if _assessment_closed(current_user):
         results = _render_completed_results()
         if results is not None:
             return results
@@ -169,7 +193,7 @@ def submit_post_test():
     # SINGLE-ATTEMPT: reject any submission once the graded assessment is already
     # completed (pass OR fail). The FIRST KnowledgeTest is authoritative and is
     # never overwritten — the user simply sees their existing results.
-    if _assessment_completed(current_user):
+    if _assessment_closed(current_user):
         results = _render_completed_results()
         return results if results is not None else redirect(url_for("game.hub"))
 
@@ -208,15 +232,22 @@ def submit_post_test():
     except (TypeError, ValueError):
         pass
 
-    # Research measurement: EVERY attempt is recorded regardless of pass/fail.
-    db.session.add(
-        KnowledgeTest(
-            user_id=current_user.id,
-            answers_json=json.dumps(answers_out),
-            score=score,
-            time_spent_seconds=total_time,
+    # ══ RESEARCH DATA — WRITTEN ONCE, ON RUN 1 ONLY ══════════════════════════
+    # This is THE measured knowledge record: one row per participant, pass or
+    # fail, never overwritten. A replay (current_run >= 2) deliberately writes NO
+    # KnowledgeTest at all, so the research value is frozen at the first
+    # playthrough while the learner can still improve their leaderboard score.
+    # The gamified counterpart is the RunHistory row created further down.
+    is_research_run = (current_user.current_run or 1) == 1
+    if is_research_run:
+        db.session.add(
+            KnowledgeTest(
+                user_id=current_user.id,
+                answers_json=json.dumps(answers_out),
+                score=score,
+                time_spent_seconds=total_time,
+            )
         )
-    )
     # Pass requires at least POST_TEST_PASS correct. Only a PASS marks the Final
     # Ascent conquered (journey complete / Atlas Sage / certificate). A fail can
     # be retaken; a prior pass is never revoked.
@@ -272,6 +303,10 @@ def submit_post_test():
         time_spent_seconds=total_time,
         xp=stats["xp"],
         rank=stats["rank"],
+        # GAMIFIED score for this playthrough. Unlike the KnowledgeTest above,
+        # this is written on EVERY completed run, which is what makes the
+        # leaderboard replayable without touching the research measure.
+        run_number=current_user.current_run or 1,
     )
 
     # ── Closing cinematic (epilogue): auto-play once, after the reveal, when the

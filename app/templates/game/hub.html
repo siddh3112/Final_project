@@ -23,9 +23,9 @@
     <i class="bi bi-gear-fill"></i>
   </button>
 
-  <button class="lb-trophy" id="lb-trophy" type="button" aria-label="Your best runs" title="Your best runs">
+  <a class="lb-trophy" href="{{ url_for('game.leaderboard') }}" aria-label="Leaderboard" title="Leaderboard">
     <i class="bi bi-trophy-fill"></i>
-  </button>
+  </a>
 
   <a class="journal-book" href="{{ url_for('game.journal') }}" aria-label="Your Journal" title="Your Journal of sealed reflections">
     <i class="bi bi-journal-bookmark-fill"></i>
@@ -280,11 +280,27 @@
         <span class="set-label">Skip guess prompts<small>Go straight to each lesson, without the guess-first hooks</small></span>
         <span class="set-switch"><input type="checkbox" id="set-skip-hooks" {{ 'checked' if prefs.skip_hooks }} /><span class="set-slider"></span></span>
       </label>
-      <button class="set-btn" id="set-replay" type="button"><i class="bi bi-arrow-repeat me-2"></i>Replay How-to-Play</button>
-      <button class="set-btn" id="set-replay-intro" type="button"><i class="bi bi-film me-2"></i>Replay intro</button>
-      {% if stats.journey_complete %}
-      <a class="set-btn" href="{{ url_for('eval.epilogue') }}"><i class="bi bi-flag-fill me-2"></i>Replay ending</a>
-      {% endif %}
+      {# Grouped into one compact row so the panel fits on a single screen. #}
+      <div class="set-btn-row">
+        <button class="set-btn" id="set-replay" type="button"><i class="bi bi-arrow-repeat"></i><span>How-to-Play</span></button>
+        <button class="set-btn" id="set-replay-intro" type="button"><i class="bi bi-film"></i><span>Intro</span></button>
+        {% if stats.journey_complete %}
+        <a class="set-btn" href="{{ url_for('eval.epilogue') }}"><i class="bi bi-flag-fill"></i><span>Ending</span></a>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-h">Display name</h3>
+      <div class="set-row set-row-stack">
+        <span class="set-label">Leaderboard name<small>What other players see. Your username stays private.</small></span>
+        <div class="set-name-row">
+          <input type="text" id="set-display-name" class="set-select set-name-input" maxlength="40"
+                 value="{{ current_user.display_name or '' }}" aria-label="Display name" />
+          <button type="button" id="set-name-save" class="set-mini-btn">Save</button>
+        </div>
+        <small class="set-name-msg" id="set-name-msg" hidden></small>
+      </div>
     </section>
 
     <section class="set-section">
@@ -308,51 +324,16 @@
 <!-- ── On-demand badge detail card ── -->
 <div class="badge-card-layer" id="badge-card-layer" hidden></div>
 
-<!-- ══════════ Personal best-runs leaderboard (this user only) ══════════ -->
-<div class="lb-backdrop" id="lb-backdrop" hidden></div>
-<aside class="lb-panel" id="lb-panel" aria-hidden="true" aria-label="Your best runs">
-  <div class="lb-head">
-    <h2 class="lb-title">Your Best Runs</h2>
-    <button class="lb-close" id="lb-close" type="button" aria-label="Close">&times;</button>
-  </div>
 
-  <div class="lb-body">
-    {% if runs %}
-    <div class="lb-stats">
-      <div class="lb-stat"><span class="lb-stat-label">Best Score</span><b>{{ run_stats.best_score }}</b></div>
-      <div class="lb-stat"><span class="lb-stat-label">Best Post-Test</span><b>{{ run_stats.best_post_test }}/10</b></div>
-      <div class="lb-stat"><span class="lb-stat-label">Fastest</span><b>{% if run_stats.fastest is not none %}{{ '%d:%02d'|format(run_stats.fastest // 60, run_stats.fastest % 60) }}{% else %}-{% endif %}</b></div>
-      <div class="lb-stat"><span class="lb-stat-label">Total Runs</span><b>{{ run_stats.total }}</b></div>
-    </div>
 
-    <ol class="lb-list">
-      {% for r in runs %}
-      <li class="lb-run {{ 'lb-best' if loop.first }}">
-        <span class="lb-pos">#{{ loop.index }}</span>
-        <div class="lb-run-main">
-          <div class="lb-run-top">
-            <span class="lb-combined">{{ r.display_score }}</span>
-            <span class="lb-post">{{ r.post_test_score }}/{{ r.post_test_max }}</span>
-            {% if loop.first %}<span class="lb-pb-tag">PERSONAL BEST</span>{% endif %}
-          </div>
-          <div class="lb-run-sub">
-            <span class="lb-locs">L{{ r.library_score }} · C{{ r.chronicle_score }} · A{{ r.ai_lab_score }} · O{{ r.observatory_score }}</span>
-            <span class="lb-badges"><i class="bi bi-award-fill"></i> {{ r.badges_count }}</span>
-            {% if r.time_spent_seconds is not none %}<span class="lb-time"><i class="bi bi-stopwatch"></i> {{ '%d:%02d'|format(r.time_spent_seconds // 60, r.time_spent_seconds % 60) }}</span>{% endif %}
-            <span class="lb-date">{{ r.created_at.strftime('%d %b %Y') }}</span>
-          </div>
-        </div>
-      </li>
-      {% endfor %}
-    </ol>
-    {% else %}
-    <div class="lb-empty">
-      <div class="lb-empty-icon">🏔️</div>
-      <p>Complete the Final Ascent to record your first run.</p>
-    </div>
-    {% endif %}
-  </div>
-</aside>
+<style>
+  /* Display-name control in the settings panel. */
+  .set-name-row { display: flex; gap: 0.5rem; align-items: center; }
+  .set-name-input { flex: 1 1 auto; min-width: 0; }
+  .set-name-msg { display: block; margin-top: 0.4rem; font-size: 0.75rem; line-height: 1.4; }
+  .set-name-msg.is-error { color: #ff9a9a; }
+  .set-name-msg.is-ok { color: #7fd6a2; }
+</style>
 
 <!-- ══════════ Opening cinematic (first visit; always skippable) ══════════ -->
 <div class="cine" id="hub-cinematic" hidden data-seen="{{ '0' if show_intro else '1' }}">
@@ -409,5 +390,4 @@
 <script src="{{ url_for('static', filename='js/hub-livemap.js') }}"></script>
 <script src="{{ url_for('static', filename='js/achievements.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
-<script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
 {% endblock %}

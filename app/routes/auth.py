@@ -3,7 +3,10 @@ import random
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
+from sqlalchemy.exc import IntegrityError
+
 from ..models import User, db
+from ..services.handles import ensure_handle, validate_display_name
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -80,6 +83,7 @@ def register():
         username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        display_name = request.form.get("display_name", "")
 
         error = None
         if not username or not email or not password:
@@ -88,19 +92,48 @@ def register():
             error = "That username is already taken."
         elif User.query.filter_by(email=email).first():
             error = "That email is already registered."
+        else:
+            # The public name shown on the leaderboard. Same validator as settings,
+            # so the rules and wording cannot drift apart. A taken name is rejected
+            # with a clear message and the form comes back for another try.
+            display_name, error = validate_display_name(display_name)
 
         if error:
             flash(error, "danger")
-            return render_template("auth/register.html")
+            # Hand the entered values back so the learner does not retype
+            # everything just because one field clashed.
+            return render_template(
+                "auth/register.html",
+                form={"username": username, "email": email, "display_name": display_name},
+            )
 
         # Single-condition configuration — every user is assigned 'game' by the
         # SERVER (the random/balanced split is retained, commented, in
         # _assign_condition for a future between-groups study). Any client-supplied
         # condition (URL param or form field) is IGNORED regardless.
-        user = User(username=username, email=email, condition=_assign_condition())
+        user = User(
+            username=username,
+            email=email,
+            condition=_assign_condition(),
+            display_name=display_name,
+        )
         user.set_password(password)
         db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # The unique index caught a name claimed between our check and this
+            # insert. Fail gracefully rather than 500: roll back and ask again.
+            db.session.rollback()
+            flash("That display name is already taken, please choose another.", "danger")
+            return render_template(
+                "auth/register.html",
+                form={"username": username, "email": email, "display_name": ""},
+            )
+        # Anonymised alias for the cross-player leaderboard. Assigned here so it
+        # exists before the learner can ever appear on the board; the username is
+        # never shown to other participants.
+        ensure_handle(user)
         login_user(user)
         _reset_presentation_session()
         return redirect(url_for("game.hub"))
