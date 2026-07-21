@@ -4688,6 +4688,15 @@ html.reduce-motion .stars-near { animation: none !important; }
   background: rgba(4, 10, 14, 0.9); padding: 1.2rem;
 }
 .obs-hook-host { display: block; margin: 0.2rem 0 0.6rem; }
+/* Chronicle: float the guess-first hook as a centred modal over the timeline
+   (matching the era learn panel .tl-panel), instead of letting it flow low on
+   the page. Fixed + dim backdrop so it sits dead-centre in the viewport. */
+.tl-hook-host {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.2rem; overflow-y: auto;
+  background: rgba(10, 7, 3, 0.5);
+}
 /* the hook reads as a distinct inset instrument panel (matches the quick-check) */
 .obs-hook-host .lh-hook {
   background: rgba(58,184,216,0.05);
@@ -5028,6 +5037,14 @@ html.reduce-motion .stars-near { animation: none !important; }
 .book-tome .lh-hook-guess { color: #8a6a2e; }
 .book-tome .lh-hook-payoff { color: #5a4a32; border-left-color: #c9a85a; }
 .book-tome .lh-hook-continue { background: radial-gradient(circle at 35% 30%, #f0dfae, #cda44e 65%, #9a7b3a); color: #2c1e10; }
+/* Atlas' insight callout on parchment: dark ink so his line reads on the cream page
+   (the base rule sets a pale colour for the dark-background hosts). */
+.book-tome .lh-hook-insight {
+  background: rgba(212, 168, 75, 0.16); border-color: #c9a85a; border-left-color: #9a7b3a;
+}
+.book-tome .lh-hook-atlas { color: #8a6a2e; }
+.book-tome .lh-hook-insight-text { color: #3d2b1f; }
+.book-tome .lh-hook-owl .atlas-glyph { color: #8a6a2e; }
 
 /* ── Quick-check on parchment: ink-outlined choices, amber hover ── */
 .book-tome .bp-option {

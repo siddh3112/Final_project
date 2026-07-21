@@ -1138,7 +1138,7 @@ import random as _random
 # Atmospheric decoy books that fill the Library shelves (no real content).
 DECOY_TITLES = [
     "On the Nature of Numbers", "Forgotten Algorithms", "A History of Machines",
-    "The Cartographer's Atlas", "Whispers of Logic", "The Codex of Hidden Patterns",
+    "The Cartographer's Atlas", "Whispers of Logic", "A Study of Hidden Patterns",
     "Theories Long Abandoned", "The Astronomer's Folly", "Mechanical Dreams",
     "Letters to a Young Scholar", "The Glass Bestiary", "Maps of Forgotten Lands",
     "Principles of Steam", "The Alchemist's Ledger", "Songs of the Deep Archive",
