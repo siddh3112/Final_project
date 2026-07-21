@@ -288,7 +288,11 @@
       </div>
       <div class="atlas-chat-log" id="atlas-log">
         <div class="atlas-msg atlas-msg-bot">
-          Ask me about anything in {{ loc.name }}, explorer, though I shall never hand you a Trial answer outright.
+          {# Opens with an invitation, not a refusal. The "I will never give you a Trial
+             answer" guard is enforced server-side in npc_service before any model call,
+             so announcing it up front only told the learner what they could not have
+             before they had asked for anything. #}
+          Ask me about anything in {{ loc.name }}, explorer. Tell me what you are stuck on and we will work it out.
         </div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">

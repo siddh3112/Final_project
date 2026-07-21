@@ -288,7 +288,12 @@
         <button class="atlas-chat-close" id="atlas-close" aria-label="Close">&times;</button>
       </div>
       <div class="atlas-chat-log" id="atlas-log">
-        <div class="atlas-msg atlas-msg-bot">&gt; ATLAS ONLINE. Query the {{ loc.name }} archives. I will not output Trial answers.</div>
+        {# Opens with an invitation, not a refusal. The "no Trial answers" guard is
+           enforced server-side in npc_service before any model call, so announcing
+           it up front only told the learner what they could not have before they
+           had asked for anything. ("the {{ loc.name }}" also read as "the The AI
+           Lab", since loc.name already carries its article.) #}
+        <div class="atlas-msg atlas-msg-bot">&gt; ATLAS ONLINE. Query {{ loc.name }} archives. State your question.</div>
       </div>
       <form class="atlas-chat-form" id="atlas-form">
         <input type="text" id="atlas-input" class="atlas-chat-input" placeholder="query atlas…" autocomplete="off" />
