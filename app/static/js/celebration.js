@@ -50,11 +50,27 @@
     /* sound is best-effort */
   }
 
-  // ── "Review my answers" dismisses the overlay ──
+  // ── "Review my answers" ⇄ "Back to summary" toggle ──
+  // Review is a TOGGLE, not a one-way dismiss: while a reflection is pending its
+  // exits are hidden, so "Back to summary" must always be able to bring the
+  // reflect card back (never a dead end, never a bypass to an ungated exit).
+  let hideTimer = null;
+  function showBreakdown() {
+    cel.classList.add("dismissed");
+    hideTimer = setTimeout(() => { cel.style.display = "none"; }, 400);
+  }
+  function showSummary() {
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    cel.style.display = "";
+    cel.classList.remove("dismissed");
+    try { window.scrollTo({ top: 0, behavior: "auto" }); } catch (e) { window.scrollTo(0, 0); }
+  }
+
   const review = document.getElementById("celebration-review");
-  if (review)
-    review.addEventListener("click", function () {
-      cel.classList.add("dismissed");
-      setTimeout(() => (cel.style.display = "none"), 400);
-    });
+  if (review) review.addEventListener("click", showBreakdown);
+
+  ["topbar-back-summary", "back-summary-btn"].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("click", showSummary);
+  });
 })();

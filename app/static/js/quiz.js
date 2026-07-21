@@ -24,6 +24,16 @@
   let locked = false;
   const consulted = new Set(); // question keys the user took a hint on
 
+  // Safe, concept-agnostic nudges for the Hallucination Hunt. They coach HOW to
+  // scrutinise the four readings without ever naming which one is false (its
+  // identity is server-side only), so a hunt hint can never give the answer away.
+  const HUNT_HINTS = [
+    "Weigh each reading against the lesson, not against how certain it sounds. A hallucination is stated just as confidently as the truth; three of the four hold up, one breaks a rule you were taught.",
+    "Take the readings one at a time. Ask of each: does this match what the Observatory taught, or does it quietly overstate, reverse, or invent a requirement? Only one is wrong.",
+    "Confidence is not proof. Read each claim slowly and check it against the concept it describes; the false one contradicts something you already know.",
+    "Three of these are sound and one is not. Do not hunt for odd wording; look for the reading that asserts something the lesson would deny.",
+  ];
+
   function show() {
     questions.forEach((q, i) => q.classList.toggle("active", i === idx));
     if (curEl) curEl.textContent = idx + 1;
@@ -216,9 +226,23 @@
       if (consultedEl) consultedEl.value = Array.from(consulted).join(",");
 
       if (box) box.hidden = false;
-      if (textEl) textEl.textContent = "Professor Atlas ponders…";
       btn.disabled = true;
 
+      // Hunt rounds: Atlas himself states the four readings and one is false. We must
+      // NOT route this through Granite — with the location's course content in its
+      // prompt it could correct the very misconception under test and hand over the
+      // false reading. Show an authored, concept-agnostic strategy nudge instead
+      // (System generated); it helps without ever naming which reading is false.
+      if (q.querySelector(".hunt-claims")) {
+        const hi = (parseInt(q.dataset.qindex, 10) || 0) % HUNT_HINTS.length;
+        if (textEl) textEl.textContent = q.dataset.hint || HUNT_HINTS[hi];
+        setSource("rules");
+        btn.innerHTML = '<span class="hint-owl"><span class="atlas-glyph" aria-hidden="true"></span></span> Hint given';
+        btn.disabled = false;
+        return;
+      }
+
+      if (textEl) textEl.textContent = "Professor Atlas ponders…";
       try {
         const res = await fetch("/npc/chat", {
           method: "POST",

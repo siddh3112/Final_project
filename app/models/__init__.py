@@ -195,6 +195,12 @@ class Reflection(db.Model):
     response_text = db.Column(db.Text, nullable=True)
     skipped = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Professor Atlas's one-line reply to a real (non-skipped) reflection, generated
+    # ONCE at seal time and persisted so the Journal can show it read-only. atlas_source
+    # is "granite" (LLM) or "rules" (authored fallback): the same engine-source signal
+    # the hint UI uses. Both nullable, so skipped rows and pre-upgrade rows have neither.
+    atlas_response = db.Column(db.Text, nullable=True)
+    atlas_source = db.Column(db.String(16), nullable=True)
 
 
 class RunHistory(db.Model):

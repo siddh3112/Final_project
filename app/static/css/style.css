@@ -364,13 +364,16 @@ h1, h2, h3, h4, h5, .font-cinzel {
 }
 
 .quiz-intro {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
   margin-bottom: 1.5rem;
 }
 
 .quiz-intro strong {
   color: var(--gold);
+  font-weight: 800;
 }
 
 .quiz-question {
@@ -2466,6 +2469,25 @@ mark.kw { background: rgba(212, 168, 75, 0.35); color: #5a3d1a; padding: 0 0.2em
 .flashcard-lock span { font-family: 'Rye', serif; letter-spacing: 0.2em; }
 .flashcard:not(.locked) .flashcard-lock { display: none; }
 
+/* Reveal spin when a concept card is EARNED (bookshelf.js completeBook adds
+   .just-earned, then removes it on animationend). One 360deg turn: the meaning
+   flashes past mid-spin and the card settles back on the concept front, so the
+   deck's resting state stays uniform. A brief rarity-coloured halo draws the eye.
+   Reduce-motion never gets the class, and the global html.reduce-motion rule
+   would flatten it anyway, so the card just appears unlocked. */
+@keyframes flashcard-earn-spin {
+  0%   { transform: rotateY(0deg) scale(1); }
+  55%  { transform: rotateY(200deg) scale(1.08); }
+  100% { transform: rotateY(360deg) scale(1); }
+}
+@keyframes flashcard-earn-halo {
+  0%   { box-shadow: 0 0 0 rgba(255,255,255,0); }
+  55%  { box-shadow: 0 0 30px color-mix(in srgb, var(--rar) 80%, transparent); }
+  100% { box-shadow: 0 0 16px color-mix(in srgb, var(--rar) 32%, transparent); }
+}
+.flashcard.just-earned { z-index: 3; border-radius: 14px; animation: flashcard-earn-halo 0.85s ease-out both; }
+.flashcard.just-earned .flashcard-inner { animation: flashcard-earn-spin 0.85s cubic-bezier(0.34, 1.15, 0.5, 1) both; }
+
 @media (max-width: 640px) {
   .book-tome { min-height: 0; }
   .book-page { padding: 1.8rem 1.4rem 1rem; }
@@ -3320,7 +3342,7 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 
 /* ── The CRT monitor ── */
 .crt-monitor {
-  max-width: 880px; margin: 0 auto; padding: 18px; border-radius: 24px;
+  max-width: 940px; margin: 0 auto; padding: 18px; border-radius: 24px;
   background: linear-gradient(160deg, #242424, #131313);
   box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), inset 0 -2px 4px rgba(0,0,0,0.8), 0 26px 54px rgba(0,0,0,0.6);
 }
@@ -3387,6 +3409,30 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 /* ── Reboot overlay (screen-local) ── */
 .crt-screen .reboot-screen { position: absolute; inset: 0; z-index: 8; background: #000; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
 .crt-screen .reboot-text { font-family: 'Courier New', monospace; color: #8ab4d4; font-size: 0.85rem; line-height: 1.7; text-shadow: 0 0 6px rgba(138,180,212,0.5); white-space: pre; }
+
+/* Enter-the-Trial gate (AI Lab): fills the CRT like the reboot screen, centred and
+   on-theme, with the armed .term-continue.ready button. The explicit "now you face
+   the test" beat that the other locations have. */
+.crt-screen .term-trial-gate {
+  position: relative; z-index: 3;
+  min-height: 420px;   /* fill the CRT and centre, like an active learn card (screen-content
+                          collapses when its in-flow children are hidden, so an absolute
+                          inset:0 gate would pile at the top). */
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem; border-radius: 8px;
+  background: radial-gradient(120% 120% at 50% 45%, rgba(10,22,34,0.96), rgba(1,6,13,0.99));
+}
+.ttg-frame {
+  text-align: center; max-width: 560px;
+  border: 1px solid rgba(138,180,212,0.4); border-radius: 10px;
+  padding: 1.8rem 2rem 2rem; background: rgba(6,16,24,0.55);
+  box-shadow: 0 0 30px rgba(138,180,212,0.2), inset 0 0 40px rgba(0,0,0,0.5);
+  animation: term-fade 0.45s ease;
+}
+.reduce-motion .ttg-frame { animation: none; }
+.ttg-kicker { font-family: 'Courier New', monospace; font-size: 0.72rem; letter-spacing: 0.24em; color: #8ab4d4; margin-bottom: 0.5rem; }
+.ttg-title { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.35rem; letter-spacing: 0.06em; color: #dff0ff; margin: 0 0 0.7rem; text-shadow: 0 0 12px rgba(138,180,212,0.5); }
+.ttg-line { font-family: 'Courier New', monospace; font-size: 0.95rem; color: #c2d8ec; line-height: 1.55; margin: 0 auto 1.4rem; max-width: 440px; }
+.ttg-line b { color: #8ee0ff; font-weight: 800; }
 
 /* ── AI Lab "already mastered" view (Trial passed) — a completed state on
    re-entry instead of restarting the sorting mission. ── */
@@ -3459,7 +3505,16 @@ body.lib-celebrate .lib-vignette { animation: candle-frenzy 0.1s steps(2) 10; }
 
 /* ── Ticker-tape quiz ── */
 .crt-screen .term-quiz { padding: 0; }
-.quiz-head { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; color: #cfe1ef; font-size: 0.7rem; margin-bottom: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; color: #cfe1ef; font-size: 0.7rem; margin-bottom: 0.6rem; }
+/* Bold pass-rule directive on the AI Lab assessment board (P2 parity with the
+   other Trials). Phosphor-cyan, high contrast, not the dim board-note grey. */
+.term-quiz-rule {
+  font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.95rem;
+  color: #dff0ff; letter-spacing: 0.02em; line-height: 1.5;
+  margin: 0 0 1.1rem; padding: 0.5rem 0.85rem;
+  background: rgba(138, 180, 212, 0.1); border-left: 3px solid #8ab4d4; border-radius: 4px;
+}
+.term-quiz-rule b { color: #8ee0ff; font-weight: 800; }
 .ticker-q { display: none; }
 .ticker-q.active { display: block; }
 .ticker-tape {
@@ -4000,7 +4055,7 @@ html.reduce-motion .obs-panel.show .obs-panel-inner { animation: none !important
    SETTINGS PANEL (hub) — front-of-house controls
    ════════════════════════════════════════════════════════════════ */
 .settings-gear {
-  position: absolute; top: 16px; right: 18px; z-index: 60;
+  position: absolute; top: 16px; left: 18px; z-index: 60;
   width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(20, 14, 28, 0.6); border: 1px solid rgba(212, 168, 75, 0.35);
@@ -4009,9 +4064,9 @@ html.reduce-motion .obs-panel.show .obs-panel-inner { animation: none !important
 }
 .settings-gear:hover { transform: rotate(30deg); background: rgba(212, 168, 75, 0.18); border-color: var(--gold, #d4a84b); }
 
-/* ── Leaderboard trophy button (left of the gear) ── */
+/* ── Leaderboard trophy button (top-right corner; settings gear now sits top-left) ── */
 .lb-trophy {
-  position: absolute; top: 16px; right: 66px; z-index: 60;
+  position: absolute; top: 16px; right: 18px; z-index: 60;
   width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(20, 14, 28, 0.6); border: 1px solid rgba(212, 168, 75, 0.35);
@@ -4019,6 +4074,17 @@ html.reduce-motion .obs-panel.show .obs-panel-inner { animation: none !important
   backdrop-filter: blur(4px); transition: transform 0.2s ease, background 0.2s, border-color 0.2s;
 }
 .lb-trophy:hover { transform: translateY(-2px); background: rgba(212, 168, 75, 0.18); border-color: var(--gold, #d4a84b); }
+
+/* ── Journal book button (left of the trophy) — opens the sealed-reflections archive ── */
+.journal-book {
+  position: absolute; top: 16px; right: 66px; z-index: 60;
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(20, 14, 28, 0.6); border: 1px solid rgba(212, 168, 75, 0.35);
+  color: var(--gold-light); font-size: 1.05rem; text-decoration: none;
+  backdrop-filter: blur(4px); transition: transform 0.2s ease, background 0.2s, border-color 0.2s;
+}
+.journal-book:hover { transform: translateY(-2px); background: rgba(212, 168, 75, 0.18); border-color: var(--gold, #d4a84b); color: var(--gold-light); }
 
 /* ── Leaderboard slide-in panel ── */
 .lb-backdrop {
@@ -4103,12 +4169,12 @@ html.reduce-motion .obs-panel.show .obs-panel-inner { animation: none !important
 .settings-backdrop.open { background: rgba(6, 4, 12, 0.55); }
 
 .settings-panel {
-  position: fixed; top: 0; right: 0; z-index: 100;
+  position: fixed; top: 0; left: 0; z-index: 100;
   width: 340px; max-width: 88vw; height: 100vh; overflow-y: auto;
   background: linear-gradient(180deg, var(--bg-panel) 0%, #120d1a 100%);
-  border-left: 1px solid rgba(212, 168, 75, 0.28);
-  box-shadow: -18px 0 50px rgba(0, 0, 0, 0.5);
-  transform: translateX(100%); transition: transform 0.3s ease-out;
+  border-right: 1px solid rgba(212, 168, 75, 0.28);
+  box-shadow: 18px 0 50px rgba(0, 0, 0, 0.5);
+  transform: translateX(-100%); transition: transform 0.3s ease-out;
   font-family: 'Inter', sans-serif; color: #e7e0d2;
 }
 .settings-panel.open { transform: translateX(0); }
@@ -5849,7 +5915,7 @@ body.ascent-body {
    ══════════════════════════════════════════════════════════════════════ */
 
 /* ── Shared skin scaffolding (tight, centred; motif replaces the plain bar) ── */
-.trial-skin .trial-shell { max-width: 760px; }
+.trial-skin .trial-shell { max-width: 1020px; }
 .trial-skin-hero { margin: 0 auto 0.4rem; }
 .trial-skin-kicker { font-size: 0.72rem; letter-spacing: 0.26em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 78%, #fff 6%); opacity: 0.9; margin-bottom: 0.35rem; }
 .trial-skin-title { font-size: clamp(1.5rem, 3.4vw, 2.15rem); margin: 0 0 0.25rem; line-height: 1.12; }
@@ -5866,7 +5932,17 @@ body.ascent-body {
 html.reduce-motion .tskin-pulse, html.reduce-motion .trial-skin .quiz-question.active { animation: none !important; }
 
 /* card frame is per-skin; the questions inside are transparent panels on it */
-.trial-skin .trial-card { position: relative; max-width: 680px; margin: 0.6rem auto 0; border-radius: 16px; padding: 1.5rem 1.8rem 1.4rem; overflow: hidden; }
+.trial-skin .trial-card { position: relative; max-width: 940px; margin: 0.6rem auto 0; border-radius: 16px; padding: 1.6rem 2.1rem 1.5rem; overflow: hidden; }
+/* Keep pure-text question/option flow at a comfortable reading measure inside the
+   now-wider card; the interactive boards (lexicon / order / hunt / sort) still use
+   the full width. */
+.trial-skin .quiz-questions .q-text,
+.trial-skin .quiz-questions .q-options,
+.trial-skin .quiz-questions .hunt-claims,
+.trial-skin .quiz-intro { max-width: 760px; margin-left: auto; margin-right: auto; }
+.trial-skin .quiz-questions .order-howto,
+.trial-skin .quiz-questions .order-rail,
+.trial-skin .quiz-questions .order-actions { max-width: 820px; margin-left: auto; margin-right: auto; }
 .trial-skin .quiz-question { background: transparent !important; border: none !important; box-shadow: none !important; backdrop-filter: none !important; padding: 0; }
 .trial-skin .quiz-questions { position: relative; z-index: 1; }
 .trial-skin .quiz-intro { position: relative; z-index: 1; }
@@ -5953,8 +6029,8 @@ html.reduce-motion .tskin-pulse, html.reduce-motion .trial-skin .quiz-question.a
   border: 1px solid rgba(193,130,74,0.42); color: #ecd7b2;
   box-shadow: 0 0 0 4px rgba(193,130,74,0.08), 0 22px 54px rgba(0,0,0,0.6);
 }
-.trial-skin-chronicle .quiz-intro { color: rgba(230,205,165,0.82); font-family: 'Source Serif 4', serif; }
-.trial-skin-chronicle .quiz-intro strong { color: #e6b980; }
+.trial-skin-chronicle .quiz-intro { color: #f0dcb8; font-family: 'Source Serif 4', serif; font-weight: 600; }
+.trial-skin-chronicle .quiz-intro strong { color: #f0c079; font-weight: 800; }
 .trial-skin-chronicle .quiz-counter { color: #c69a63; }
 .trial-skin-chronicle .quiz-counter b { color: #e6b980; }
 .trial-skin-chronicle .q-text { font-family: 'Source Serif 4', serif; color: #f0dcbb; font-size: 1.1rem; }
@@ -6009,8 +6085,8 @@ html.reduce-motion .tskin-clock-hand, html.reduce-motion .tskin-clock-arc { tran
   backdrop-filter: blur(10px);
   box-shadow: 0 0 0 1px rgba(58,184,216,0.12), 0 0 40px rgba(58,184,216,0.1), 0 24px 56px rgba(0,0,0,0.6);
 }
-.trial-skin-observatory .quiz-intro { color: rgba(200,224,240,0.78); }
-.trial-skin-observatory .quiz-intro strong { color: #6fd4ec; }
+.trial-skin-observatory .quiz-intro { color: #dcecf8; font-weight: 600; }
+.trial-skin-observatory .quiz-intro strong { color: #7fdcf2; font-weight: 800; }
 .trial-skin-observatory .quiz-counter { color: #7fc7e0; }
 .trial-skin-observatory .quiz-counter b { color: #6fd4ec; }
 .trial-skin-observatory .q-text { color: #e6f1f8; font-size: 1.1rem; }
@@ -6231,12 +6307,12 @@ html.reduce-motion .tskin-star.current { animation: none; }
    translucent cards used on the other realms' dark trials. */
 .lex-howto {
   display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;
-  margin: 0.2rem auto 0.9rem; max-width: 720px; padding: 0.55rem 0.9rem;
+  margin: 0.2rem auto 0.9rem; max-width: 760px; padding: 0.62rem 1rem;
   background: #efdcb0; border: 1.5px solid #b8823a; border-radius: 9px;
-  color: #4a3212; font-family: 'Inter', sans-serif; font-size: 0.86rem; line-height: 1.45;
+  color: #3a2610; font-family: 'Inter', sans-serif; font-size: 0.98rem; font-weight: 600; line-height: 1.5;
 }
-.lex-howto > i { color: #9c6a2c; font-size: 1.1rem; flex-shrink: 0; }
-.lex-howto b { color: #2f1e08; }
+.lex-howto > i { color: #9c6a2c; font-size: 1.2rem; flex-shrink: 0; }
+.lex-howto b { color: #2a1a06; font-weight: 800; }
 .lex-readout { text-align: center; font-family: 'Rye', serif; color: #8a5f2c; font-size: 0.95rem; letter-spacing: 0.04em; margin-bottom: 1rem; }
 .lex-readout b { color: #7a3f14; }
 
@@ -6317,7 +6393,7 @@ html.reduce-motion .tskin-star.current { animation: none; }
 .trial-skin-body-library .trial-skin-hero { margin-bottom: 0.12rem; }
 .trial-skin-body-library .trial-skin-kicker { margin-bottom: 0.1rem; font-size: 0.68rem; }
 .trial-skin-library .trial-card { padding: 0.9rem 1.4rem 1rem; margin-top: 0.25rem; }
-.lex-howto { margin: 0.1rem auto 0.55rem; padding: 0.45rem 0.8rem; font-size: 0.82rem; }
+.lex-howto { margin: 0.1rem auto 0.55rem; padding: 0.5rem 0.85rem; font-size: 0.92rem; }
 .lex-readout { margin-bottom: 0.65rem; font-size: 0.9rem; }
 .lex-col { gap: 0.48rem; }
 .lex-card { padding: 0.5rem 0.8rem; font-size: 0.85rem; line-height: 1.34; }
@@ -6333,7 +6409,7 @@ html.reduce-motion .tskin-star.current { animation: none; }
 /* Final squeeze so the Lexicon fits an ~800px window with room to spare. */
 .trial-skin-body-library .trial-skin-title { font-size: clamp(1.4rem, 2.6vw, 1.85rem); }
 .trial-skin-library .trial-card { padding: 0.8rem 1.4rem 0.9rem; }
-.lex-howto { font-size: 0.8rem; margin-bottom: 0.45rem; padding: 0.4rem 0.75rem; }
+.lex-howto { font-size: 0.9rem; margin-bottom: 0.45rem; padding: 0.45rem 0.8rem; }
 .lex-readout { margin-bottom: 0.55rem; }
 .lex-col { gap: 0.42rem; }
 .lex-card { padding: 0.45rem 0.8rem; }
@@ -6408,3 +6484,111 @@ body.trial-skin-body { overflow-y: auto; overflow-x: hidden; }
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: radial-gradient(120% 80% at 50% -12%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 62%);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   THE JOURNAL — a read-only, illuminated archive of the learner's sealed
+   reflections. One entry per location (in the location's accent); unsealed
+   locations show as dimmed empty slots so the set visibly fills up.
+   ══════════════════════════════════════════════════════════════════════ */
+.journal-screen { max-width: 940px; margin: 0 auto; padding: 1rem 1.1rem 4rem; position: relative; z-index: 1; }
+
+.journal-header { margin: 0.6rem 0 2.2rem; }
+.journal-crest {
+  font-size: 2.5rem; line-height: 1; color: var(--gold, #e8c97a);
+  filter: drop-shadow(0 0 16px rgba(232, 201, 122, 0.4));
+}
+.journal-title {
+  font-family: 'Rye', serif; font-size: 2.4rem; margin: 0.35rem 0 0.15rem;
+  color: #f4e6c2; text-shadow: 0 2px 20px rgba(232, 201, 122, 0.28);
+}
+.journal-tagline { font-style: italic; color: rgba(240, 232, 214, 0.7); margin: 0 0 1.3rem; }
+
+.journal-progress { max-width: 460px; margin: 0 auto; }
+.journal-progress-count { font-size: 0.95rem; color: #e8dcc6; letter-spacing: 0.02em; margin-bottom: 0.5rem; }
+.journal-progress-count strong { color: var(--gold-light, #f0c96b); font-size: 1.1rem; }
+.journal-progress-bar {
+  height: 8px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(232, 201, 122, 0.22);
+}
+.journal-progress-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #c9a24a, #f0c96b);
+  box-shadow: 0 0 12px rgba(240, 201, 107, 0.5); transition: width 0.5s ease;
+}
+
+.journal-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(370px, 1fr));
+  gap: 1.15rem;
+}
+@media (max-width: 560px) { .journal-grid { grid-template-columns: 1fr; } }
+
+/* Each reflection sits on its own illuminated leaf, edged in the location's accent. */
+.journal-entry {
+  position: relative; border-radius: 14px; padding: 1.15rem 1.25rem 1.25rem;
+  background: linear-gradient(165deg, rgba(28, 24, 40, 0.82), rgba(18, 15, 28, 0.9));
+  border: 1px solid color-mix(in srgb, var(--entry-accent) 30%, rgba(255,255,255,0.06));
+  border-left: 3px solid var(--entry-accent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+.journal-entry.is-sealed { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 22px color-mix(in srgb, var(--entry-accent) 18%, transparent); }
+.journal-entry.is-empty { opacity: 0.62; border-style: dashed; }
+
+.journal-entry-head { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; }
+.journal-entry-seal { color: var(--entry-accent); font-size: 1rem; line-height: 1; }
+.journal-entry-loc {
+  font-family: 'Rye', serif; font-size: 1.15rem; color: #f4e6c2; margin: 0; flex: 1 1 auto;
+}
+.journal-entry-date {
+  font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(240, 232, 214, 0.5);
+}
+
+.journal-entry-prompt {
+  font-family: 'Source Serif 4', serif; font-style: italic;
+  color: rgba(240, 232, 214, 0.78); font-size: 0.95rem; line-height: 1.5;
+  margin: 0.55rem 0 0.75rem;
+}
+
+/* The learner's own words, shown verbatim as a sealed quotation. */
+.journal-entry-thought {
+  margin: 0; padding: 0.7rem 0.9rem; border-radius: 10px;
+  background: color-mix(in srgb, var(--entry-accent) 8%, rgba(255,255,255,0.02));
+  border-left: 2px solid color-mix(in srgb, var(--entry-accent) 55%, transparent);
+  color: #f2efe6; font-size: 1.02rem; line-height: 1.6;
+}
+
+/* Professor Atlas' reply, shown as Atlas speaking, with its engine-source label. */
+.journal-atlas {
+  display: flex; gap: 0.6rem; align-items: flex-start; margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem; border-radius: 10px;
+  background: rgba(232, 201, 122, 0.06); border: 1px solid rgba(232, 201, 122, 0.2);
+}
+.journal-atlas-owl { flex-shrink: 0; font-size: 1.1rem; line-height: 1; }
+.journal-atlas-owl .atlas-glyph { color: var(--gold-light, #f0c96b); }
+.journal-atlas-body { min-width: 0; }
+.journal-atlas-name {
+  font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold-light, #f0c96b); font-weight: 700;
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.2rem;
+}
+.journal-atlas-source {
+  font-size: 0.56rem; letter-spacing: 0.06em; font-weight: 600;
+  color: rgba(240, 232, 214, 0.62); text-transform: uppercase;
+  padding: 0.08rem 0.4rem; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.journal-atlas-text {
+  margin: 0; font-style: italic; color: #e8dcc6;
+  font-size: 0.94rem; line-height: 1.55;
+}
+
+/* Empty slot — dimmed, with a clear pull to come back and fill it. */
+.journal-empty-note {
+  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(240, 232, 214, 0.55); margin-top: 0.4rem;
+}
+.journal-empty-hint { color: rgba(240, 232, 214, 0.5); font-size: 0.9rem; margin: 0.35rem 0 0; }
+
+/* Sealed-in-your-Journal link on the results reflection card. */
+.reflect-journal-link { color: var(--reflect-accent, #f0c96b); text-decoration: underline; }
+.reflect-journal-link:hover { color: #fff; }

@@ -313,3 +313,100 @@ def _query_ollama(location, message, recent_mistakes=None, history=None):
         return text or None
     except Exception:
         return None
+
+
+# ── Professor Atlas' reply to a SEALED REFLECTION (shown read-only in the Journal) ──
+# A reflection is the learner's own sentence, not a question, so the Socratic hint
+# path in get_response() would deflect rather than acknowledge. This dedicated path
+# builds an acknowledgement prompt for the SAME Granite backend and returns
+# (text, source): "granite" when the LLM answered, else an authored "rules" reply.
+# It NEVER raises: any LLM failure falls back to the authored reply, so sealing a
+# reflection always succeeds even when Granite is offline.
+
+# Authored fallbacks, one per location, tied to that location's reflection prompt.
+# Used verbatim when Granite is unavailable (source "rules" -> "System generated").
+REFLECT_FALLBACKS = {
+    "library": (
+        "You have held onto the key line: narrow AI is built for one task, while "
+        "general AI, matching a person across many, is still only an idea. Keep that "
+        "distinction clear and most of the hype sorts itself out."
+    ),
+    "chronicle": (
+        "Well sealed. The Winters came when the promises ran ahead of the computing "
+        "power and the data to back them; what thawed them was more of both, plus "
+        "learning from examples instead of hand-written rules."
+    ),
+    "ai_lab": (
+        "A fair thought to keep. Most of the world's data is unstructured, the text, "
+        "images and sound that have no tidy rows or columns, which is exactly why "
+        "learning from examples matters more than fixed rules."
+    ),
+    "observatory": (
+        "Nicely put. Reinforcement learning has no answer key; it learns from reward "
+        "and consequence, trying, missing and adjusting until the good moves outweigh "
+        "the bad."
+    ),
+}
+REFLECT_FALLBACK_GENERIC = (
+    "A thought worth keeping. Hold onto it as you go; the clearest ideas are the "
+    "ones you can say in a single sentence."
+)
+
+
+def reflect_response(location, prompt_text, reflection_text, ollama_enabled=False):
+    """Return (response_text, source) for Professor Atlas' reply to a sealed reflection.
+
+    source is "granite" only when the local LLM produced the reply, otherwise "rules"
+    (an authored, location-appropriate acknowledgement). Never raises; always returns
+    a usable reply so sealing succeeds whether or not Granite is running.
+    """
+    if ollama_enabled:
+        text = _query_ollama_reflection(location, prompt_text, reflection_text)
+        if text:
+            return text, "granite"
+    return REFLECT_FALLBACKS.get(location, REFLECT_FALLBACK_GENERIC), "rules"
+
+
+def _query_ollama_reflection(location, prompt_text, reflection_text):
+    """Ask Granite to acknowledge the learner's reflection in one or two sentences,
+    drawing ONLY on this location's course content. Returns text, or None on any
+    failure so reflect_response() can fall back to the authored reply."""
+    from flask import current_app
+    import requests
+
+    base_url = current_app.config.get("OLLAMA_BASE_URL", "http://localhost:11434")
+    model = current_app.config.get("OLLAMA_MODEL", "granite3.3:8b")
+    timeout = current_app.config.get("OLLAMA_TIMEOUT", 10)
+
+    relevant_content = COURSE_KNOWLEDGE.get(location, "No content available for this location.")
+    system = (
+        "You are Professor Atlas, a warm, encouraging guide in a museum of AI. The "
+        "learner has just sealed a one-sentence reflection. Reply in ONE or TWO short "
+        "sentences: affirm what they got right, then gently sharpen or extend it. Speak "
+        "in plain, direct British English. Never grade, score or judge. Do not greet "
+        "them or use their name. Do not use dashes. Draw only on the course content "
+        "below and add nothing beyond it.\n\nCOURSE CONTENT:\n" + relevant_content
+    )
+    user = (
+        'The reflection prompt was: "{}"\nThe learner wrote: "{}"\n'
+        "Give your one or two sentence reply now."
+    ).format(prompt_text, reflection_text)
+
+    try:
+        response = requests.post(
+            f"{base_url}/api/chat",
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "stream": False,
+            },
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        text = (response.json().get("message", {}).get("content", "") or "").strip()
+        return text or None
+    except Exception:
+        return None

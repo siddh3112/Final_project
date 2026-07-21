@@ -176,6 +176,19 @@
         <!-- ── Reboot transition (screen-local) ── -->
         <div class="reboot-screen" id="reboot-screen" hidden><pre class="reboot-text" id="reboot-text"></pre></div>
 
+        <!-- ── Enter-the-Trial gate: an explicit "now you face the test" beat, the
+             AI Lab's on-theme analogue of the other locations' .tl-trial-ready block.
+             Revealed by reboot(); its button (not an auto-advance) reveals the board.
+             Purely presentational — the TrialAttempt is already created server-side. ── -->
+        <div class="term-trial-gate" id="term-trial-gate" hidden>
+          <div class="ttg-frame">
+            <div class="ttg-kicker">&gt; SYSTEM READY</div>
+            <h2 class="ttg-title">ASSESSMENT MODE ARMED</h2>
+            <p class="ttg-line">All four sectors verified. Sort <b>four data specimens</b> into their bins. Score <b>3 / 4</b> to pass.</p>
+            <button class="term-continue ready" type="button" id="term-enter-trial">&gt; ENTER ASSESSMENT [ENTER]</button>
+          </div>
+        </div>
+
         <!-- ── Quiz: ticker-tape assessment ── -->
         <section class="term-quiz" id="term-quiz" hidden>
           {% if practice | default(false) %}<div class="term-practice-note"><i class="bi bi-arrow-repeat me-1"></i>Practice run. This result is not recorded.</div>{% endif %}
@@ -191,6 +204,7 @@
               <span class="quiz-head-title">&gt; ASSESSMENT MODE (DATA CLASSIFICATION)</span>
               <span class="quiz-head-count">SPECIMENS SORTED <b id="sorted-count">0</b>/<span id="sorted-total">{{ quiz|length }}</span></span>
             </div>
+            <p class="term-quiz-rule">&gt; DIRECTIVE: Score at least <b>3 / 4</b> to pass.{% if show_npc %} Stuck? Open <b>PROFESSOR_ATLAS</b> for a hint.{% endif %}</p>
 
             <div class="sort-board" id="sort-board">
               <div class="board-intake">

@@ -440,7 +440,7 @@
       let k = 0;
       (function nextLine() {
         if (k < lines.length) { rt.textContent += lines[k] + "\n"; keyClick(); k++; setTimeout(nextLine, 380); }
-        else { setTimeout(function () { flash("white", 90); if (screen) screen.hidden = true; revealQuiz(); }, 700); }
+        else { setTimeout(function () { flash("white", 90); if (screen) screen.hidden = true; showTrialGate(); }, 700); }
       })();
     }, 650);
   }
@@ -451,6 +451,28 @@
   const submitBtn = document.getElementById("board-submit");
   const sortedCountEl = document.getElementById("sorted-count");
   let submitting = false, dragObj = null, selectedObj = null, boardReady = false;
+
+  // Explicit "Enter the Trial" beat: reboot() reveals this gate; only the learner
+  // clicking "> ENTER ASSESSMENT" reveals the board. This changes ONLY when the
+  // already-rendered board appears — the TrialAttempt is created server-side at
+  // page load and grading still fires only on form submit, both untouched here.
+  function showTrialGate() {
+    const gate = document.getElementById("term-trial-gate");
+    if (!gate) { revealQuiz(); return; }   // fail-safe: no gate markup -> old behaviour
+    gate.hidden = false;
+    const btn = document.getElementById("term-enter-trial");
+    if (btn) { try { btn.focus(); } catch (e) {} }
+  }
+  (function wireTrialGate() {
+    const btn = document.getElementById("term-enter-trial");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      const gate = document.getElementById("term-trial-gate");
+      if (gate) gate.hidden = true;
+      flash("white", 90);
+      revealQuiz();
+    });
+  })();
 
   function revealQuiz() {
     const quiz = document.getElementById("term-quiz");
@@ -573,6 +595,13 @@
     if (brief && !brief.hidden) {
       const begin = document.getElementById("brief-begin");
       if (begin && begin.classList.contains("show")) { e.preventDefault(); begin.click(); }
+      return;
+    }
+    // enter-the-trial gate: Enter begins the assessment
+    const gate = document.getElementById("term-trial-gate");
+    if (gate && !gate.hidden) {
+      const eb = document.getElementById("term-enter-trial");
+      if (eb) { e.preventDefault(); eb.click(); }
       return;
     }
     // assessment board: Enter submits once every specimen is placed

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}The Journal, Atlas Quest{% endblock %}
+{% block body_class %}journal-body{% endblock %}
+
+{% block body %}
+<div class="journal-screen">
+
+  <nav class="loc-topbar">
+    <a href="{{ url_for('game.hub') }}" class="back-link">
+      <i class="bi bi-map me-1"></i> Return to Map
+    </a>
+  </nav>
+
+  <header class="journal-header text-center">
+    <div class="journal-crest" aria-hidden="true"><i class="bi bi-journal-bookmark-fill"></i></div>
+    <h1 class="journal-title">The Journal</h1>
+    <p class="journal-tagline">Where your sealed thoughts are kept</p>
+
+    <div class="journal-progress">
+      <div class="journal-progress-count">
+        Reflections sealed: <strong>{{ sealed_count }}</strong> / {{ total }}
+      </div>
+      <div class="journal-progress-bar" role="progressbar"
+           aria-valuenow="{{ sealed_count }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+        <div class="journal-progress-fill" style="width: {{ ((sealed_count / total * 100) | round(2)) if total else 0 }}%;"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="journal-grid">
+    {% for e in entries %}
+    <article class="journal-entry {{ 'is-sealed' if e.sealed else 'is-empty' }}"
+             style="--entry-accent: {{ e.accent }};">
+      <div class="journal-entry-head">
+        <span class="journal-entry-seal" aria-hidden="true">{{ '✶' if e.sealed else '○' }}</span>
+        <h2 class="journal-entry-loc">{{ e.name }}</h2>
+        {% if e.sealed and e.sealed_at %}
+        <span class="journal-entry-date">{{ e.sealed_at.strftime('%d %b %Y') }}</span>
+        {% endif %}
+      </div>
+
+      <p class="journal-entry-prompt">{{ e.prompt }}</p>
+
+      {% if e.sealed %}
+        <blockquote class="journal-entry-thought">{{ e.response_text }}</blockquote>
+
+        {% if e.atlas_response %}
+        <div class="journal-atlas">
+          <span class="journal-atlas-owl" aria-hidden="true"><span class="atlas-glyph"></span></span>
+          <div class="journal-atlas-body">
+            <div class="journal-atlas-name">
+              Professor Atlas
+              {% if e.atlas_source_label %}
+              <span class="journal-atlas-source">{{ e.atlas_source_label }}</span>
+              {% endif %}
+            </div>
+            <p class="journal-atlas-text">{{ e.atlas_response }}</p>
+          </div>
+        </div>
+        {% endif %}
+      {% else %}
+        <div class="journal-empty-note"><i class="bi bi-lock-fill me-1"></i>Not yet sealed</div>
+        <p class="journal-empty-hint">Pass {{ e.name }}'s Trial, then seal a thought to fill this page.</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

@@ -38,11 +38,11 @@
         <button type="button" class="reflect-submit" id="reflect-submit">Seal it in the Atlas</button>
         <button type="button" class="reflect-skip" id="reflect-skip">Skip</button>
       </div>
-      <div class="reflect-done" id="reflect-done" hidden><i class="bi bi-check-circle-fill me-1"></i>Sealed. Well reflected, explorer.</div>
+      <div class="reflect-done" id="reflect-done" hidden><i class="bi bi-check-circle-fill me-1"></i>Sealed in your Journal. <a class="reflect-journal-link" href="{{ url_for('game.journal') }}">View the Journal</a></div>
     </div>
     {% endif %}
 
-    <a href="{{ url_for('game.hub') }}" class="btn-quest btn-quest-final">
+    <a href="{{ url_for('game.hub') }}" class="btn-quest btn-quest-final" id="cel-exit"{% if reflection_prompt %} hidden{% endif %}>
       Return to the Map <i class="bi bi-arrow-right ms-1"></i>
     </a>
     <button type="button" class="celebration-review" id="celebration-review">Review my answers</button>
@@ -53,7 +53,12 @@
 <div class="location-page results-page results-skin results-skin-{{ loc.key }}" style="--accent: {{ res_accent }};">
 
   <nav class="loc-topbar">
-    <a href="{{ url_for('game.hub') }}" class="back-link">
+    {% if reflection_prompt %}
+    <button type="button" class="back-link" id="topbar-back-summary">
+      <i class="bi bi-arrow-left me-1"></i> Back to summary
+    </button>
+    {% endif %}
+    <a href="{{ url_for('game.hub') }}" class="back-link" id="topbar-exit"{% if reflection_prompt %} hidden{% endif %}>
       <i class="bi bi-map me-1"></i> Return to Map
     </a>
   </nav>
@@ -169,7 +174,12 @@
               Back to the Map <i class="bi bi-arrow-right ms-1"></i>
             </a>
           {% elif passed %}
-            <a href="{{ url_for('game.hub') }}" class="btn-continue">
+            {% if reflection_prompt %}
+            <button type="button" class="btn-continue" id="back-summary-btn">
+              <i class="bi bi-arrow-left me-1"></i> Back to summary
+            </button>
+            {% endif %}
+            <a href="{{ url_for('game.hub') }}" class="btn-continue" id="breakdown-exit"{% if reflection_prompt %} hidden{% endif %}>
               Continue to Hub <i class="bi bi-arrow-right ms-1"></i>
             </a>
           {% else %}

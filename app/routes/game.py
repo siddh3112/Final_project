@@ -2,7 +2,7 @@ import json
 import secrets
 from datetime import datetime
 
-from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from ..prefs import mark_seen, seen_flags, set_prefs
@@ -692,6 +692,21 @@ def reflect(key):
     text = (data.get("response") or "").strip()[:280]
     skipped = bool(data.get("skipped")) or not text
 
+    # Professor Atlas replies ONCE to a real reflection, generated here (a write
+    # endpoint) and stored on the row so the Journal only ever reads it. Guarded so a
+    # generation failure never blocks sealing; a skipped reflection gets no reply.
+    atlas_response = None
+    atlas_source = None
+    if not skipped:
+        try:
+            from ..services.npc_service import reflect_response
+            atlas_response, atlas_source = reflect_response(
+                key, prompt["text"], text,
+                ollama_enabled=current_app.config.get("OLLAMA_ENABLED", False),
+            )
+        except Exception:
+            atlas_response, atlas_source = None, None
+
     db.session.add(
         Reflection(
             user_id=current_user.id,
@@ -700,7 +715,64 @@ def reflect(key):
             prompt_text=prompt["text"],
             response_text="" if skipped else text,
             skipped=skipped,
+            atlas_response=atlas_response,
+            atlas_source=atlas_source,
         )
     )
     db.session.commit()
     return jsonify({"ok": True, "skipped": skipped})
+
+
+@game_bp.route("/journal")
+@login_required
+def journal():
+    """The Journal: a READ-ONLY archive of the learner's own sealed reflections, one
+    slot per location that offers a reflection.
+
+    Purely presentational. It reads reflections and location metadata and writes
+    nothing: it never grades, unlocks, scores, or changes progression, and whether a
+    slot is filled has no bearing on any of those. Locations not yet reflected on
+    show as empty slots, so the set visibly fills as thoughts are sealed. N (the
+    denominator) is DERIVED from the prompt-bearing locations, never hardcoded."""
+    # One real (non-skipped) reflection per location; the reflect route dedups, but
+    # if any dup exists the most recent wins.
+    rows = (
+        Reflection.query
+        .filter_by(user_id=current_user.id, skipped=False)
+        .order_by(Reflection.created_at.asc())
+        .all()
+    )
+    by_loc = {r.location: r for r in rows}
+
+    entries = []
+    for key in LOCATION_ORDER:
+        prompt = REFLECTION_PROMPTS.get(key)
+        if not prompt:
+            continue  # only locations that actually offer a reflection are slots
+        loc = LOCATIONS[key]
+        r = by_loc.get(key)
+        source_label = None
+        if r is not None and r.atlas_source:
+            source_label = "Granite generated" if r.atlas_source == "granite" else "System generated"
+        entries.append({
+            "key": key,
+            "name": loc["name"],
+            "accent": loc["accent"],
+            "theme": loc.get("theme"),
+            "prompt": prompt["text"],
+            "sealed": r is not None,
+            "response_text": r.response_text if r is not None else None,
+            "sealed_at": r.created_at if r is not None else None,
+            "atlas_response": r.atlas_response if r is not None else None,
+            "atlas_source_label": source_label,
+        })
+
+    sealed_count = sum(1 for e in entries if e["sealed"])
+    total = len(entries)  # N derived from prompt-bearing locations
+
+    return render_template(
+        "game/journal.html",
+        entries=entries,
+        sealed_count=sealed_count,
+        total=total,
+    )

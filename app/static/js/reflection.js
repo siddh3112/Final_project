@@ -55,6 +55,21 @@
     } catch (e) {}
   }
 
+  // Reveal every hub exit once the learner has SEALED or SKIPPED. On a fresh pass
+  // the exits are rendered hidden server-side, so none is ever live before this —
+  // the learner must consciously seal or skip first. Also retire the "Back to
+  // summary" links, which only existed to keep the card reachable while gated.
+  function revealExits() {
+    ["cel-exit", "breakdown-exit", "topbar-exit"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.hidden = false;
+    });
+    ["topbar-back-summary", "back-summary-btn"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.hidden = true;
+    });
+  }
+
   function seal() {
     var text = (input.value || "").trim();
     if (!text) { skip(); return; }         // empty submit is treated as a skip
@@ -63,11 +78,13 @@
     input.disabled = true;
     if (!reduce) card.classList.add("reflect-sealed");
     if (doneEl) doneEl.hidden = false;
+    revealExits();
     chime();
   }
 
   function skip() {
     send(true);
+    revealExits();
     // Fade the whole card away — nothing blocks the return to the map.
     if (reduce) { card.hidden = true; return; }
     card.classList.add("reflect-dismiss");

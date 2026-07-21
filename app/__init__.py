@@ -178,6 +178,9 @@ def _ensure_sqlite_columns():
         "run_history": [("chronicle_score", "INTEGER NOT NULL DEFAULT 0")],
         # Which engine answered each Atlas hint: "granite" (LLM) or "rules".
         "npc_interactions": [("source", "VARCHAR(16)")],
+        # Professor Atlas's reply to a sealed reflection (shown read-only in the
+        # Journal) and which engine produced it: "granite" (LLM) or "rules" (authored).
+        "reflections": [("atlas_response", "TEXT"), ("atlas_source", "VARCHAR(16)")],
     }
     conn = db.session.connection()
 

@@ -415,7 +415,23 @@
     const tomeBtn = realBooks.find((b) => b.dataset.index == i);
     if (tomeBtn) tomeBtn.classList.add("studied");
     const card = document.querySelector('.flashcard[data-index="' + i + '"]');
-    if (card) card.classList.remove("locked");
+    if (card) {
+      card.classList.remove("locked");
+      // One-shot reveal spin so a NEWLY-earned card is noticed. Fires only here in
+      // completeBook (the celebratory earn path), never in restoreProgress, so an
+      // already-owned card never re-flips on reload. Under reduce-motion the card
+      // simply appears unlocked, with no spin (the class is not added).
+      if (!reduceMotion()) {
+        card.classList.add("just-earned");
+        const inner = card.querySelector(".flashcard-inner");
+        const clearSpin = function () {
+          card.classList.remove("just-earned");
+          if (inner) inner.removeEventListener("animationend", clearSpin);
+        };
+        if (inner) inner.addEventListener("animationend", clearSpin);
+        setTimeout(clearSpin, 1200);   // fail-safe if animationend does not fire
+      }
+    }
     if (readEl) readEl.textContent = completed.size;
     if (coreFill) coreFill.style.width = (completed.size / total) * 100 + "%";
     if (core) core.classList.add("charging");
